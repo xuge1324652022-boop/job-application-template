@@ -3,6 +3,7 @@
   "description": "英文效果 id 与原始源码路径是稳定溯源键；输出目录和源码副本使用中文名，本地导入由生成器按映射改写。",
   "effects": {
     "about-hero": "人物首屏与地球循环",
+    "about-scroll-narrative": "关于页滚动叙事",
     "about-scroll-reveal": "数据标记滚动揭示",
     "action-cursor": "局部动作文字光标",
     "card-about": "关于我卡扫描遮罩",
@@ -71,6 +72,10 @@
     "src/components/about/AboutExperience.vue": "项目源码/组件/人物与作品/人物经历.vue",
     "src/components/about/aboutExperienceAnimation.ts": "项目源码/组件/人物与作品/人物经历动画.ts",
     "src/components/about/AboutHero.vue": "项目源码/组件/人物与作品/人物首屏.vue",
+    "src/components/about/AboutMotionHero.vue": "项目源码/组件/人物与作品/人物动态首屏.vue",
+    "src/components/about/AboutScrollChapter.vue": "项目源码/组件/人物与作品/人物滚动章节.vue",
+    "src/components/about/AboutIdentityScene.vue": "项目源码/组件/人物与作品/人物身份场景.vue",
+    "src/components/about/AboutObservationRail.vue": "项目源码/组件/人物与作品/人物观察轨道.vue",
     "src/components/about/AboutSection.vue": "项目源码/组件/人物与作品/作品章节容器.vue",
     "src/components/about/AiWorkflow.vue": "项目源码/组件/人物与作品/智能创作流程.vue",
     "src/components/about/BeyondWork.vue": "项目源码/组件/人物与作品/工作之外.vue",

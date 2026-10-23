@@ -122,3 +122,6 @@ outputs/dev-preview-5174*.log
 # 从 Codex 迁出的 REA 工具和完整依赖，仅作本机项目归档
 逆向工程工具/
 参考资料/简历源文件/
+
+# mimosa 扫描插件的本地会话状态，不属于源码。
+.mimosa/
