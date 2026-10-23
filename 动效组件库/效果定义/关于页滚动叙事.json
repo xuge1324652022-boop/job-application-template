@@ -58,8 +58,8 @@
       {
         "name": "portrait-takeover",
         "description": "人物图固定在视口上部并等比缩放铺满视口；右侧简介、工具与图注同步淡出，铺满后叠加暗化蒙层并轻微回缩，基本信息与技能以更高层叠从暗化照片上滚入。",
-        "properties": ["imageMask.scale:1→coverScale", "imageMask.scale→coverScale×0.965", "dim.autoAlpha:0→0.62", "biography/tools/caption.autoAlpha:1→0", "fadeGroup.y:0→-24"],
-        "timing": "top 12% 固定，end 为视口高度的110%，scrub:0.5；缩放占时间线前72%，蒙层与回缩占后28%，简介淡出在前45%完成，cover 倍数按布局尺寸在 refresh 时重算。"
+        "properties": ["imageMask.scale:1→coverScale", "imageMask.scale→coverScale×0.965", "dim.autoAlpha:0→0.58", "biography/tools/caption.autoAlpha:1→0", "fadeGroup.y:0→-24"],
+        "timing": "top 12% 固定，end 为视口高度的150%，scrub:0.5；缩放占时间线前68%并用 power2.inOut 让起步平缓（单次滚轮只引起轻微增长），简介淡出在5%–55%线性完成，蒙层自55%渐入至结尾，回缩占后28%，cover 倍数按布局尺寸在 refresh 时重算。"
       },
       {
         "name": "observation-rail",

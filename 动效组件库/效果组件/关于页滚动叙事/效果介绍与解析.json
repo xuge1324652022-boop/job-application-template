@@ -106,11 +106,11 @@
         "properties": [
           "imageMask.scale:1→coverScale",
           "imageMask.scale→coverScale×0.965",
-          "dim.autoAlpha:0→0.62",
+          "dim.autoAlpha:0→0.58",
           "biography/tools/caption.autoAlpha:1→0",
           "fadeGroup.y:0→-24"
         ],
-        "timing": "top 12% 固定，end 为视口高度的110%，scrub:0.5；缩放占时间线前72%，蒙层与回缩占后28%，简介淡出在前45%完成，cover 倍数按布局尺寸在 refresh 时重算。"
+        "timing": "top 12% 固定，end 为视口高度的150%，scrub:0.5；缩放占时间线前68%并用 power2.inOut 让起步平缓（单次滚轮只引起轻微增长），简介淡出在5%–55%线性完成，蒙层自55%渐入至结尾，回缩占后28%，cover 倍数按布局尺寸在 refresh 时重算。"
       },
       {
         "name": "observation-rail",
@@ -289,10 +289,10 @@
       "original": "src/components/about/AboutIdentityScene.vue",
       "path": "源码/项目源码/组件/人物与作品/人物身份场景.vue",
       "role": "entry",
-      "originalSha256": "4f26a6a9cbb7e005f2a1cba736df071e4eebacf4637a4dd2e1e8e9819307249a",
-      "originalBytes": 17223,
-      "sha256": "82ba0660e029fce3b1f624e292cbbcc659bf9dcbf75de9068d4950b53557faf3",
-      "bytes": 17252
+      "originalSha256": "41bbb041f2211acf9834c57f4808886d9b23644c5482aa2732f11fb9735cc5f4",
+      "originalBytes": 17343,
+      "sha256": "a462be11f9eb521a5a512a1a597e874bfab6a3a389618cf86a4ac33852d6a937",
+      "bytes": 17372
     },
     {
       "original": "src/components/about/AboutMotionHero.vue",

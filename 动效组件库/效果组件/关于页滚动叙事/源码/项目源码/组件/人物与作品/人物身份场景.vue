@@ -123,15 +123,16 @@ onMounted(() => {
         }
         const fadeGroup = Array.from(root.value!.querySelectorAll<HTMLElement>(
           '.identity-scene__biography, .identity-scene__tools, .identity-scene__process-link, .identity-scene__portrait figcaption'))
+        // 起步放缓并拉长距离：单次滚轮只引起轻微增长，避免照片“突然”铺满视口。
         gsap.timeline({
           scrollTrigger: {
             id: 'about-portrait-takeover', trigger: portraitFigure.value, refreshPriority: 15,
-            start: 'top 12%', end: '+=110%', pin: true, anticipatePin: 1, scrub: .5, invalidateOnRefresh: true,
+            start: 'top 12%', end: '+=150%', pin: true, anticipatePin: 1, scrub: .5, invalidateOnRefresh: true,
           },
         })
-          .fromTo(imageMask.value!, { scale: 1 }, { scale: coverScale, duration: .72, ease: 'none' }, 0)
-          .fromTo(fadeGroup, { autoAlpha: 1, y: 0 }, { autoAlpha: 0, y: -24, duration: .45, ease: 'power1.out' }, 0)
-          .fromTo(dim, { autoAlpha: 0 }, { autoAlpha: .62, duration: .28, ease: 'none' }, .72)
+          .fromTo(imageMask.value!, { scale: 1 }, { scale: coverScale, duration: .68, ease: 'power2.inOut' }, 0)
+          .fromTo(fadeGroup, { autoAlpha: 1, y: 0 }, { autoAlpha: 0, y: -24, duration: .5, ease: 'none' }, .05)
+          .fromTo(dim, { autoAlpha: 0 }, { autoAlpha: .58, duration: .45, ease: 'none' }, .55)
           .to(imageMask.value!, { scale: () => coverScale() * .965, duration: .28, ease: 'power1.inOut' }, .72)
       }
     }, root.value)
