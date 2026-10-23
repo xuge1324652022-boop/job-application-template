@@ -298,10 +298,10 @@
       "original": "src/views/PosterView.vue",
       "path": "集成示例/项目源码/页面/海报作品页.vue",
       "role": "integration-context",
-      "originalSha256": "e1052539305fe3180a0a5282b621386da91b6a7fce09a3fcf5d55f1cc3e8b5b0",
-      "originalBytes": 12141,
-      "sha256": "6a050c446fab37dca3e2c52c2968a78c7ee5324424533be1d480be36dc8325d5",
-      "bytes": 12232
+      "originalSha256": "7284fedb709793f214a318fb1583ebb6feb6f76559d444bc8c0694b9b922e4dc",
+      "originalBytes": 12797,
+      "sha256": "8a9d9a909b755a6d49420ac5f2e878e4614f733572060de373257c298fe66107",
+      "bytes": 12891
     }
   ]
 }

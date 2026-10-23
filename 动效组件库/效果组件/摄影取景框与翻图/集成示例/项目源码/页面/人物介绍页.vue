@@ -1,6 +1,6 @@
 <template>
-  <!-- 滚动叙事与完整履历共用原有资料；各场景独立清理动画。 -->
-  <div class="about-page">
+  <!-- 滚动叙事与完整履历共用原有资料；各场景独立清理动画。首屏以下区块延迟挂载。 -->
+  <div class="about-page" @click="onAnchorClick">
     <AboutMotionHero :active="heroActive" />
     <AboutScrollChapter name="identity" heading="WHO I AM" :label="{ zh: '关于我', en: 'A little about me' }"
       :lines="{ zh: ['把想法做成影像', '让内容被看见'], en: ['From ideas to images.', 'Making content seen.'] }" />
@@ -8,13 +8,13 @@
       <AboutIdentityScene v-model:active-tool="activeTool" :lang="lang" :active="heroActive" />
       <div class="about-reading">
         <p class="about-section-word" lang="en">IN PRACTICE.</p>
-        <ExperienceTimeline :lang="lang" />
+        <LazySection min-height="190vh" :eager="eagerAll"><ExperienceTimeline :lang="lang" /></LazySection>
       </div>
       <AboutScrollChapter name="process" heading="HOW I WORK" size="12.2vw" :label="ABOUT_DIVIDERS.process.label"
         :lines="{ zh: ['工具参与过程', '判断留在自己手里'], en: ['Tools support the process.', 'Judgment stays with me.'] }" />
-      <div class="about-reading about-process"><AiWorkflow v-model:active-tool="activeTool" :lang="lang" /></div>
-      <AboutObservationRail :lang="lang" @open="onOpenVisual" />
-      <ContactEnd :lang="lang" />
+      <div class="about-reading about-process"><LazySection min-height="150vh" :eager="eagerAll"><AiWorkflow v-model:active-tool="activeTool" :lang="lang" /></LazySection></div>
+      <LazySection min-height="110vh" :eager="eagerAll"><AboutObservationRail :lang="lang" @open="onOpenVisual" /></LazySection>
+      <LazySection min-height="95vh" :eager="eagerAll"><ContactEnd :lang="lang" /></LazySection>
     </main>
     <VisualViewer v-if="viewerItem" :item="viewerItem" :lang="lang" @close="closeViewer" />
   </div>
@@ -24,17 +24,21 @@
 /**
  * /about 人物专题入口：事实内容来自 data，版式与动效分别封装在 about 子组件中。
  * 本页只协调转场放行、头像与工作流共享的 AI 工具选择，以及统一图片查看器。
+ * 首屏以下的重区块经 LazySection 提前一屏加载：锚点跳转（含刷新带 hash 进入）
+ * 会立即转急载并在挂载后定位，正常浏览仍按需加载。
  */
-import { computed, onBeforeUnmount, provide, ref } from 'vue'
+import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 import { referenceIntroductionGate } from '../组件/引导文字状态'
 import AboutMotionHero from '../组件/人物与作品/人物动态首屏.vue'
 import AboutScrollChapter from '../组件/人物与作品/人物滚动章节.vue'
 import AboutIdentityScene from '../组件/人物与作品/人物身份场景.vue'
-import AboutObservationRail from '../组件/人物与作品/人物观察轨道.vue'
-import ExperienceTimeline from '../组件/人物与作品/经历时间线.vue'
-import AiWorkflow from '../组件/人物与作品/智能创作流程.vue'
-import ContactEnd from '../组件/人物与作品/结尾联系球.vue'
-import VisualViewer from '../组件/人物与作品/完整作品查看器.vue'
+import LazySection from '../组件/延迟挂载区块.vue'
+// 首屏以下重区块拆成独立 chunk，随 LazySection 按需加载；查看器打开时才加载。
+const ExperienceTimeline = defineAsyncComponent(() => import('../组件/人物与作品/经历时间线.vue'))
+const AiWorkflow = defineAsyncComponent(() => import('../组件/人物与作品/智能创作流程.vue'))
+const AboutObservationRail = defineAsyncComponent(() => import('../组件/人物与作品/人物观察轨道.vue'))
+const ContactEnd = defineAsyncComponent(() => import('../组件/人物与作品/结尾联系球.vue'))
+const VisualViewer = defineAsyncComponent(() => import('../组件/人物与作品/完整作品查看器.vue'))
 import { WORKS, assertParity } from '../数据/人物资料'
 import { ABOUT_DIVIDERS } from '../数据/人物页分隔资料'
 import { assertVisuals, type VisualAsset } from '../数据/视觉作品资料'
@@ -49,13 +53,44 @@ if (import.meta.env.DEV) {
 }
 // 查看器保存触发元素以便关闭后恢复焦点；路由卸载必须同步 reset，避免回滚新页面位置。
 const { active: viewerItem, open: openViewer, close: closeViewer, reset: resetViewer } = useVisualViewer()
-function onOpenVisual(item: VisualAsset, trigger: HTMLElement) { openViewer(item, trigger) }
+function onOpenVisual(item: VisualAsset, trigger: HTMLElement): void { openViewer(item, trigger) }
 onBeforeUnmount(resetViewer)
 markSubpageVisit(ABOUT_PAGE_ID)
 // blocked 在全局幕布开始揭开时解除；不等幕布彻底离场，首屏文字才能接上转场节奏。
 const heroActive = computed(() => !routeCurtainBlocked.value && !jumpTarget.value && !overlayActive.value && !isTransitioning.value)
 provide(referenceIntroductionGate, heroActive)
 const activeTool = ref('kimi')
+
+// 首屏以下区块默认按需加载；点页内锚点或带 hash 进入时全部转急载，再定位到目标。
+const eagerAll = ref(false)
+async function scrollToAnchorWhenReady(id: string): Promise<void> {
+  for (let attempt = 0; attempt < 120; attempt++) {
+    const element = document.getElementById(id)
+    if (element) {
+      element.scrollIntoView({ behavior: 'instant' as ScrollBehavior })
+      return
+    }
+    await new Promise(requestAnimationFrame)
+  }
+}
+function onAnchorClick(event: MouseEvent): void {
+  const anchor = (event.target as HTMLElement | null)?.closest?.('a[href^="#"]')
+  const id = anchor?.getAttribute('href')?.slice(1)
+  if (!id) return
+  event.preventDefault()
+  eagerAll.value = true
+  void scrollToAnchorWhenReady(id)
+}
+onMounted(() => {
+  const id = decodeURIComponent(window.location.hash.slice(1))
+  if (!id) return
+  eagerAll.value = true
+  const stop = watch(heroActive, active => {
+    if (!active) return
+    stop()
+    void scrollToAnchorWhenReady(id)
+  }, { immediate: true })
+})
 </script>
 
 <style scoped>

@@ -19,8 +19,10 @@
       <h2 id="military-title">{{ lang === 'zh' ? '几何海报，版式示例' : 'Geometric posters. Layout examples' }}</h2>
       <ReferenceIntroduction :text="MILITARY_INTRO" :label="MILITARY_LABEL" variant="section" />
     </section>
-    <PosterPalette :items="posterSeries" :lang="lang" @open="onOpenSeries" />
-    <PosterColourChapters :items="posterSeries" :lang="lang" @open="onOpenSeries" />
+    <!-- 调色板与色彩章节在首屏以下：经 LazySection 提前一屏加载，EditorialPair 依赖
+         页面挂载时建立的 morph 固定舞台，必须保持同步加载。 -->
+    <LazySection min-height="130vh"><PosterPalette :items="posterSeries" :lang="lang" @open="onOpenSeries" /></LazySection>
+    <LazySection min-height="200vh"><PosterColourChapters :items="posterSeries" :lang="lang" @open="onOpenSeries" /></LazySection>
     <div class="pp__body">
       <!-- ==================== 03 编辑设计 ==================== -->
       <AboutSection
@@ -47,7 +49,7 @@
     </div>
 
     <!-- ==================== 结尾 ==================== -->
-    <WorkContinuation next="photo" />
+    <LazySection min-height="80vh"><WorkContinuation next="photo" /></LazySection>
 
     <VisualViewer
       v-if="viewerItem"
@@ -67,19 +69,21 @@
  * /poster 组织实习产品版面、军事个人练习与编辑设计，三类作品保持各自来源。
  * 本页负责标题与看图集合；叠层、空间切换和章节动画由对应子组件持有。
  */
-import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 
 import gsap from 'gsap'
-import WorkContinuation from '../组件/作品续读导航.vue'
 import ReferenceIntroduction from '../组件/引导文字揭示.vue'
 import { referenceIntroductionGate, referenceIntroductionPace } from '../组件/引导文字状态'
 import AboutSection from '../组件/人物与作品/作品章节容器.vue'
-import PosterPalette from '../组件/人物与作品/海报色带.vue'
-import PosterColourChapters from '../组件/人物与作品/海报色彩章节.vue'
+import LazySection from '../组件/延迟挂载区块.vue'
 import InternshipPosterStack from '../组件/人物与作品/实习海报叠层.vue'
 import InternshipPosterGallery from '../组件/人物与作品/实习海报画廊.vue'
 import EditorialPair from '../组件/人物与作品/摄影编辑对照.vue'
-import VisualViewer from '../组件/人物与作品/完整作品查看器.vue'
+// 首屏以下的重画廊与结尾拆成独立 chunk 随 LazySection 按需加载；查看器打开时才加载。
+const PosterPalette = defineAsyncComponent(() => import('../组件/人物与作品/海报色带.vue'))
+const PosterColourChapters = defineAsyncComponent(() => import('../组件/人物与作品/海报色彩章节.vue'))
+const WorkContinuation = defineAsyncComponent(() => import('../组件/作品续读导航.vue'))
+const VisualViewer = defineAsyncComponent(() => import('../组件/人物与作品/完整作品查看器.vue'))
 import { pick, WORKS } from '../数据/人物资料'
 import { subpageLanguage as lang } from '../组合函数/子页语言状态'
 import {

@@ -109,6 +109,7 @@
     "src/components/CardVisual.vue": "项目源码/组件/卡片视觉.vue",
     "src/components/color/ColorWave.vue": "项目源码/组件/调色/调色波形.vue",
     "src/components/CustomCursor.vue": "项目源码/组件/自定义光标.vue",
+    "src/components/LazySection.vue": "项目源码/组件/延迟挂载区块.vue",
     "src/components/PageCurtain.vue": "项目源码/组件/页面幕布.vue",
     "src/components/PageLoader.vue": "项目源码/组件/旧页面加载幕.vue",
     "src/components/Preloader.vue": "项目源码/组件/开场预加载幕.vue",

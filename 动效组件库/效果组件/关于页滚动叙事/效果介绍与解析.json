@@ -147,6 +147,7 @@
   "integration": {
     "steps": [
       "在AboutView式页面按首屏、身份章节、个人介绍、经历、过程章节、工作流、工作之外、联系的叙事顺序组合组件。",
+      "首屏以下的重区块（经历、工作流、观察轨道、联系）用LazySection包裹并配minHeight占位：进入视口前一屏才加载异步chunk，锚点点击或带hash进入时转急载并在挂载后定位。",
       "将路由揭幕与覆盖层状态派生为active，传给首屏及个人介绍；以v-model:active-tool把个人介绍工具和原有工作流同步。",
       "向AboutScrollChapter提供稳定name、英文heading、双语label与双语lines，并保留互补标题行和独立正文节点。",
       "监听AboutObservationRail的open(item,trigger)事件，接入页面既有VisualViewer；保留from查询参数的摄影与海报续读链接。",
@@ -397,10 +398,10 @@
       "original": "src/views/AboutView.vue",
       "path": "集成示例/项目源码/页面/人物介绍页.vue",
       "role": "integration-context",
-      "originalSha256": "7a583ed448a1cc6ef86bf5f7b9f4ac2c4a38efdc84fb27b2817ef01f2c06af50",
-      "originalBytes": 4928,
-      "sha256": "f25bec650ff88ce3c0c57779d2a8c3cc696084013a8e1ac8a33695c318c751f2",
-      "bytes": 5025
+      "originalSha256": "d032ede6ee37ee37b4845fafc599cc65abc87a5ad3269584581719f457f375e7",
+      "originalBytes": 6823,
+      "sha256": "cc7eb5f9dbb6454c8efbf8c2188fc2ab2fbef6da5686900e366a9703fe9610b2",
+      "bytes": 6923
     }
   ]
 }
