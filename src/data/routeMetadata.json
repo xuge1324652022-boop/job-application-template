@@ -18,7 +18,8 @@
       "description": {
         "zh": "虚构求职模板演示：示例求职者的求职作品集：了解个人经历，浏览视频剪辑、影像调色、新闻影像、海报设计与摄影作品。",
         "en": "Fictional portfolio template demo. Explore Example Candidate's experience and selected film editing, colour grading, news, poster design and photography work."
-      }
+      },
+      "entry": "src/views/GalleryView.vue"
     },
     {
       "path": "/cards",
@@ -29,7 +30,8 @@
       "description": {
         "zh": "虚构求职模板演示：从六个作品章节进入示例求职者的个人介绍、视频剪辑、影像调色、新闻影像、海报与摄影作品。",
         "en": "Fictional portfolio template demo. Browse six portfolio chapters: about, film editing, colour grading, news, posters and photography."
-      }
+      },
+      "entry": "src/views/CardListView.vue"
     },
     {
       "path": "/about",
@@ -40,7 +42,8 @@
       "description": {
         "zh": "虚构求职模板演示：了解示例求职者的学习与实习经历、创作技能、AI 辅助工作流、求职简历和公开联系方式。",
         "en": "Fictional portfolio template demo. Read Example Candidate's education, internship experience, creative skills, AI-assisted workflow, résumé and contact details."
-      }
+      },
+      "entry": "src/views/AboutView.vue"
     },
     {
       "path": "/edit",
@@ -51,7 +54,8 @@
       "description": {
         "zh": "虚构求职模板演示：示例求职者的视频剪辑作品章节，从素材选择、节奏组织与声音设计认识影像叙事方法。",
         "en": "Fictional portfolio template demo. Explore film editing through shot selection, pacing, sound design and visual storytelling."
-      }
+      },
+      "entry": "src/views/EditView.vue"
     },
     {
       "path": "/color",
@@ -62,7 +66,8 @@
       "description": {
         "zh": "虚构求职模板演示：浏览示例求职者的影像调色成片与轻量预览，了解色彩、对比度与影调如何服务画面情绪。",
         "en": "Fictional portfolio template demo. View colour grading films and previews, exploring how colour, contrast and tone shape a scene's mood."
-      }
+      },
+      "entry": "src/views/ColorView.vue"
     },
     {
       "path": "/news",
@@ -73,7 +78,8 @@
       "description": {
         "zh": "虚构求职模板演示：示例求职者的新闻影像作品章节，关注现场记录、信息组织与真实故事的影像表达。",
         "en": "Fictional portfolio template demo. Explore news and documentary storytelling through field recording, information structure and visual expression."
-      }
+      },
+      "entry": "src/views/NewsView.vue"
     },
     {
       "path": "/poster",
@@ -84,7 +90,8 @@
       "description": {
         "zh": "虚构求职模板演示：浏览示例求职者的实习海报、个人版面与设计练习，了解图像、文字和空间的编排。",
         "en": "Fictional portfolio template demo. Browse internship posters, personal layouts and design studies in image, typography and composition."
-      }
+      },
+      "entry": "src/views/PosterView.vue"
     },
     {
       "path": "/photo",
@@ -95,7 +102,8 @@
       "description": {
         "zh": "虚构求职模板演示：示例求职者的摄影作品与精选图集，以色彩、光线和日常观察串联不同影像章节。",
         "en": "Fictional portfolio template demo. Explore selected photography and collections connected by colour, light and everyday observation."
-      }
+      },
+      "entry": "src/views/PhotoView.vue"
     }
   ],
   "legacyPaths": {

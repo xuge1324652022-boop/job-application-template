@@ -58,6 +58,41 @@ export function cloudflareRedirects() {
   return `${lines.join('\n')}\n`
 }
 
+/** 站点地图只登记八个正式路由；404 与 legacy 重定向不进 sitemap。输出保持确定性，不带时间戳。 */
+export function sitemapFor(origin = siteOrigin()) {
+  const urls = routeMetadata.routes.map(route => `  <url><loc>${escape(new URL(route.path, origin).href)}</loc></url>`)
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`
+}
+
+export function robotsFor(origin = siteOrigin()) {
+  return `User-agent: *\nAllow: /\n\nSitemap: ${origin}/sitemap.xml\n`
+}
+
+/**
+ * 每条路由的视图 chunk 与其样式：直接访问子页时与入口并行预载，
+ * 省掉「入口执行完才发现路由代码」的第二个往返。匹配依据是 chunk 的
+ * facadeModuleId 与 routeMetadata 登记的 entry 源文件路径。
+ */
+function routePreloads(bundle) {
+  const byPath = new Map()
+  const cssByStem = new Map()
+  for (const [fileName, file] of Object.entries(bundle)) {
+    if (file.type !== 'asset' || !/\.css$/u.test(fileName)) continue
+    const stem = fileName.split('/').pop()?.replace(/-[A-Za-z0-9_-]+\.css$/u, '')
+    if (stem) cssByStem.set(stem, fileName)
+  }
+  for (const file of Object.values(bundle)) {
+    if (file.type !== 'chunk' || !file.isDynamicEntry || !file.facadeModuleId) continue
+    const moduleId = file.facadeModuleId.replace(/\\/gu, '/')
+    const route = routeMetadata.routes.find(page => page.entry && moduleId.endsWith(page.entry))
+    if (!route || byPath.has(route.path)) continue
+    const metadataCss = file.viteMetadata?.importedCss
+    const css = metadataCss instanceof Set ? [...metadataCss] : [cssByStem.get(file.name)].filter(Boolean)
+    byPath.set(route.path, { js: file.fileName, css })
+  }
+  return byPath
+}
+
 /** Vite 8 的 generateBundle 后置钩子复制已编译的 HTML，不增加第二套 JS 入口。 */
 export function routePages() {
   let config
@@ -109,10 +144,24 @@ export function routePages() {
       const index = bundle['index.html']
       if (!index || index.type !== 'asset') throw new Error('构建没有输出 index.html')
       const html = String(index.source)
+      const preloads = routePreloads(bundle)
+      const withRoutePreload = (source, path) => {
+        const entry = preloads.get(path)
+        if (!entry) return source
+        const links = [
+          `<link rel="modulepreload" crossorigin href="/${entry.js}">`,
+          ...entry.css.map(css => `<link rel="stylesheet" crossorigin href="/${css}">`),
+        ]
+        return source.replace('</head>', `    ${links.join('\n    ')}\n  </head>`)
+      }
+      // 首页入口也受益：把 GalleryView 的预载写回 index.html 本体。
+      index.source = withRoutePreload(html, '/')
       for (const page of routeMetadata.routes) {
-        if (page.path !== '/') this.emitFile({ type: 'asset', fileName: pageFileFor(page.path), source: renderRouteHtml(html, page.path) })
+        if (page.path !== '/') this.emitFile({ type: 'asset', fileName: pageFileFor(page.path), source: withRoutePreload(renderRouteHtml(html, page.path), page.path) })
       }
       this.emitFile({ type: 'asset', fileName: 'not-found.html', source: renderRouteHtml(html, '/__not-found__') })
+      this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: sitemapFor() })
+      this.emitFile({ type: 'asset', fileName: 'robots.txt', source: robotsFor() })
     } },
     configureServer(server) { server.middlewares.use(middleware(server, false)) },
     configurePreviewServer(server) { server.middlewares.use(middleware(server, true)) },

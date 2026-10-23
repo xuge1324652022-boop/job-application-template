@@ -1,7 +1,7 @@
 /** 无浏览器的页面交付回归；--dist 同时核对实际构建产物。 */
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
-import { cloudflareRedirects, normalizeRoutePath, pageFileFor, renderRouteHtml, routeMetadata, siteOrigin } from './route-pages.mjs'
+import { cloudflareRedirects, normalizeRoutePath, pageFileFor, renderRouteHtml, robotsFor, routeMetadata, sitemapFor, siteOrigin } from './route-pages.mjs'
 import worker from '../deploy/media-range.mjs'
 
 const template = await readFile(new URL('../index.html', import.meta.url), 'utf8')
@@ -41,6 +41,18 @@ const notFound = renderRouteHtml(template, '/bad-link', 'https://example.test')
 assert(notFound.includes('noindex, follow'))
 assert(!notFound.includes('rel="canonical"'))
 assert(!notFound.includes('property="og:url"'))
+
+// 站点地图与 robots：只登记正式路由，legacy 重定向不出现，输出确定性可比对。
+const sitemap = sitemapFor('https://example.test')
+assert.equal(sitemap, sitemapFor('https://example.test'))
+for (const page of routeMetadata.routes) {
+  assert(sitemap.includes(`<loc>https://example.test${page.path === '/' ? '/' : page.path}</loc>`), page.path)
+}
+assert(!sitemap.includes('/card/'))
+assert.equal((sitemap.match(/<url>/gu) || []).length, routeMetadata.routes.length)
+const robots = robotsFor('https://example.test')
+assert(robots.includes('User-agent: *\nAllow: /\n'))
+assert(robots.includes('Sitemap: https://example.test/sitemap.xml'))
 
 // 验证真正的生产 Worker：错误页面是404且不重定向；静态资源仍真实委托。
 for (const method of ['GET', 'HEAD']) {
@@ -93,7 +105,20 @@ if (process.argv.includes('--dist')) {
     return source.match(/<script[^>]+type="module"[^>]+src="([^"]+)"/u)?.[1]
   }))
   assert.equal(new Set(entries).size, 1)
-  console.log(`PASS: ${routeMetadata.routes.length} 个实际路由HTML、分享head/JPEG、共用JS入口、独立404`)
+  // 直接访问任一路由都并行预载该路由的视图 chunk 及其样式，避免先入口后路由的额外往返。
+  for (const page of routeMetadata.routes) {
+    const source = await readFile(new URL(pageFileFor(page.path), root), 'utf8')
+    const preloads = [...source.matchAll(/<link rel="(modulepreload|stylesheet)" crossorigin href="([^"]+)"/gu)]
+    const module = preloads.filter(([, rel]) => rel === 'modulepreload').map(([, , href]) => href)
+    assert.equal(module.length, 1, `${page.path} 必须恰好预载一个视图 chunk`)
+    for (const [, , href] of preloads) {
+      assert(await readFile(new URL(href.slice(1), root), 'utf8').then(() => true, () => false), `${page.path} 预载的 ${href} 必须存在于产物`)
+    }
+  }
+  // 站点地图与 robots 随构建输出，内容与共享元数据一致。
+  assert.equal(await readFile(new URL('sitemap.xml', root), 'utf8'), sitemapFor())
+  assert.equal(await readFile(new URL('robots.txt', root), 'utf8'), robotsFor())
+  console.log(`PASS: ${routeMetadata.routes.length} 个实际路由HTML、视图预载、分享head/JPEG、共用JS入口、sitemap/robots、独立404`)
 } else {
   console.log(`PASS: ${titles.size} 个独立head、规范域名验证、共享路由规则、Worker GET/HEAD真实404与静态委托`)
 }
