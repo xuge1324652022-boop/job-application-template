@@ -3,6 +3,9 @@
  * 不对应仓库作者或任何真实求职者；使用前应自行填写并核对发布范围。
  * 保留双语、稳定作品 ID 与数组结构，供现有展示及动效组件演示。
  */
+import { personalPortfolio } from './personalPortfolio'
+
+const personal = personalPortfolio?.profile
 export type Lang = 'zh' | 'en'
 
 export interface Bi {
@@ -14,20 +17,22 @@ export interface Bi {
 export const withoutFinalStop = (value: string): string => value.replace(/[。．.]+(?=\s*$)/u, '')
 export const pick = (v: Bi, lang: Lang): string => withoutFinalStop(v[lang])
 
-export const IDENTITY = {
-  nameZh: '示例求职者',
-  nameEn: 'Example Candidate',
-  initials: 'EC',
-  en: { title: 'Meet the Example Candidate', short: 'Example' },
-  zh: { title: '关于这位示例求职者' },
-} as const
+export const IDENTITY =
+  personal?.IDENTITY ??
+  ({
+    nameZh: '示例求职者',
+    nameEn: 'Example Candidate',
+    initials: 'EC',
+    en: { title: 'Meet the Example Candidate', short: 'Example' },
+    zh: { title: '关于这位示例求职者' },
+  } as const)
 
-export const TAGLINE: Bi = {
+export const TAGLINE: Bi = personal?.TAGLINE ?? {
   zh: '模板示例：把想法整理为清晰的表达。',
   en: 'Template example: turn ideas into clear communication.',
 }
 
-export const ROLE_LINE: Bi = {
+export const ROLE_LINE: Bi = personal?.ROLE_LINE ?? {
   zh: '模板示例 · 内容策划 · 视觉表达',
   en: 'Template example · Content planning · Visual communication',
 }
@@ -37,7 +42,7 @@ interface FactRow {
   v: Bi
 }
 
-export const FACTS: readonly FactRow[] = [
+export const FACTS: readonly FactRow[] = personal?.FACTS ?? [
   {
     k: { zh: '意向岗位', en: 'Target role' },
     v: { zh: '模板示例 · 请填写目标岗位', en: 'Template example · Add a target role' },
@@ -70,34 +75,35 @@ export const FACTS: readonly FactRow[] = [
   },
 ]
 
-export const RESUME_SKILLS: readonly { id: string; title: Bi; body: Bi }[] = [
-  {
-    id: 'pre-production',
-    title: { zh: '策划示例', en: 'Planning example' },
-    body: {
-      zh: '模板示例：需求梳理、资料组织、脚本草拟与任务协作。请替换为自己的技能。',
-      en: 'Template example: organise requirements, research, draft scripts and coordinate tasks. Replace with your own skills.',
+export const RESUME_SKILLS: readonly { id: string; title: Bi; body: Bi }[] =
+  personal?.RESUME_SKILLS ?? [
+    {
+      id: 'pre-production',
+      title: { zh: '策划示例', en: 'Planning example' },
+      body: {
+        zh: '模板示例：需求梳理、资料组织、脚本草拟与任务协作。请替换为自己的技能。',
+        en: 'Template example: organise requirements, research, draft scripts and coordinate tasks. Replace with your own skills.',
+      },
     },
-  },
-  {
-    id: 'post-production',
-    title: { zh: '制作与协作示例', en: 'Production and collaboration example' },
-    body: {
-      zh: '模板示例：文字排版、图像处理、视频剪辑与文件协作。此处不代表真实熟练度。',
-      en: 'Template example: typography, image editing, video editing and file collaboration. No real proficiency is claimed.',
+    {
+      id: 'post-production',
+      title: { zh: '制作与协作示例', en: 'Production and collaboration example' },
+      body: {
+        zh: '模板示例：文字排版、图像处理、视频剪辑与文件协作。此处不代表真实熟练度。',
+        en: 'Template example: typography, image editing, video editing and file collaboration. No real proficiency is claimed.',
+      },
     },
-  },
-  {
-    id: 'ai-software',
-    title: { zh: '辅助工具示例', en: 'Assisted tooling example' },
-    body: {
-      zh: '模板示例：使用合适的辅助工具探索方案，并人工检查最终交付。',
-      en: 'Template example: explore alternatives with suitable tools and review the final deliverable manually.',
+    {
+      id: 'ai-software',
+      title: { zh: '辅助工具示例', en: 'Assisted tooling example' },
+      body: {
+        zh: '模板示例：使用合适的辅助工具探索方案，并人工检查最终交付。',
+        en: 'Template example: explore alternatives with suitable tools and review the final deliverable manually.',
+      },
     },
-  },
-]
+  ]
 
-export const PROFILE_LINES: readonly Bi[] = [
+export const PROFILE_LINES: readonly Bi[] = personal?.PROFILE_LINES ?? [
   {
     zh: '我是示例求职者。这是用于演示求职网站布局与动效的虚构个人简介，院校、经历和成果均为模板占位资料，不对应真实人物。',
     en: 'I am Example Candidate. This fictional profile demonstrates the job application template and its animations. Its education, experience and results do not describe a real person.',
@@ -111,7 +117,7 @@ export interface Capability {
   workId: string
 }
 
-export const CAPABILITIES: readonly Capability[] = [
+export const CAPABILITIES: readonly Capability[] = personal?.CAPABILITIES ?? [
   {
     id: 'script-storyboard',
     title: { zh: '策划示例', en: 'Planning example' },
@@ -155,7 +161,7 @@ interface ChatPair {
   a: Bi
 }
 
-export const CHAT: readonly ChatPair[] = [
+export const CHAT: readonly ChatPair[] = personal?.CHAT ?? [
   {
     q: { zh: '这个人物是真实的吗？', en: 'Is this a real person?' },
     a: {
@@ -195,7 +201,7 @@ export interface Work {
   summary: Bi
 }
 
-export const WORKS: readonly Work[] = [
+export const WORKS: readonly Work[] = personal?.WORKS ?? [
   {
     id: 'overseas-social',
     index: '01',
@@ -484,18 +490,22 @@ const EXPERIENCE_DETAILS: readonly Omit<Experience, 'points'>[] = [
   },
 ]
 
-export const EXPERIENCE: readonly Experience[] = EXPERIENCE_DETAILS.map((experience) => ({
-  ...experience,
-  points: experience.details.map((detail) => detail.body),
-}))
+export const EXPERIENCE: readonly Experience[] =
+  personal?.EXPERIENCE ??
+  EXPERIENCE_DETAILS.map((experience) => ({
+    ...experience,
+    points: experience.details.map((detail) => detail.body),
+  }))
 
 /** example.com 为保留示例域名；请勿在模板中填写发布者的私人联系方式。 */
-export const CONTACT = {
-  email: 'candidate@example.com',
-  gmail: 'hello@example.com',
-  resume: '/resume.pdf',
-  portfolio: 'https://example.com/portfolio',
-} as const
+export const CONTACT =
+  personal?.CONTACT ??
+  ({
+    email: 'candidate@example.com',
+    gmail: 'hello@example.com',
+    resume: '/resume.pdf',
+    portfolio: 'https://example.com/portfolio',
+  } as const)
 
 /** 开发期校验双语完整性及展示结构，不读取任何个人简历。 */
 export function assertParity(): void {

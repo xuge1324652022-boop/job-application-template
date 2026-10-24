@@ -3,27 +3,100 @@ import { readFileSync } from 'node:fs'
 import { readFile, stat } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 
-export const routeMetadata = JSON.parse(readFileSync(new URL('../src/data/routeMetadata.json', import.meta.url), 'utf8'))
-const siteConfig = JSON.parse(readFileSync(new URL('../deploy/site-config.json', import.meta.url), 'utf8'))
-export const pageFileFor = path => path === '/' ? 'index.html' : `${path.slice(1)}/index.html`
+export const routeMetadata = JSON.parse(
+  readFileSync(new URL('../src/data/routeMetadata.json', import.meta.url), 'utf8'),
+)
+const siteConfig = JSON.parse(
+  readFileSync(new URL('../deploy/site-config.json', import.meta.url), 'utf8'),
+)
+export const pageFileFor = (path) => (path === '/' ? 'index.html' : `${path.slice(1)}/index.html`)
 export function normalizeRoutePath(path) {
   const normalized = path === '/' ? '/' : path.replace(/\/$/u, '')
   // 只识别实际输出的八个 HTML 入口，未知目录下的 index.html 仍是坏链。
-  return routeMetadata.routes.find(route => normalized === `/${pageFileFor(route.path)}`)?.path ?? normalized
+  return (
+    routeMetadata.routes.find((route) => normalized === `/${pageFileFor(route.path)}`)?.path ??
+    normalized
+  )
 }
 
 export function siteOrigin(value = process.env.SITE_ORIGIN || siteConfig.siteOrigin) {
   const url = new URL(value)
-  if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password || url.pathname !== '/' || url.search || url.hash) {
+  if (
+    !['https:', 'http:'].includes(url.protocol) ||
+    url.username ||
+    url.password ||
+    url.pathname !== '/' ||
+    url.search ||
+    url.hash
+  ) {
     throw new Error('SITE_ORIGIN 必须是无路径、参数与凭据的 HTTP(S) 网站根网址')
   }
   return url.origin
 }
 
-const escape = value => String(value).replace(/[&<>"']/gu, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character])
+const escape = (value) =>
+  String(value).replace(
+    /[&<>"']/gu,
+    (character) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character],
+  )
+/** Read only the inert JSON already injected into this HTML; never open a local pack here. */
+function personalAboutHead(html, original) {
+  for (const script of html.matchAll(
+    /<script\b((?:[^"'<>]|"[^"]*"|'[^']*')*)>([\s\S]*?)<\/script\s*>/giu,
+  )) {
+    const attributes = new Map()
+    for (const attribute of script[1].matchAll(
+      /(?:^|\s)([^\s=/>]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/gu,
+    )) {
+      const name = attribute[1].toLowerCase()
+      if (!attributes.has(name)) attributes.set(name, attribute[2] ?? attribute[3] ?? attribute[4])
+    }
+    if (attributes.get('id') !== 'personal-portfolio') continue
+    if (attributes.get('type')?.trim().toLowerCase() !== 'application/json') return null
+    try {
+      const profile = JSON.parse(script[2])?.profile
+      const identity = profile?.IDENTITY
+      const lines = Array.isArray(profile?.PROFILE_LINES)
+        ? profile.PROFILE_LINES.filter(
+            (line) =>
+              typeof line?.zh === 'string' &&
+              line.zh.trim() &&
+              typeof line?.en === 'string' &&
+              line.en.trim(),
+          )
+        : []
+      if (
+        typeof identity?.nameZh !== 'string' ||
+        !identity.nameZh.trim() ||
+        typeof identity?.nameEn !== 'string' ||
+        !identity.nameEn.trim() ||
+        !lines.length
+      )
+        return null
+      return {
+        title: {
+          zh: original.title.zh.replaceAll('示例求职者', identity.nameZh),
+          en: original.title.en.replaceAll('Example Candidate', identity.nameEn),
+        },
+        description: {
+          zh: lines.map((line) => line.zh).join(' '),
+          en: lines.map((line) => line.en).join(' '),
+        },
+        siteName: { zh: `${identity.nameZh}的作品集`, en: `${identity.nameEn} · Portfolio` },
+      }
+    } catch {
+      return null
+    }
+  }
+  return null
+}
+
 export function renderRouteHtml(html, path, origin = siteOrigin()) {
-  const page = routeMetadata.routes.find(route => route.path === normalizeRoutePath(path))
-  const content = page ?? routeMetadata.notFound
+  const page = routeMetadata.routes.find((route) => route.path === normalizeRoutePath(path))
+  const original = page ?? routeMetadata.notFound
+  const personal = page?.path === '/about' ? personalAboutHead(html, original) : null
+  const content = personal ?? original
   const image = new URL(routeMetadata.image, origin).href
   const entries = [
     `<title>${escape(content.title.zh)}</title>`,
@@ -31,7 +104,7 @@ export function renderRouteHtml(html, path, origin = siteOrigin()) {
     `<meta name="robots" content="${page ? 'index, follow' : 'noindex, follow'}" />`,
     `<meta property="og:type" content="website" />`,
     `<meta property="og:locale" content="zh_CN" />`,
-    `<meta property="og:site_name" content="${escape(routeMetadata.siteName.zh)}" />`,
+    `<meta property="og:site_name" content="${escape(personal?.siteName.zh ?? routeMetadata.siteName.zh)}" />`,
     `<meta property="og:title" content="${escape(content.title.zh)}" />`,
     `<meta property="og:description" content="${escape(content.description.zh)}" />`,
     `<meta property="og:image" content="${escape(image)}" />`,
@@ -43,24 +116,33 @@ export function renderRouteHtml(html, path, origin = siteOrigin()) {
   ]
   if (page) {
     const canonical = new URL(page.path, origin).href
-    entries.push(`<link rel="canonical" href="${escape(canonical)}" />`, `<meta property="og:url" content="${escape(canonical)}" />`)
+    entries.push(
+      `<link rel="canonical" href="${escape(canonical)}" />`,
+      `<meta property="og:url" content="${escape(canonical)}" />`,
+    )
   }
   const head = `<!-- route-head:start -->\n    ${entries.join('\n    ')}\n    <!-- route-head:end -->`
-  if (!/<!-- route-head:start -->[\s\S]*?<!-- route-head:end -->/u.test(html)) throw new Error('index.html 缺少 route-head 标记')
+  if (!/<!-- route-head:start -->[\s\S]*?<!-- route-head:end -->/u.test(html))
+    throw new Error('index.html 缺少 route-head 标记')
   return html.replace(/<!-- route-head:start -->[\s\S]*?<!-- route-head:end -->/u, head)
 }
 
 export function cloudflareRedirects() {
-  const lines = routeMetadata.routes.flatMap(({ path }) => path === '/'
-    ? [`/ /index.html 200`]
-    : [`${path} /${pageFileFor(path)} 200`, `${path}/ /${pageFileFor(path)} 200`])
-  for (const [from, to] of Object.entries(routeMetadata.legacyPaths)) lines.push(`${from} ${to} 301`, `${from}/ ${to} 301`)
+  const lines = routeMetadata.routes.flatMap(({ path }) =>
+    path === '/'
+      ? [`/ /index.html 200`]
+      : [`${path} /${pageFileFor(path)} 200`, `${path}/ /${pageFileFor(path)} 200`],
+  )
+  for (const [from, to] of Object.entries(routeMetadata.legacyPaths))
+    lines.push(`${from} ${to} 301`, `${from}/ ${to} 301`)
   return `${lines.join('\n')}\n`
 }
 
 /** 站点地图只登记八个正式路由；404 与 legacy 重定向不进 sitemap。输出保持确定性，不带时间戳。 */
 export function sitemapFor(origin = siteOrigin()) {
-  const urls = routeMetadata.routes.map(route => `  <url><loc>${escape(new URL(route.path, origin).href)}</loc></url>`)
+  const urls = routeMetadata.routes.map(
+    (route) => `  <url><loc>${escape(new URL(route.path, origin).href)}</loc></url>`,
+  )
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`
 }
 
@@ -78,16 +160,20 @@ function routePreloads(bundle) {
   const cssByStem = new Map()
   for (const [fileName, file] of Object.entries(bundle)) {
     if (file.type !== 'asset' || !/\.css$/u.test(fileName)) continue
-    const stem = fileName.split('/').pop()?.replace(/-[A-Za-z0-9_-]+\.css$/u, '')
+    const stem = fileName
+      .split('/')
+      .pop()
+      ?.replace(/-[A-Za-z0-9_-]+\.css$/u, '')
     if (stem) cssByStem.set(stem, fileName)
   }
   for (const file of Object.values(bundle)) {
     if (file.type !== 'chunk' || !file.isDynamicEntry || !file.facadeModuleId) continue
     const moduleId = file.facadeModuleId.replace(/\\/gu, '/')
-    const route = routeMetadata.routes.find(page => page.entry && moduleId.endsWith(page.entry))
+    const route = routeMetadata.routes.find((page) => page.entry && moduleId.endsWith(page.entry))
     if (!route || byPath.has(route.path)) continue
     const metadataCss = file.viteMetadata?.importedCss
-    const css = metadataCss instanceof Set ? [...metadataCss] : [cssByStem.get(file.name)].filter(Boolean)
+    const css =
+      metadataCss instanceof Set ? [...metadataCss] : [cssByStem.get(file.name)].filter(Boolean)
     byPath.set(route.path, { js: file.fileName, css })
   }
   return byPath
@@ -99,10 +185,20 @@ export function routePages() {
   const middleware = (server, preview) => async (req, res, next) => {
     if (!['GET', 'HEAD'].includes(req.method)) return next()
     let url
-    try { url = new URL(req.url || '/', 'http://vite.local') } catch { return next() }
+    try {
+      url = new URL(req.url || '/', 'http://vite.local')
+    } catch {
+      return next()
+    }
     let path
-    try { path = decodeURIComponent(url.pathname) } catch { res.statusCode = 400; res.end('bad request'); return }
-    if (path.includes('\\') || path.split('/').some(part => part === '..')) return next()
+    try {
+      path = decodeURIComponent(url.pathname)
+    } catch {
+      res.statusCode = 400
+      res.end('bad request')
+      return
+    }
+    if (path.includes('\\') || path.split('/').some((part) => part === '..')) return next()
     if (/^\/(?:@|src\/|node_modules\/)/u.test(path)) return next()
     const normalized = normalizeRoutePath(path)
     const legacy = routeMetadata.legacyPaths[normalized]
@@ -112,18 +208,30 @@ export function routePages() {
       res.end()
       return
     }
-    const page = routeMetadata.routes.find(route => route.path === normalized)
+    const page = routeMetadata.routes.find((route) => route.path === normalized)
     const wantsHtml = (req.headers.accept || '').includes('text/html') || !/\.[^/]+$/u.test(path)
     if (!page && !wantsHtml) return next()
     if (!page) {
       // 真实静态文件仍交给 Vite（例如用户直接打开 /resume.pdf）。
       const publicBase = preview ? resolve(config.root, config.build.outDir) : config.publicDir
-      if (publicBase && (await stat(join(publicBase, path)).catch(() => null))?.isFile()) return next()
+      if (publicBase && (await stat(join(publicBase, path)).catch(() => null))?.isFile())
+        return next()
     }
     try {
       const html = preview
-        ? await readFile(join(config.root, config.build.outDir, page ? pageFileFor(page.path) : 'not-found.html'), 'utf8')
-        : await server.transformIndexHtml(url.pathname, await readFile(join(config.root, 'index.html'), 'utf8'), req.url)
+        ? await readFile(
+            join(
+              config.root,
+              config.build.outDir,
+              page ? pageFileFor(page.path) : 'not-found.html',
+            ),
+            'utf8',
+          )
+        : await server.transformIndexHtml(
+            url.pathname,
+            await readFile(join(config.root, 'index.html'), 'utf8'),
+            req.url,
+          )
       const output = renderRouteHtml(html, page?.path || '/__not-found__')
       res.statusCode = page ? 200 : 404
       res.setHeader('Content-Type', 'text/html; charset=utf-8')
@@ -131,39 +239,64 @@ export function routePages() {
       res.setHeader('X-Content-Type-Options', 'nosniff')
       res.setHeader('Content-Length', Buffer.byteLength(output))
       res.end(req.method === 'HEAD' ? undefined : output)
-    } catch (error) { next(error) }
+    } catch (error) {
+      next(error)
+    }
   }
   return {
     name: 'route-pages',
-    configResolved(resolved) { config = resolved },
-    transformIndexHtml: { order: 'post', handler(html, context) {
-      const path = context.server ? new URL(context.originalUrl || context.path, 'http://vite.local').pathname : '/'
-      return renderRouteHtml(html, path)
-    } },
-    generateBundle: { order: 'post', handler(_options, bundle) {
-      const index = bundle['index.html']
-      if (!index || index.type !== 'asset') throw new Error('构建没有输出 index.html')
-      const html = String(index.source)
-      const preloads = routePreloads(bundle)
-      const withRoutePreload = (source, path) => {
-        const entry = preloads.get(path)
-        if (!entry) return source
-        const links = [
-          `<link rel="modulepreload" crossorigin href="/${entry.js}">`,
-          ...entry.css.map(css => `<link rel="stylesheet" crossorigin href="/${css}">`),
-        ]
-        return source.replace('</head>', `    ${links.join('\n    ')}\n  </head>`)
-      }
-      // 首页入口也受益：把 GalleryView 的预载写回 index.html 本体。
-      index.source = withRoutePreload(html, '/')
-      for (const page of routeMetadata.routes) {
-        if (page.path !== '/') this.emitFile({ type: 'asset', fileName: pageFileFor(page.path), source: withRoutePreload(renderRouteHtml(html, page.path), page.path) })
-      }
-      this.emitFile({ type: 'asset', fileName: 'not-found.html', source: renderRouteHtml(html, '/__not-found__') })
-      this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: sitemapFor() })
-      this.emitFile({ type: 'asset', fileName: 'robots.txt', source: robotsFor() })
-    } },
-    configureServer(server) { server.middlewares.use(middleware(server, false)) },
-    configurePreviewServer(server) { server.middlewares.use(middleware(server, true)) },
+    configResolved(resolved) {
+      config = resolved
+    },
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, context) {
+        const path = context.server
+          ? new URL(context.originalUrl || context.path, 'http://vite.local').pathname
+          : '/'
+        return renderRouteHtml(html, path)
+      },
+    },
+    generateBundle: {
+      order: 'post',
+      handler(_options, bundle) {
+        const index = bundle['index.html']
+        if (!index || index.type !== 'asset') throw new Error('构建没有输出 index.html')
+        const html = String(index.source)
+        const preloads = routePreloads(bundle)
+        const withRoutePreload = (source, path) => {
+          const entry = preloads.get(path)
+          if (!entry) return source
+          const links = [
+            `<link rel="modulepreload" crossorigin href="/${entry.js}">`,
+            ...entry.css.map((css) => `<link rel="stylesheet" crossorigin href="/${css}">`),
+          ]
+          return source.replace('</head>', `    ${links.join('\n    ')}\n  </head>`)
+        }
+        // 首页入口也受益：把 GalleryView 的预载写回 index.html 本体。
+        index.source = withRoutePreload(html, '/')
+        for (const page of routeMetadata.routes) {
+          if (page.path !== '/')
+            this.emitFile({
+              type: 'asset',
+              fileName: pageFileFor(page.path),
+              source: withRoutePreload(renderRouteHtml(html, page.path), page.path),
+            })
+        }
+        this.emitFile({
+          type: 'asset',
+          fileName: 'not-found.html',
+          source: renderRouteHtml(html, '/__not-found__'),
+        })
+        this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: sitemapFor() })
+        this.emitFile({ type: 'asset', fileName: 'robots.txt', source: robotsFor() })
+      },
+    },
+    configureServer(server) {
+      server.middlewares.use(middleware(server, false))
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use(middleware(server, true))
+    },
   }
 }

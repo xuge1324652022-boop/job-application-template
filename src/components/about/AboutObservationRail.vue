@@ -57,7 +57,12 @@
               <figcaption>
                 <span>{{ String(index + 1).padStart(2, '0') }}</span>
                 <span>{{ pick(entry.item.title, lang) }}</span>
-                <span>合成图像示例<span lang="en">Synthetic image examples</span></span>
+                <span
+                  >{{ isPersonalPortfolio ? '个人摄影' : '合成图像示例'
+                  }}<span lang="en">{{
+                    isPersonalPortfolio ? 'Photography' : 'Synthetic image examples'
+                  }}</span></span
+                >
               </figcaption>
             </figure>
             <div class="observation-rail__observation">
@@ -84,12 +89,34 @@
           class="observation-rail__links"
           :aria-label="lang === 'zh' ? '继续浏览' : 'Explore more'"
         >
-          <RouterLink :to="destination('/photo')">
-            <span>更多摄影<span lang="en">More photographs</span></span>
+          <RouterLink
+            :to="
+              isPersonalPortfolio
+                ? { path: '/about', query: route.query, hash: '#stories' }
+                : destination('/photo')
+            "
+          >
+            <span
+              >{{ isPersonalPortfolio ? '精选作品' : '更多摄影'
+              }}<span lang="en">{{
+                isPersonalPortfolio ? 'Selected work' : 'More photographs'
+              }}</span></span
+            >
             <span aria-hidden="true">↗</span>
           </RouterLink>
-          <RouterLink :to="destination('/poster')">
-            <span>海报与设计<span lang="en">Posters & design</span></span>
+          <RouterLink
+            :to="
+              isPersonalPortfolio
+                ? { path: '/about', query: route.query, hash: '#experience' }
+                : destination('/poster')
+            "
+          >
+            <span
+              >{{ isPersonalPortfolio ? '我的经历' : '海报与设计'
+              }}<span lang="en">{{
+                isPersonalPortfolio ? 'My experience' : 'Posters & design'
+              }}</span></span
+            >
             <span aria-hidden="true">↗</span>
           </RouterLink>
         </nav>
@@ -105,6 +132,7 @@ import gsap from 'gsap'
 import ScrollTrigger from 'gsap/ScrollTrigger'
 import { pick, type Bi, type Lang } from '../../data/aboutProfile'
 import { photography, type VisualAsset } from '../../data/visualPortfolio'
+import { personalPortfolio, isPersonalPortfolio } from '../../data/personalPortfolio'
 import { requestMotionLayoutRefresh } from '../../utils/motionLayout'
 import { visualImageSources } from '../../utils/responsiveImage'
 
@@ -141,7 +169,38 @@ const observations: { title: Bi; copy: Bi }[] = [
     },
   },
 ]
-const entries = photography.map((item, index) => ({ item, ...observations[index]! }))
+const personalPhotos = personalPortfolio?.selectedWorks.filter((item) =>
+  item.id.startsWith('photo-'),
+)
+const personalObservations: { title: Bi; copy: Bi }[] = [
+  {
+    title: { zh: '远近之间', en: 'Between the layers' },
+    copy: {
+      zh: '青山张家界。把镜头留给山与城，也留意前景和远景的关系。',
+      en: 'Zhangjiajie, between mountain and city. Looking at the relationship between foreground and distance.',
+    },
+  },
+  {
+    title: { zh: '人文与尺度', en: 'A sense of scale' },
+    copy: {
+      zh: '妈祖望海。用竖幅记录场景，在画面里寻找主体与环境的平衡。',
+      en: 'Mazu overlooking the sea. A portrait frame explores the balance between subject and surroundings.',
+    },
+  },
+  {
+    title: { zh: '熟悉的地方', en: 'The places around me' },
+    copy: {
+      zh: '学院全景。校园既是生活的场景，也是我持续练习观察与记录的地方。',
+      en: 'A view of the college. Campus is both a place of everyday life and a place to keep observing and documenting.',
+    },
+  },
+]
+const entries = (personalPhotos?.length === 3 ? personalPhotos : photography).map(
+  (item, index) => ({
+    item,
+    ...(personalPhotos?.length === 3 ? personalObservations[index]! : observations[index]!),
+  }),
+)
 const section = ref<HTMLElement | null>(null)
 const stage = ref<HTMLElement | null>(null)
 const viewport = ref<HTMLElement | null>(null)
@@ -154,8 +213,8 @@ let mounted = false
 
 function openLabel(item: VisualAsset) {
   return props.lang === 'zh'
-    ? `查看完整示例：${pick(item.title, props.lang)}`
-    : `View full sample: ${pick(item.title, props.lang)}`
+    ? `查看完整作品：${pick(item.title, props.lang)}`
+    : `View full image: ${pick(item.title, props.lang)}`
 }
 
 function openImage(item: VisualAsset, event: MouseEvent) {
@@ -286,8 +345,8 @@ onBeforeUnmount(() => {
 <style scoped>
 .observation-rail {
   position: relative;
-  background: #0c0d0e;
-  color: var(--ab-ink, #f7f7f5);
+  background: #050505;
+  color: var(--ab-ink, var(--ab-ink));
   scroll-margin-top: 72px;
 }
 .observation-rail__stage {
@@ -310,7 +369,7 @@ onBeforeUnmount(() => {
   margin-top: 10px;
   font-size: 13px;
   letter-spacing: 0;
-  color: var(--ab-soft, #979b9f);
+  color: var(--ab-soft, #b9ab97);
 }
 .observation-rail__intro {
   font-size: clamp(18px, 2vw, 25px);
@@ -320,7 +379,7 @@ onBeforeUnmount(() => {
 .observation-rail__intro > span {
   display: block;
   margin-top: 8px;
-  color: var(--ab-soft, #979b9f);
+  color: var(--ab-soft, #b9ab97);
   font-size: 12px;
   line-height: 1.6;
   letter-spacing: 0;
@@ -333,10 +392,10 @@ onBeforeUnmount(() => {
   font-variant-numeric: tabular-nums;
 }
 .observation-rail__position > span:first-child {
-  color: var(--ab-accent, #6a9cff);
+  color: var(--ab-accent, #ef4b40);
 }
 .observation-rail__position > span:last-child {
-  color: var(--ab-soft, #979b9f);
+  color: var(--ab-soft, #b9ab97);
 }
 .observation-rail__viewport {
   margin-top: 48px;
@@ -388,17 +447,17 @@ onBeforeUnmount(() => {
   place-items: center;
   width: 34px;
   height: 34px;
-  background: #0c0d0e;
+  background: #050505;
   font-size: 23px;
-  color: #fff;
+  color: #ffe8ce;
   transition: color 0.2s;
 }
 .observation-rail__image-button:hover .observation-rail__view {
-  color: var(--ab-accent, #6a9cff);
+  color: var(--ab-accent, #ef4b40);
 }
 .observation-rail__image-button:focus-visible,
 .observation-rail__links a:focus-visible {
-  outline: 2px solid var(--ab-accent, #6a9cff);
+  outline: 2px solid var(--ab-accent, #ef4b40);
   outline-offset: 6px;
 }
 .observation-rail__visual figcaption {
@@ -406,12 +465,12 @@ onBeforeUnmount(() => {
   gap: 14px;
   align-items: baseline;
   margin-top: 12px;
-  color: var(--ab-soft, #979b9f);
+  color: var(--ab-soft, #b9ab97);
   font-size: 10px;
   line-height: 1.5;
 }
 .observation-rail__visual figcaption > span:first-child {
-  color: var(--ab-accent, #6a9cff);
+  color: var(--ab-accent, #ef4b40);
   font-variant-numeric: tabular-nums;
 }
 .observation-rail__visual figcaption > span:last-child {
@@ -427,7 +486,7 @@ onBeforeUnmount(() => {
   font-size: 10px;
   letter-spacing: 0.11em;
   text-transform: uppercase;
-  color: var(--ab-accent, #6a9cff);
+  color: var(--ab-accent, #ef4b40);
 }
 .observation-rail__observation h3 {
   font-size: clamp(31px, 4vw, 57px);
@@ -450,7 +509,7 @@ onBeforeUnmount(() => {
 }
 .observation-rail__copy--en {
   margin-top: 12px;
-  color: var(--ab-soft, #979b9f);
+  color: var(--ab-soft, #b9ab97);
   font-size: 12px;
   line-height: 1.7;
 }
@@ -485,17 +544,17 @@ onBeforeUnmount(() => {
   gap: 32px;
   margin-top: 52px;
   padding-top: 20px;
-  border-top: 1px solid var(--ab-line, #303236);
+  border-top: 1px solid var(--ab-line, #2e2a24);
 }
 .observation-rail__scroll {
   display: none;
   align-items: center;
   gap: 10px;
   font-size: 10px;
-  color: var(--ab-soft, #979b9f);
+  color: var(--ab-soft, #b9ab97);
 }
 .observation-rail__scroll > span:last-child {
-  color: var(--ab-accent, #6a9cff);
+  color: var(--ab-accent, #ef4b40);
   font-size: 21px;
 }
 .observation-rail__links {
@@ -514,11 +573,11 @@ onBeforeUnmount(() => {
   display: block;
   margin-top: 5px;
   font-size: 10px;
-  color: var(--ab-soft, #979b9f);
+  color: var(--ab-soft, #b9ab97);
 }
 .observation-rail__links a > span:last-child {
   font-size: 25px;
-  color: var(--ab-accent, #6a9cff);
+  color: var(--ab-accent, #ef4b40);
 }
 @media (min-width: 981px) and (min-height: 650px) and (prefers-reduced-motion: no-preference) {
   .is-pinned .observation-rail__head {

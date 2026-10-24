@@ -29,7 +29,9 @@
     -->
     <CustomCursor />
     <SubpageIndex v-if="isSubpage" />
-    <p class="template-notice">模板演示 · 虚构资料与合成素材</p>
+    <p v-if="!isPersonalPortfolio || route.path !== '/about'" class="template-notice">
+      模板演示 · 虚构资料与合成素材
+    </p>
   </div>
 </template>
 
@@ -42,6 +44,7 @@ import SubpageIndex from './components/SubpageIndex.vue'
 import { useSmoothScroll } from './composables/useSmoothScroll'
 import { routeCurtainActive } from './composables/usePageCurtain'
 import { useRouteCurtainNavigation } from './composables/useRouteCurtainNavigation'
+import { isPersonalPortfolio } from './data/personalPortfolio'
 
 const router = useRouter()
 const route = useRoute()
@@ -83,7 +86,9 @@ useSmoothScroll(
   border-radius: 999px;
   background: rgb(20 20 20 / 88%);
   color: #fff;
-  font: 11px/1.4 system-ui, sans-serif;
+  font:
+    11px/1.4 system-ui,
+    sans-serif;
   white-space: nowrap;
   pointer-events: none;
 }

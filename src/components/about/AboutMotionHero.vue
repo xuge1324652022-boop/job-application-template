@@ -1,28 +1,55 @@
 <template>
-  <header id="about-intro" ref="root" class="about-motion-hero">
+  <header
+    id="about-intro"
+    ref="root"
+    class="about-motion-hero"
+    :class="{ 'is-active': active, 'is-motion': motionReady }"
+    aria-labelledby="about-title"
+  >
     <div class="about-motion-hero__top">
-      <span>{{ IDENTITY.nameEn }}<span>{{ IDENTITY.nameZh }}</span></span>
+      <span
+        >{{ IDENTITY.nameEn }}<span>{{ IDENTITY.nameZh }}</span></span
+      >
       <a href="#contact">让我们聊聊 <span lang="en">Let’s talk ↗</span></a>
     </div>
     <div ref="stage" class="about-motion-hero__stage">
-      <!-- 四行身份巨字构成页面主标题：入场时居中堆叠，滚动后重排到左侧，右侧人物图显现。 -->
-      <h1 id="about-title" ref="rows" class="about-motion-hero__rows">
-        <span v-for="row in IDENTITY_ROWS" :key="row.en" class="about-motion-hero__row">
-          <span class="about-motion-hero__word" lang="en">{{ row.en }}</span><span class="about-motion-hero__zh">{{ row.zh }}</span>
-        </span>
-      </h1>
+      <!-- 固定外壳不参与位移；只有内层窗口裁切完整的纵向字轨。 -->
+      <div ref="clipWindow" class="about-motion-hero__window">
+        <h1 id="about-title" ref="track" class="about-motion-hero__track">
+          <span v-for="row in IDENTITY_ROWS" :key="row.en" class="about-motion-hero__row">
+            <span class="about-motion-hero__word" lang="en">{{ row.en }}</span>
+            <span class="about-motion-hero__zh" lang="zh">{{ row.zh }}</span>
+          </span>
+        </h1>
+      </div>
       <figure ref="portrait" class="about-motion-hero__portrait">
         <div ref="portraitMask" class="about-motion-hero__portrait-mask">
-          <img :src="PORTRAIT.src" :srcset="visualImageSources(PORTRAIT)" sizes="(max-width: 760px) calc(100vw - 44px), 34vw"
-            width="1448" height="1086" :alt="lang === 'zh' ? '用于个人简介版式演示的合成几何占位图' : 'Synthetic geometric placeholder for the profile layout'"
-            decoding="async" />
+          <img
+            :src="PORTRAIT.src"
+            :srcset="visualImageSources(PORTRAIT)"
+            sizes="(max-width: 760px) calc(100vw - 44px), 30vw"
+            :width="PORTRAIT.width"
+            :height="PORTRAIT.height"
+            :alt="pick(PORTRAIT.alt, lang)"
+            decoding="async"
+          />
         </div>
-        <figcaption>合成图像示例<span lang="en">Synthetic image example</span></figcaption>
+        <figcaption>
+          {{ isPersonalPortfolio ? IDENTITY.nameZh : '合成图像示例'
+          }}<span lang="en">{{
+            isPersonalPortfolio ? IDENTITY.nameEn : 'Synthetic image example'
+          }}</span>
+        </figcaption>
       </figure>
     </div>
     <div class="about-motion-hero__bottom">
-      <p>{{ pick(TAGLINE, 'zh') }}<span lang="en">{{ pick(TAGLINE, 'en') }}</span></p>
-      <a href="#stories" class="about-motion-hero__scroll"><span>向下，认识我的工作<span lang="en">Scroll to explore my practice</span></span><span aria-hidden="true">↓</span></a>
+      <p>
+        {{ pick(TAGLINE, 'zh') }}<span lang="en">{{ pick(TAGLINE, 'en') }}</span>
+      </p>
+      <a href="#stories" class="about-motion-hero__scroll"
+        ><span>向下，认识我的工作<span lang="en">Scroll to explore my practice</span></span
+        ><span aria-hidden="true">↓</span></a
+      >
     </div>
   </header>
 </template>
@@ -32,130 +59,218 @@ import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { IDENTITY, TAGLINE, pick, type Lang } from '../../data/aboutProfile'
+import { aboutPortrait, isPersonalPortfolio } from '../../data/personalPortfolio'
 import { prepareMotionLayout, requestMotionLayoutRefresh } from '../../utils/motionLayout'
 import { visualImageSources } from '../../utils/responsiveImage'
 
-/** 四行身份取自现有资料的方向词；不引入原作者职业身份。 */
+/** 短词对应原有工作方向，中文说明与人物信息保持资料来源。 */
 const IDENTITY_ROWS = [
-  { en: 'CONTENT PLANNING', zh: '内容策划' },
-  { en: 'VIDEO EDITING', zh: '视频剪辑' },
-  { en: 'VISUAL EXPRESSION', zh: '视觉表达' },
-  { en: 'AI COLLABORATION', zh: 'AI 协作' },
+  { en: 'PLANNING', zh: '内容策划' },
+  { en: 'EDITING', zh: '视频剪辑' },
+  { en: 'VISUALS', zh: '视觉表达' },
+  { en: 'AI', zh: 'AI 协作' },
 ] as const
-const PORTRAIT = { thumb: '/about/portrait-400.webp', src: '/about/portrait-900.webp', large: '/about/portrait-1448.webp' }
+const PORTRAIT = aboutPortrait
 const props = defineProps<{ active: boolean; lang: Lang }>()
 const root = ref<HTMLElement | null>(null)
 const stage = ref<HTMLElement | null>(null)
-const rows = ref<HTMLElement | null>(null)
+const clipWindow = ref<HTMLElement | null>(null)
+const track = ref<HTMLElement | null>(null)
 const portrait = ref<HTMLElement | null>(null)
 const portraitMask = ref<HTMLElement | null>(null)
+const motionReady = ref(false)
 let media: gsap.MatchMedia | undefined
-let entrance: gsap.core.Timeline | undefined
+let scene: ScrollTrigger | undefined
 let cancelPreparation: (() => void) | undefined
 let cancelRefresh: (() => void) | undefined
-let resizeClean: (() => void) | undefined
-let played = false
+let resizeObserver: ResizeObserver | undefined
+let measureFrame = 0
+let stopResize: (() => void) | undefined
 let dead = false
+
 gsap.registerPlugin(ScrollTrigger)
 
-function play(): void {
-  if (!props.active || !entrance || played) return
-  played = true
-  entrance.play()
-}
-/** 行组居中摆放时 offsetLeft 即其与舞台左缘的差值；对齐左缘需要向左移动这么多。 */
-function rowsShift(): number {
-  if (!rows.value || !stage.value) return 0
-  const padding = parseFloat(getComputedStyle(stage.value).paddingLeft) || 0
-  return padding - rows.value.offsetLeft
-}
-/** 重排后的行组缩放：同时满足「避开右侧人物图」与「不越过舞台上下缘」。 */
-function rowsFit(): number {
-  if (!rows.value || !stage.value || !portrait.value) return .74
-  const stageElement = stage.value
-  const padding = parseFloat(getComputedStyle(stageElement).paddingLeft) || 24
-  const availableWidth = stageElement.clientWidth - portrait.value.offsetWidth - padding * 2.4
-  const availableHeight = stageElement.clientHeight * .92
-  const width = Math.max(1, rows.value.offsetWidth)
-  const height = Math.max(1, rows.value.offsetHeight)
-  return Math.max(.4, Math.min(.78, availableWidth / width, availableHeight / height))
-}
-/** 逐词测量真实文字宽度（Range + 字号/宽度比），换算成可用宽度内的像素字号。 */
-function fitWords(): void {
-  if (!root.value) return
-  const mobile = window.matchMedia('(max-width: 760px)').matches
-  const available = mobile ? window.innerWidth - 44 : window.innerWidth * .92
-  root.value.querySelectorAll<HTMLElement>('.about-motion-hero__word').forEach(word => {
-    const fontSize = parseFloat(getComputedStyle(word).fontSize)
-    if (!fontSize) return
-    const range = document.createRange()
-    range.selectNodeContents(word)
-    const width = range.getBoundingClientRect().width
-    if (!width) return
-    word.style.setProperty('--word-fit-px', `${Math.floor(available / (width / fontSize))}px`)
-  })
-}
 onMounted(() => {
   if (!root.value) return
   cancelPreparation = prepareMotionLayout(root.value, () => {
-    if (dead || !root.value || !stage.value || !rows.value || !portrait.value || !portraitMask.value) return
-    fitWords()
-    let resizeTimer = 0
-    const onResize = () => {
-      // 首屏滚出后行组带着缩放变换，此时测宽会失真；回到顶部附近再重算。
-      if (window.scrollY > 4) return
-      window.clearTimeout(resizeTimer)
-      resizeTimer = window.setTimeout(() => { if (!dead) fitWords() }, 200)
-    }
-    window.addEventListener('resize', onResize)
-    resizeClean = () => {
-      window.removeEventListener('resize', onResize)
-      window.clearTimeout(resizeTimer)
-    }
-    media = gsap.matchMedia()
-    media.add('(min-width: 761px) and (min-height: 620px) and (prefers-reduced-motion: no-preference)', () => {
-      const lines = rows.value!.querySelectorAll('.about-motion-hero__row')
-      const zh = rows.value!.querySelectorAll('.about-motion-hero__zh')
-      // 入场：四行巨字居中堆叠、自下而上错峰进入，只播一次。
-      // 断点分支重建时（如窗口跨过 761px）不再重建入场：若已播过而重建 fromTo，
-      // 行会停在隐藏起点且 played 门闩拒绝重播，文字将一直不可见。
-      if (played) {
-        gsap.set(lines, { clearProps: 'transform,opacity,visibility' })
-      } else {
-        entrance = gsap.timeline({ paused: true })
-          .fromTo(lines, { yPercent: 118, rotation: 4, autoAlpha: 0 },
-            { yPercent: 0, rotation: 0, autoAlpha: 1, duration: 1.05, stagger: .085, ease: 'expo.out', clearProps: 'transform,opacity,visibility' })
-        play()
+    if (
+      dead ||
+      !root.value ||
+      !stage.value ||
+      !clipWindow.value ||
+      !track.value ||
+      !portrait.value ||
+      !portraitMask.value
+    )
+      return
+    const rootElement = root.value
+    const windowElement = clipWindow.value
+    const trackElement = track.value
+    const portraitElement = portrait.value
+    const maskElement = portraitMask.value
+    const words = [...trackElement.querySelectorAll<HTMLElement>('.about-motion-hero__word')]
+
+    // 布局宽高不受轨道当前的 translate/scale 影响，倒滚与中途 resize 都能重测。
+    const fitWords = () => {
+      const currentSize = parseFloat(getComputedStyle(trackElement).fontSize)
+      const widest = Math.max(1, ...words.map((word) => word.offsetWidth))
+      const rootStyle = getComputedStyle(rootElement)
+      const animated = rootElement.classList.contains('is-motion')
+      const availableWidth = animated
+        ? document.documentElement.clientWidth -
+          parseFloat(rootStyle.paddingLeft) -
+          parseFloat(rootStyle.paddingRight)
+        : windowElement.clientWidth
+      const desired = Math.min(
+        innerWidth * (animated ? 0.145 : 0.155),
+        animated ? innerHeight * 0.19 : 168,
+      )
+      let size = Math.max(1, Math.min(desired, ((availableWidth - 4) * currentSize) / widest))
+      trackElement.style.setProperty('--hero-word-size', `${Math.floor(size * 10) / 10}px`)
+      if (animated) {
+        const wordHeight = words.reduce((total, word) => total + word.offsetHeight, 0)
+        const fixedHeight = trackElement.offsetHeight - wordHeight
+        const availableHeight = windowElement.clientHeight * 0.94 - fixedHeight
+        if (wordHeight > availableHeight && availableHeight > 0)
+          size *= availableHeight / wordHeight
+        trackElement.style.setProperty('--hero-word-size', `${Math.floor(size * 10) / 10}px`)
       }
-      // 滚动重排：整个首屏短暂固定（顶栏、巨字与底部说明同为一个构图），
-      // 行组按人物边界与舞台高度实测缩放、左移避开人物图，完整停留后再退场。
-      gsap.timeline({
-        scrollTrigger: {
-          id: 'about-hero-rearrange', trigger: root.value!, refreshPriority: 45,
-          start: 'top top', end: () => `+=${Math.round(innerHeight * .55)}`,
-          pin: true, anticipatePin: 1, scrub: .5, invalidateOnRefresh: true,
-        },
-      })
-        .fromTo(rows.value!, { x: 0, scale: 1 }, { x: rowsShift, scale: rowsFit, transformOrigin: 'left center', duration: .6, ease: 'power2.inOut' }, 0)
-        .fromTo(portrait.value!, { autoAlpha: 0, x: '7vw' }, { autoAlpha: 1, x: 0, duration: .45, ease: 'power2.out' }, .22)
-        .fromTo(portraitMask.value!, { clipPath: 'inset(14% 20% 14% 20%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: .55, ease: 'power2.inOut' }, .3)
-        .fromTo(zh, { autoAlpha: 0 }, { autoAlpha: 1, stagger: .06, duration: .3, ease: 'none' }, .42)
-        .to({}, { duration: .25 })
-      return () => { entrance = undefined }
-    }, root.value)
-    cancelRefresh = requestMotionLayoutRefresh()
-    void document.fonts.ready.then(() => {
-      if (dead) return
-      fitWords()
+    }
+    const requestRefresh = () => {
       cancelRefresh?.()
       cancelRefresh = requestMotionLayoutRefresh()
+    }
+    const scheduleMeasure = () => {
+      if (dead || measureFrame) return
+      measureFrame = requestAnimationFrame(() => {
+        measureFrame = 0
+        if (dead) return
+        fitWords()
+        requestRefresh()
+      })
+    }
+
+    fitWords()
+    media = gsap.matchMedia()
+    media.add(
+      '(min-width: 761px) and (min-height: 650px) and (prefers-reduced-motion: no-preference)',
+      () => {
+        motionReady.value = true
+        rootElement.classList.add('is-motion')
+        fitWords()
+        const geometry = () => {
+          const width = windowElement.clientWidth
+          const height = windowElement.clientHeight
+          const textWidth = trackElement.offsetWidth
+          const textHeight = trackElement.offsetHeight
+          const gap = Math.min(72, Math.max(24, width * 0.045))
+          const leftColumn = Math.max(1, width - portraitElement.offsetWidth - gap)
+          const scale = Math.min(
+            0.82,
+            leftColumn / Math.max(1, textWidth),
+            (height * 0.94) / Math.max(1, textHeight),
+          )
+          return {
+            startY: height * 0.48,
+            centerX: (width - textWidth) / 2,
+            centerY: (height - textHeight) / 2,
+            composeX: (leftColumn - textWidth * scale) / 2,
+            composeY: (height - textHeight * scale) / 2,
+            scale,
+            exitY: (height - textHeight * scale) / 2 - height * 0.16,
+          }
+        }
+        // 根容器完整固定并保留占位。裁切只在内层，不让底栏与后续场景穿过字轨。
+        const timeline = gsap
+          .timeline({
+            defaults: { ease: 'none' },
+            scrollTrigger: {
+              id: 'about-hero-rearrange',
+              trigger: rootElement,
+              refreshPriority: 45,
+              start: 'top top',
+              end: () => `+=${Math.round(innerHeight * 2.35)}`,
+              pin: rootElement,
+              pinSpacing: true,
+              scrub: true,
+              invalidateOnRefresh: true,
+              anticipatePin: 1,
+              onRefreshInit: fitWords,
+            },
+          })
+          .fromTo(
+            trackElement,
+            {
+              x: () => geometry().centerX,
+              y: () => geometry().startY,
+              scale: 1,
+              transformOrigin: '0% 0%',
+            },
+            { x: () => geometry().centerX, y: () => geometry().centerY, duration: 1.6 },
+            0,
+          )
+          .to({}, { duration: 0.28 })
+          .to(
+            trackElement,
+            {
+              x: () => geometry().composeX,
+              y: () => geometry().composeY,
+              scale: () => geometry().scale,
+              duration: 0.75,
+              ease: 'power1.inOut',
+            },
+            1.88,
+          )
+          .fromTo(
+            portraitElement,
+            { autoAlpha: 0, x: () => innerWidth * 0.06 },
+            { autoAlpha: 1, x: 0, duration: 0.6, ease: 'power1.out' },
+            2.03,
+          )
+          .fromTo(
+            maskElement,
+            { clipPath: 'inset(14% 20% 14% 20%)' },
+            { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.65, ease: 'power1.inOut' },
+            2.03,
+          )
+          .to({}, { duration: 0.62 }, 2.68)
+          // 留住文字尾部与人物构图，再由原生滚动整体带出，下一段能连续接入。
+          .to(trackElement, { y: () => geometry().exitY, duration: 0.6 }, 3.3)
+          .to(portraitElement, { y: () => -innerHeight * 0.08, duration: 0.6 }, 3.3)
+        scene = timeline.scrollTrigger
+        requestRefresh()
+        return () => {
+          scene = undefined
+          motionReady.value = false
+          rootElement.classList.remove('is-motion')
+          scheduleMeasure()
+        }
+      },
+      rootElement,
+    )
+
+    resizeObserver = new ResizeObserver(scheduleMeasure)
+    resizeObserver.observe(windowElement)
+    window.addEventListener('resize', scheduleMeasure, { passive: true })
+    stopResize = () => window.removeEventListener('resize', scheduleMeasure)
+    void document.fonts.ready.then(() => {
+      if (!dead) scheduleMeasure()
     })
   })
 })
-watch(() => props.active, play)
+
+// 布局可在幕布下准备；呈现闸门由父页 active 控制，揭幕时同步当前滚动位置。
+watch(
+  () => props.active,
+  (active) => {
+    if (active) scene?.update()
+  },
+)
 onBeforeUnmount(() => {
   dead = true
-  resizeClean?.()
+  if (measureFrame) cancelAnimationFrame(measureFrame)
+  resizeObserver?.disconnect()
+  stopResize?.()
   cancelPreparation?.()
   cancelRefresh?.()
   media?.revert()
@@ -163,40 +278,234 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.about-motion-hero { position:relative; min-height:100vh; min-height:100svh; display:flex; flex-direction:column; justify-content:space-between; padding:44px clamp(24px,5vw,88px) 54px; overflow:clip; background:var(--ab-bg); }
-.about-motion-hero__top { display:flex; justify-content:space-between; gap:28px; align-items:start; padding-right:100px; font-size:14px; line-height:1.5; }
-.about-motion-hero__top > span > span { display:block; font-size:11px; color:var(--ab-soft); }
-.about-motion-hero__top a { color:inherit; text-decoration:none; }
-.about-motion-hero__top a span { display:block; color:var(--ab-soft); font-size:11px; }
-.about-motion-hero__stage { position:relative; flex:1; min-height:0; display:flex; align-items:center; justify-content:center; margin-top:clamp(28px,6vh,84px); }
-.about-motion-hero__rows { position:relative; margin:0; text-align:center; }
-.about-motion-hero__row { display:block; margin:0; line-height:1.02; }
-.about-motion-hero__word { display:block; color:var(--ab-accent); font-family:'Arial Black','Helvetica Neue',Arial,sans-serif; font-size:min(clamp(46px,8.6vw,136px), var(--word-fit-px, 136px)); font-weight:900; letter-spacing:-.05em; white-space:nowrap; }
-.about-motion-hero__zh { display:block; margin-top:2px; color:var(--ab-soft); font-size:clamp(12px,1.05vw,15px); letter-spacing:.32em; text-indent:.32em; }
-.about-motion-hero__portrait { position:absolute; right:0; top:50%; width:min(34vw,430px); margin:0; transform:translateY(-50%); pointer-events:none; }
-.about-motion-hero__portrait-mask { aspect-ratio:4/3; overflow:hidden; background:#171a20; }
-.about-motion-hero__portrait-mask img { display:block; width:100%; height:100%; object-fit:cover; }
-.about-motion-hero__portrait figcaption { display:flex; flex-wrap:wrap; gap:4px 12px; margin-top:12px; color:var(--ab-soft); font-size:11px; line-height:1.5; }
-.about-motion-hero__portrait figcaption span { font-size:10px; }
-.about-motion-hero__bottom { display:flex; justify-content:space-between; gap:32px; align-items:end; margin-top:clamp(24px,5vh,64px); }
-.about-motion-hero__bottom > p { margin:0; font-size:clamp(18px,1.9vw,26px); line-height:1.5; letter-spacing:-.02em; }
-.about-motion-hero__bottom > p > span { display:block; margin-top:12px; color:var(--ab-soft); font-size:12px; line-height:1.55; letter-spacing:0; }
-.about-motion-hero__scroll { display:flex; gap:28px; align-items:center; color:inherit; text-decoration:none; font-size:12px; }
-.about-motion-hero__scroll span[lang=en] { display:block; margin-top:6px; color:var(--ab-soft); font-size:10px; }
-.about-motion-hero__scroll > span:last-child { font-size:32px; }
-a:focus-visible { outline:2px solid var(--ab-accent); outline-offset:8px; }
-@media(max-width:760px) {
-  .about-motion-hero { padding:35px 22px 64px; min-height:100svh; }
-  .about-motion-hero__top { padding-right:62px; font-size:12px; }
-  .about-motion-hero__top a { display:none; }
-  .about-motion-hero__stage { flex-direction:column; align-items:flex-start; justify-content:flex-start; margin-top:64px; gap:52px; }
-  .about-motion-hero__rows { text-align:left; }
-  .about-motion-hero__word { font-size:min(11.4vw, var(--word-fit-px, 11.4vw)); }
-  .about-motion-hero__zh { letter-spacing:.2em; text-indent:.2em; }
-  .about-motion-hero__portrait { position:relative; top:auto; transform:none; width:100%; pointer-events:auto; }
-  .about-motion-hero__bottom { align-items:start; flex-direction:column; gap:36px; margin-top:40px; }
-  .about-motion-hero__bottom > p { font-size:19px; }
-  .about-motion-hero__bottom > p > span { font-size:11px; }
+.about-motion-hero {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 44px;
+  padding: 38px clamp(22px, 5vw, 88px) 44px;
+  background: var(--ab-bg, #050505);
+  color: var(--ab-ink, #ffe8ce);
 }
-@media(max-height:600px) and (min-width:761px) { .about-motion-hero { padding-top:26px; padding-bottom:36px; }.about-motion-hero__stage { margin-top:24px; }.about-motion-hero__word { font-size:7.4vw; } }
+.about-motion-hero__top {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  gap: 28px;
+  align-items: start;
+  padding-right: 100px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.about-motion-hero__top > span > span {
+  display: block;
+  font-size: 11px;
+  color: var(--ab-soft, #b9ab97);
+}
+.about-motion-hero__top a {
+  color: inherit;
+  text-decoration: none;
+}
+.about-motion-hero__top a span {
+  display: block;
+  color: var(--ab-soft, #b9ab97);
+  font-size: 11px;
+}
+.about-motion-hero__stage {
+  position: relative;
+  min-height: 0;
+}
+.about-motion-hero__window {
+  position: relative;
+}
+.about-motion-hero__track {
+  position: relative;
+  width: max-content;
+  max-width: 100%;
+  margin: 0;
+  padding: 0.04em 0 0.06em;
+  color: var(--ab-accent, #ef4b40);
+  font-family: 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
+  font-size: var(--hero-word-size, clamp(40px, 14vw, 190px));
+  font-weight: 900;
+  line-height: 0.84;
+  letter-spacing: -0.055em;
+}
+.about-motion-hero__row {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+}
+.about-motion-hero__row + .about-motion-hero__row {
+  margin-top: 0.09em;
+}
+.about-motion-hero__word {
+  display: inline-block;
+  white-space: nowrap;
+  line-height: 0.84;
+}
+.about-motion-hero__zh {
+  display: block;
+  margin-top: 10px;
+  padding-left: 0.12em;
+  color: var(--ab-soft, #b9ab97);
+  font-family: inherit;
+  font-size: clamp(11px, 0.85vw, 13px);
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.22em;
+}
+.about-motion-hero__portrait {
+  width: min(420px, 100%);
+  margin: 40px 0 0;
+}
+.about-motion-hero__portrait-mask {
+  aspect-ratio: 4/3;
+  overflow: hidden;
+  background: #221c15;
+}
+.about-motion-hero__portrait-mask img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.about-motion-hero__portrait figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-top: 12px;
+  color: var(--ab-soft, #b9ab97);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.about-motion-hero__portrait figcaption span {
+  font-size: 10px;
+}
+.about-motion-hero__bottom {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  align-items: end;
+}
+.about-motion-hero__bottom > p {
+  max-width: 36em;
+  margin: 0;
+  font-size: clamp(18px, 1.9vw, 26px);
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+}
+.about-motion-hero__bottom > p > span {
+  display: block;
+  margin-top: 12px;
+  color: var(--ab-soft, #b9ab97);
+  font-size: 12px;
+  line-height: 1.55;
+  letter-spacing: 0;
+}
+.about-motion-hero__scroll {
+  display: flex;
+  gap: 28px;
+  align-items: center;
+  color: inherit;
+  text-decoration: none;
+  font-size: 12px;
+}
+.about-motion-hero__scroll span[lang='en'] {
+  display: block;
+  margin-top: 6px;
+  color: var(--ab-soft, #b9ab97);
+  font-size: 10px;
+}
+.about-motion-hero__scroll > span:last-child {
+  font-size: 32px;
+}
+.is-motion {
+  height: 100vh;
+  height: 100svh;
+  min-height: 650px;
+  gap: clamp(26px, 4.5svh, 48px);
+}
+.is-motion .about-motion-hero__window {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+}
+.is-motion .about-motion-hero__track {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: max-content;
+  max-width: none;
+  will-change: transform;
+}
+.is-motion .about-motion-hero__portrait {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: min(30vw, 400px);
+  margin: 0;
+  transform: translateY(-50%);
+}
+.is-motion:not(.is-active) .about-motion-hero__stage {
+  opacity: 0;
+  pointer-events: none;
+}
+a:focus-visible {
+  outline: 2px solid var(--ab-accent, #ef4b40);
+  outline-offset: 8px;
+}
+@media (max-width: 760px) {
+  .about-motion-hero {
+    gap: 40px;
+    padding: 35px 22px 64px;
+  }
+  .about-motion-hero__top {
+    padding-right: 62px;
+    font-size: 12px;
+  }
+  .about-motion-hero__top a {
+    display: none;
+  }
+  .about-motion-hero__track {
+    letter-spacing: -0.045em;
+  }
+  .about-motion-hero__zh {
+    margin-top: 8px;
+    font-size: 11px;
+  }
+  .about-motion-hero__portrait {
+    width: 100%;
+    margin-top: 40px;
+  }
+  .about-motion-hero__bottom {
+    flex-direction: column;
+    align-items: start;
+    gap: 32px;
+  }
+  .about-motion-hero__bottom > p {
+    font-size: 19px;
+  }
+  .about-motion-hero__bottom > p > span {
+    font-size: 11px;
+  }
+}
+@media (min-width: 761px) and (prefers-reduced-motion: reduce),
+  (min-width: 761px) and (max-height: 649px) {
+  .about-motion-hero__stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 0.65fr);
+    gap: 48px;
+    align-items: center;
+  }
+  .about-motion-hero__portrait {
+    width: 100%;
+    margin: 0;
+  }
+}
 </style>

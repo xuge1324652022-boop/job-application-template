@@ -8,11 +8,12 @@
   },
   "category": "scroll",
   "status": "active",
-  "summary": "关于页开场连续场景：四行身份巨字居中后左移并显现人物图；作品拼贴中的主角图（同一元素）脱离放大铺满视口再接入横向图文叙事（文案为现有资料的方向/方法/协作/作品）；暗色人物引言（自述+方向行）逐行点亮，人物衬底贯穿 WHO I AM 折叠章节——错位折叠、缩小、正文进入点亮、上移离场并升入小人物卡。此后按完整履历、AI 工作流、工作之外横向轨道与联系收尾。各组件独立管理动画，页面统一协调工具选择与查看器。",
+  "summary": "关于页以黑底、奶油正文与红色巨字串联连续滚动：首屏先露出约两行方向词，再整体上移呈现四行、与人物图组成左右构图，末段轻移后随自然滚动离场；奶油底上的整条倾斜图片带横移，同一主图脱离、归正并放大覆盖视口，再缩入横向故事；人物引言读完离场后，独立字形层从完整可读放大至局部笔画越界，随后交给 WHO I AM 三行折叠缩小、正文提亮和小人物卡。个人履历与作品通过可选本机内容包供给，没有该包时继续使用公开模板数据。",
   "entryFiles": [
     "src/components/about/AboutMotionHero.vue",
     "src/components/about/AboutCollageStage.vue",
     "src/components/about/AboutQuoteScene.vue",
+    "src/components/about/AboutWordZoom.vue",
     "src/components/about/AboutScrollChapter.vue",
     "src/components/about/AboutIdentityScene.vue",
     "src/components/about/AboutObservationRail.vue"
@@ -26,33 +27,47 @@
     {
       "file": "src/components/about/AboutMotionHero.vue",
       "symbols": [
-        "play",
-        "entrance",
-        "played",
-        "prepareMotionLayout"
+        "IDENTITY_ROWS",
+        "fitWords",
+        "geometry",
+        "about-hero-rearrange"
       ],
-      "purpose": "路由揭幕门闩放行后仅播放一次首屏双行标题；标题位移、旋转与透明度在同一时间线中恢复。"
+      "purpose": "实测四行方向词宽高；开场在窗口约0.48H位置先露出两行，整组上移至完整可读，再缩小左移与人物图组成左右构图；末段仅上移0.16H保留构图，由自然滚动整体带出。"
     },
     {
       "file": "src/components/about/AboutCollageStage.vue",
       "symbols": [
-        "stripEntries",
-        "featured",
+        "bandEntries",
+        "featuredHome",
         "fillShift",
         "slotShift",
-        "travel",
-        "collage__fly"
+        "storyDuration",
+        "onPanelFocus",
+        "featuredImageSizes",
+        "disposeScene"
       ],
-      "purpose": "浅色简介与倾斜图片带开场；主角图（同一 DOM 元素）脱离拼贴等比放大接近铺满视口，浅底纸随之淡出，再缩入横向轨道第一格并与整轨同步左移，反向滚动沿原路恢复。"
+      "purpose": "整条图片带按同一角度倾斜横移，停在主图中心约45%视口宽的位置；浮动主图随后归正覆盖并落到故事首格，按钮与图像同步移动。全部作品保留可聚焦入口，sizes按实际cover宽度选择资源，独立context由dispose显式管理。"
     },
     {
       "file": "src/components/about/AboutQuoteScene.vue",
       "symbols": [
         "lines",
+        "statement",
         "backdropMask",
-        "quote-scene__line"
+        "refreshLayout"
       ],
-      "purpose": "整屏人物照片压暗作衬底，巨型姓名进入后引言行（取自 TAGLINE 与 ROLE_LINE）逐条由暗变亮，尾段整体上移交还滚动给折叠章节。"
+      "purpose": "暗化人物衬底，姓名与TAGLINE中的简短主张分行提亮，停留后上移退出；完整PROFILE_LINES保留在个人资料章节，不在此处重复长段落。"
+    },
+    {
+      "file": "src/components/about/AboutWordZoom.vue",
+      "symbols": [
+        "displayWord",
+        "measure",
+        "geometry",
+        "focusIndex",
+        "onRefreshInit"
+      ],
+      "purpose": "独立奶油色字形转场：完整词语先可读，再根据实测字体与字符位置围绕聚焦字形放大至局部笔画越界；背景人物不缩放，最后字层淡出衔接折叠章节。 不常驻will-change，并以force3D:false避免字形被长期纹理化后放大模糊。"
     },
     {
       "file": "src/components/about/AboutScrollChapter.vue",
@@ -100,56 +115,76 @@
         "ScrollTrigger.refresh"
       ],
       "purpose": "页内锚点与历史恢复先等待延迟组件的Suspense就绪、字体和幕布开始揭开，再刷新固定区域测量，由现有路由scrollBehavior在输入解锁前应用目标坐标；唯一所有者和AbortController取消过期请求。"
+    },
+    {
+      "file": "src/data/personalPortfolio.ts",
+      "symbols": [
+        "personalPortfolio",
+        "aboutPortrait",
+        "personal-portfolio"
+      ],
+      "purpose": "仅定义本机个人内容的类型与 DOM JSON 读取入口，并提供公开合成人像回退；源码不内嵌个人姓名、联系方式、履历段落或私有素材文件。"
     }
   ],
   "mechanism": {
-    "trigger": "首屏在 active 门闩打开后自然播放；章节以 top top 固定舞台并 scrub:0.35 滚动，个人介绍按段落进入视口提亮；人物图在 top 12% 固定，读完正文后再平移到视口中心并等比覆盖；工作之外固定舞台的横向距离等于轨道 scrollWidth 减去可视宽度，滚动距离与轨道位移直接对应。",
+    "trigger": "各场景读取浏览器文档滚动。首屏、拼贴、引言、独立字形与折叠章节各自固定外壳并 scrub；简介只按段落进入视口展开与提亮；工作之外使用固定横向轨道。版式准备和刷新统一调度，倒滚按相同时间线恢复。",
     "stages": [
       {
-        "name": "hero-entrance",
-        "description": "四行身份巨字居中堆叠、自下而上错峰进入，只播一次；断点分支重建时若已播过则直接恢复可见，不重建入场。",
+        "name": "hero-track",
+        "description": "四行方向词作为同一轨道呈现，起点y=窗口高度0.48倍，先露出约两行；上移后四行完整可读，再实测人物图占用宽度形成左右构图。末段仅较构图位置上移0.16H，人物同步轻移，保留文字尾部与人物，由原生滚动自然带出，不在固定窗口内全部清空。",
         "properties": [
-          "title.yPercent:120→0",
-          "title.rotation:5→0",
-          "title.autoAlpha:0→1"
+          "track.x/y/scale",
+          "portrait.autoAlpha/x",
+          "portraitMask.clipPath",
+          "--hero-word-size"
         ],
-        "timing": "1.15秒，错峰0.09秒，expo.out；每个组件实例只播放一次。"
+        "timing": "top top，固定距离2.35H，scrub:true；整体入场0–1.6、居中停留至1.88、左右构图1.88–2.63、组合停留2.68–3.3、文字与人物轻移3.3–3.9；人物从2.03进入。均为滚动相对时标。"
       },
       {
-        "name": "hero-rearrange",
-        "description": "整个首屏（顶栏、四行 h1 巨字、底部说明）短暂固定为一个完整构图：行组按右侧人物边界与舞台高度实测缩放并左移避开人物图，人物图遮罩展开、中文小字渐显，完整停留后整体退场；巨字字号按真实文字宽度（Range 测量）适配，320/390px 完整可读。",
+        "name": "collage-ribbon",
+        "description": "奶油底与简介先停留；整条图片带保持−6度旋转，连续横移并轻微上移。主图浮层以带内占位的旋转后实际位置为起点，同步相同位移，保持同一图像的视觉连续性。 整带终点依据主图旋转后中心与0.45W阅读位置的差值计算，避免按整带总长滑动而把主图提前推离屏幕。",
         "properties": [
-          "rows.x:0→rowsShift",
-          "rows.scale:1→0.78",
-          "portrait.autoAlpha:0→1",
-          "portraitMask.clipPath:inset(14% 20%)→inset(0%)",
-          "zh.autoAlpha:0→1"
+          "band.x/y/rotation",
+          "featured.x/y/rotation",
+          "intro.autoAlpha/y"
         ],
-        "timing": "top top 固定，end 为视口高 0.55 倍，scrub:0.5；尾段 0.25 为完整构图停留。"
+        "timing": "0–0.25停留，0.25–1.65整带与主图同步移动；takeover从1.65开始。"
       },
       {
-        "name": "collage-story",
-        "description": "浅色底纸上作品速览与倾斜图片带开场；主角图（同一 DOM 元素）脱离拼贴等比放大覆盖视口（舞台裁切超出部分，完整图由查看器承载），底纸随之淡出转深，再缩入横向轨道第一格并与整轨同步左移，完成方向/方法/协作/作品四段图文叙事；倒滚沿原路恢复。桌面断点内窗口变化时整体重建场景并重算轨道距离。断点退出与卸载时显式 revert 场景 context，不留固定占位与内联样式。",
+        "name": "collage-takeover-and-story",
+        "description": "同一主图按钮从图片带脱离并归正，按max(舞台宽/图宽,舞台高/图高)×1.02覆盖视口；底纸淡出，主图轻微回缩后落到第一格，与轨道同步横移。个人内容包提供故事与作品时使用其记录，否则展示四段模板图文；故事链接指向已有经历锚点。 主图sizes使用CSS像素下的实测cover需求，浏览器自行乘DPR；focus-within选择区保留全部已登记作品入口，个人内容包当前七幅作品均可用键盘打开。",
         "properties": [
-          "fly.x/y/scale: 拼贴→铺满→第一格",
-          "fly.x -= travel（与轨道同步）",
-          "track.x:0→-travel",
-          "siblings.autoAlpha→0",
-          "wash.autoAlpha→0",
+          "featured.x/y/scale/rotation",
+          "paper.autoAlpha",
+          "track.x/autoAlpha",
+          "panel-image.autoAlpha/x",
+          "note.autoAlpha/y",
           "counter"
         ],
-        "timing": "top top 固定，end 为 950px + 轨道位移 + 60px，scrub:true；主角图与槽位按 offset 布局尺寸在 refresh 时重算。"
+        "timing": "top top，scrub:true；storyDuration=max(1,横向行程/H)，end=H×(2.85+storyDuration+0.2)。takeover放大0.55、回缩从+0.62开始、+0.76落位、story从+1.2开始；横向段ease:none。桌面内resize防抖重建，构建通过mediaContext.ignore隔离独立context；disposeScene先revert，再只清除本场景拥有的transform/opacity/visibility等属性并失效变换缓存，保留模板静态比例，防止跨断点重放旧隐藏起点。"
       },
       {
         "name": "quote-portrait",
-        "description": "暗色人物引言：整屏人物照片内缩遮罩展开压暗作衬底，巨型姓名进入，自述行（PROFILE_LINES）与方向行逐条由暗变亮，尾段整体上移交给折叠章节；人物衬底延续到 WHO I AM 折叠。",
+        "description": "人物图内缩遮罩展开为暗色背景，姓名进入；主张取TAGLINE，中文按标点形成简短行（当前约两行）并保留英文译文。短暂阅读后按内容实际高度上移离场，随后交给独立字形组件；完整个人简介留在PROFILE_LINES驱动的资料章节。",
         "properties": [
-          "backdropMask.clipPath:inset(18% 22%)→inset(0%)",
-          "name.yPercent:46→0",
-          "line.color:#585b63→#f2f1ec",
-          "content.y:-30vh"
+          "backdropMask.clipPath",
+          "name.yPercent/autoAlpha",
+          "line.color",
+          "content.y"
         ],
-        "timing": "top top 固定，end 为视口高1.5倍，scrub:0.55。"
+        "timing": "top top，固定距离1.65H，scrub:true；正文提亮从0.25开始、duration0.24、stagger0.12；reading后停留0.32，再用0.65退出。"
+      },
+      {
+        "name": "independent-word-zoom",
+        "description": "完整词语和双语标注先可读；按词与舞台实测尺寸适配字号，默认聚焦最靠近词中心的非空字符，也可通过focusIndex指定。字形保持真实轮廓、字腔和间隙，围绕聚焦点放大至只见局部笔画，人物衬底保持独立。此段向外放大，不改后续WHO I AM的折叠缩小。 字形不常驻will-change，transform使用force3D:false，保持放大过程中的文字边缘清晰；仍需按实际字体与DPR检查视觉结果。",
+        "properties": [
+          "--word-zoom-size",
+          "word.transformOrigin",
+          "word.x/y/scale/autoAlpha",
+          "caption.autoAlpha",
+          "word.force3D:false"
+        ],
+        "timing": "宽度>=981px且高度>=650px并允许动态时固定，优先级32；end=2.2H+0.25W，scrub:true。0–0.2可读停留，0.2–0.92放大，1.04–1.22字层淡出，末尾停留0.12；onRefreshInit重测。"
       },
       {
         "name": "chapter-fold",
@@ -191,44 +226,56 @@
       }
     ],
     "state": [
-      "hero.active/played/entrance",
+      "hero.motionReady/scene/geometry",
+      "collage.context/animation/storyDuration/current",
+      "quote.lines/backdropMask",
+      "wordZoom.media/geometry/displayWord",
       "chapter.media/timeline/leadCopy/widthPerPixel",
-      "identity.active/activeTool/portraitFigure/geometry",
+      "identity.active/activeTool",
       "rail.current/scrollScene/media",
+      "personalPortfolio及模板回退",
       "LazySection.loaded/resolved/readiness",
       "布局准备与刷新取消句柄"
     ],
     "propertyOwnership": [
-      "首屏标题仅由首屏入场控制；章节标题行负责x/yPercent/clipPath，外层标题负责scale/y，正文负责透明度和文字颜色。",
-      "个人介绍的图像容器拥有clipPath与x/y/scale，暗化层只写autoAlpha；图像本身object-fit:contain保持完整比例；文字提亮只写装饰词段的颜色。",
-      "照片接管只写简介与图注的opacity；工具和探索链接保持自然文档流，基本信息与技能区块以更高层叠滚入暗化照片上方。",
-      "工作之外固定stage不参与平移；track拥有横向x，图像内部image-mask拥有clipPath，panel作为containerAnimation测量目标。",
-      "观察轨道固定模式的标题栏右侧保留88px，避开全局作品索引入口与计数显示的重叠。",
-      "查看器与页面滚动锁由AboutView和现有全局覆盖层统一管理；组件不创建独立滚动容器或平滑滚动控制器。"
+      "首屏方向词的x/y/scale由一个滚动时间线拥有，人物图与遮罩独立；不叠加另一条自动入场时间线写同一轨道。",
+      "拼贴带、浮动主图、故事轨道和底纸分层；主图按钮整体拥有x/y/scale/rotation，点击盒及焦点环与画面保持一致。",
+      "引言拥有人物背景遮罩与引言文字，AboutWordZoom独立拥有字形缩放与透明度，不缩放人物背景。",
+      "章节标题行负责x/yPercent/clipPath，外层标题负责scale/y，正文负责透明度与颜色；独立字形放大不能替换scale:0.065的折叠收束。",
+      "个人介绍图像容器只写clipPath，装饰词段只写颜色；事实、技能和工具保持自然文档流。",
+      "工作之外固定stage不参与平移，track拥有横向x，内部image-mask拥有clipPath；固定标题栏避让全局索引。",
+      "查看器与页面滚动锁由AboutView及既有覆盖层管理；组件不新增滚轮控制器。",
+      "拼贴场景通过mediaContext.ignore避免同一动画被父子context重复恢复；disposeScene显式revert当前context并清理仅由本场景拥有的动画属性，保留--image-width、aspect-ratio等静态模板样式。"
     ],
     "interruption": [
       "gsap.matchMedia按断点和减少动态偏好撤销补间与固定区域，回到完整可读的自然文档流。",
-      "固定区域按身份章节30、照片接管25、过程章节20、观察轨道10的refreshPriority依次测量，字体、图像和延迟区块完成后通过可取消的requestMotionLayoutRefresh共享队列刷新。",
+      "固定区域按首屏45、拼贴40、引言35、独立字形32、身份章节30、过程章节20、观察轨道10的refreshPriority测量；字体、图像与延迟区块落位后通过可取消的共享队列刷新。",
       "工作之外键盘焦点进入完全离屏图像按钮时，根据panel位置计算主ScrollTrigger进度并用window.scrollTo定位；按钮与轨道存在超过12px水平交集且轨道在视口内时不定位，保留查看器关闭前的任意滚动位置。",
       "工具选择只在active为真时发出；查看器关闭后的焦点和滚动恢复继续由页面已有逻辑处理。"
     ]
   },
   "integration": {
     "steps": [
-      "在AboutView式页面按首屏、身份章节、个人介绍、经历、过程章节、工作流、工作之外、联系的叙事顺序组合组件。",
+      "在AboutView式页面按首屏、倾斜拼贴与横向故事、人物引言、独立字形放大、WHO I AM折叠、个人介绍、经历、过程章节、工作流、工作之外和联系组合。",
+      "AboutWordZoom传入lang、双语word与label；可选backgroundSrc/backgroundSrcset、focusIndex和refreshPriority。引言中不再重复创建字形放大层，下一章节保留自身折叠缩小。",
       "首屏以下的重区块（经历、工作流、观察轨道、联系）用LazySection包裹并配minHeight占位：提前一屏加载异步chunk，Suspense解析并经过nextTick确认挂载后才移除占位、解除aria-busy并完成ensureReady()；ResizeObserver申请共享布局刷新，已加载内容不卸载。",
       "锚点与历史滚动恢复通过页面注册的prepareScroll等待四个LazySection.ensureReady()、字体和routeCurtainBlocked解除，再最终测量并交还原有路由scrollBehavior一次定位。门闩在幕布开始揭开时解除，定位不再等到幕布完全退出，避免输入解锁后出现可见的锚点跳动；新请求或卸载时取消旧请求。",
       "将路由揭幕与覆盖层状态派生为active，传给首屏及个人介绍；以v-model:active-tool把个人介绍工具和原有工作流同步。",
       "向AboutScrollChapter提供稳定name、英文heading、双语label与双语lines；需要导语先读再进入标题时传lead，保留互补标题行和独立正文节点。",
       "监听AboutObservationRail的open(item,trigger)事件，接入页面既有VisualViewer；保留from查询参数的摄影与海报续读链接。",
-      "保留深色--ab-*主题变量和各组件的自然流回退样式；固定舞台必须以浏览器原生文档滚动为基准。"
+      "保留深色--ab-*主题变量和各组件的自然流回退样式；固定舞台必须以浏览器原生文档滚动为基准。",
+      "本机个人内容包由宿主Vite插件可选注入document中的#personal-portfolio JSON；personalPortfolio.ts只读取类型化内容。包提供个人资料、人像、作品、故事与响应式尺寸；没有启用包时所有入口继续显示公开模板。复制动效源码不会自动携带本机内容包或其素材。"
     ],
     "inputs": [
-      "AboutMotionHero.active:boolean",
-      "AboutScrollChapter.name/heading/label/lead?/lines/size?",
+      "AboutMotionHero.active/lang",
+      "AboutCollageStage.lang及可选个人故事数据",
+      "AboutQuoteScene.lang",
+      "AboutWordZoom.lang/word:Bi/label:Bi/backgroundSrc?/backgroundSrcset?/focusIndex?/refreshPriority?",
+      "AboutScrollChapter.name/heading/label/lead?/lines/size?/card?/backdrop?",
       "AboutIdentityScene.lang/active/activeTool",
       "AboutObservationRail.lang:Lang",
-      "LazySection.minHeight?/eager?"
+      "LazySection.minHeight?/eager?",
+      "可选#personal-portfolio JSON：profile/portrait/selectedWorks/storyPanels/imageDimensions"
     ],
     "outputs": [
       "update:activeTool(id:string)",
@@ -247,19 +294,20 @@
       "src/data/aboutProfile.ts",
       "src/data/aiTools.ts",
       "src/data/resumeEmphasis.ts",
-      "src/data/visualPortfolio.ts"
+      "src/data/visualPortfolio.ts",
+      "src/data/personalPortfolio.ts"
     ],
     "assets": [
-      "public/about/portrait-{400,900,1448}.webp合成简介占位图",
-      "photography登记的三幅合成图像及响应式尺寸",
+      "默认公开人像/about/portrait-{400,900,1448}.webp及visualPortfolio登记的合成素材",
+      "可选本机个人内容包中的人像、已选作品和简历：由宿主显式提供，不随本源码包复制",
       "AI_TOOLS登记的工具图标",
-      "src/style.css与AboutView提供的--ab-*颜色变量"
+      "AboutView提供的黑底、奶油正文、红色巨字与--ab-*主题变量"
     ]
   },
   "accessibility": {
-    "reducedMotion": "减少动态时首屏静态可读，章节无固定、折叠或正文隐藏，个人介绍无遮罩、逐字与照片接管动画，三幅观察图像按自然文档流全部显示。",
-    "touch": "保留原生纵向滚动；照片接管在宽度至少761px且高度至少561px并允许动态时生效，图像轨道只在宽度至少981px且高度至少650px并允许动态时固定，小屏自然纵向阅读，图片按钮仍可打开完整查看器。",
-    "keyboard": "装饰标题和拆分词层aria-hidden，保留单一标题与完整原句供辅助技术读取；工具使用原生按钮和aria-pressed且不随照片淡出；轨道图像保持原生Tab顺序，focus-visible只为完全离屏面板定位，部分可见的查看器触发按钮恢复焦点时保持滚动位置。"
+    "reducedMotion": "减少动态、小屏和短视口使用完整自然文档流：首屏四行完整可读，拼贴图片与故事直接排列，独立字形不放大，折叠章节无固定或隐藏，个人介绍和观察轨道全部可读。",
+    "touch": "保留浏览器纵向手势；首屏与章节要求>=761×650，引言要求>=761×620，拼贴与独立字形要求>=981×650且允许动态；未满足条件时不固定。图像按钮继续打开统一查看器。",
+    "keyboard": "装饰字形与拆分词层aria-hidden，提供完整语义标题与原句；拼贴浮动主图按钮随画面一起移动，完全离屏的图片聚焦时定位相应阶段；查看器关闭恢复原焦点和位置，部分可见触发按钮不强制对齐。 拼贴focus-within作品选择区覆盖全部已登记作品（当前个人版七幅）；退出桌面断点时恢复到自然网格中的同一作品，经历链接应完整滚入视口。"
   },
   "lifecycle": {
     "setup": [
@@ -268,18 +316,22 @@
     ],
     "cleanup": [
       "卸载时设置dead或mounted状态以拒绝迟到回调，取消布局准备和共享刷新请求，再执行media.revert。",
-      "轨道媒体分支退出时清除is-pinned类、ScrollTrigger引用和当前计数，恢复纵向排版与完整图像；LazySection断开IntersectionObserver与ResizeObserver并完成未决readiness。"
+      "轨道媒体分支退出时清除is-pinned类、ScrollTrigger引用和当前计数，恢复纵向排版与完整图像；LazySection断开IntersectionObserver与ResizeObserver并完成未决readiness。",
+      "拼贴独立场景由disposeScene统一销毁，避免初始与resize重建场景重复归属于matchMedia；清除动画属性与变换缓存后再返回自然流，断点切换和卸载不能留下旧隐藏状态。"
     ],
     "knownLimitations": [
-      "章节三行折叠面向短英文标题；中文正文和英文译文的换行由页面内容明确提供。",
-      "观察轨道为三幅合成示例构图，不是任意数量、任意素材比例的通用画廊。",
-      "旧AboutHero、ProfileIntro、BeyondWork等保留组件仍有各自动效定义；当前/about入口使用本定义中的四个新组件。"
+      "字形放大效果与所选字形轮廓和字体有关；focusIndex按Unicode字符索引指定，不保证每个字腔呈现相同构图。",
+      "拼贴与观察轨道依赖既定素材比例和版式；替换内容后需检查极端长文和宽高比。",
+      "本机个人内容包及其媒体不属于源码闭包，独立复制组件需由宿主显式提供；缺包的模板回退必须保持可用。",
+      "旧AboutHero、ProfileIntro、BeyondWork保留为历史组件，当前/about采用本定义登记的新场景。"
     ]
   },
   "agentNotes": [
     "章节互补裁切必须使用同一单词和一致字体尺寸；装饰副本不应重复暴露给屏幕阅读器。",
     "containerAnimation要求主轨道ease:none；第一幅已在固定起点可见，不能套用从视口右侧进入的子触发器。",
-    "所有滚动场景都使用原生文档滚动；不要给/about附加第二套滚轮拦截或平滑滚动器。"
+    "所有滚动场景都使用原生文档滚动；不要给/about附加第二套滚轮拦截或平滑滚动器。",
+    "字形放大是独立于三行标题缩小的场景，不用整屏奶油矩形代替真实字形。",
+    "源代码副本只能包含类型、读取逻辑和公开模板回退，不能把本机内容包的JSON、简历、个人联系方式或私有媒体复制进组件库。"
   ],
   "relatedEffects": [
     "motion-layout-scheduler",
@@ -298,11 +350,18 @@
     ],
     "manualChecks": [
       "桌面正向与反向滚动检查导语先提亮离场，三行标题再从底部进入、汇合、折叠、缩小和上移，最后正文进入；宽屏标题也不得超出视口。",
-      "滚动进入照片接管：确认完整简介先通过阅读区，人物图x/y与缩放同步到视口中心并等比覆盖四边，只有简介与图注淡出，工具保持自然流和可操作；暗化与轻微回缩后基本信息继续滚入，反向滚动还原。",
+      "桌面首屏整组文字从下方进入、完整停留、与人物图组成左右构图后整体上移退出；检查320/390px及减少动态时完整可读。",
+      "拼贴应先看见多幅图片在同一倾斜带中横移，同一浮动主图归正覆盖、回到第一格并随轨移动；点击盒和焦点环跟随主图，resize后再跨断点或离开页面无残留pin。",
+      "人物引言读完退出后，独立奶油字形先完整可读，再放大至局部笔画越界，背景不随字形放大；倒滚逐阶段恢复，随后WHO I AM仍按原逻辑折叠缩小。",
       "在观察轨道0、0.5、1进度查看三幅完整比例图像，反向滚动确认遮罩恢复且第一幅始终可见。",
       "使用Tab聚焦完全离屏图像按钮，确认画面滚入视口；在0.38等非对齐进度点击部分可见图片并按Esc关闭，精确恢复原滚动位置和触发按钮焦点。",
       "延迟异步chunk后点击联系/流程锚点或带hash刷新，确认等待Suspense就绪和共享布局测量后仍定位正确。",
-      "检查移动端、短视口、减少动态偏好、切语言与离开/about返回时的完整内容、原生滚动和无残留pin-spacer。"
+      "检查移动端、短视口、减少动态偏好、切语言与离开/about返回时的完整内容、原生滚动和无残留pin-spacer。",
+      "分别检查启用本机个人内容包与缺包模式；生成的源码副本中不得出现实际个人JSON、简历内容或私有素材，公开模板依然可运行。",
+      "首屏起点约显示两行，继续滚动可读完四行；末段只轻移保留构图，随后由页面自然滚动离场，不应出现整屏无内容的空档。",
+      "整带横移结束时主图仍在约45%视口宽的位置并可见，再开始归正覆盖；个人版全部七幅作品能由Tab进入选择区并打开，跨断点后焦点回到同一作品。",
+      "分别在桌面内resize、桌面转移动、减少动态切换及路由卸载后检查拼贴context清理：自然流图像不得残留opacity:0、visibility:hidden或旧transform。",
+      "引言只显示简短TAGLINE主张，完整PROFILE_LINES仍在个人资料；字形放大在常用DPR下边缘清晰，无常驻will-change产生的低分辨率纹理。"
     ]
   },
   "tags": [
@@ -325,6 +384,7 @@
       "源码/项目源码/组件/人物与作品/人物动态首屏.vue",
       "源码/项目源码/组件/人物与作品/简介拼贴场景.vue",
       "源码/项目源码/组件/人物与作品/人物引言场景.vue",
+      "源码/项目源码/组件/人物与作品/字形越界放大.vue",
       "源码/项目源码/组件/人物与作品/人物滚动章节.vue",
       "源码/项目源码/组件/人物与作品/人物身份场景.vue",
       "源码/项目源码/组件/人物与作品/人物观察轨道.vue"
@@ -366,64 +426,73 @@
       "original": "src/components/about/AboutCollageStage.vue",
       "path": "源码/项目源码/组件/人物与作品/简介拼贴场景.vue",
       "role": "entry",
-      "originalSha256": "269167070b31c7f1ae6be14600a9a5fdef50f6f176d25235f05b6bea613d2ea8",
-      "originalBytes": 21490,
-      "sha256": "b0558a386fa318c09c1087d71007d98e14c5450f0c57ae76ad118627a00c7490",
-      "bytes": 21505
+      "originalSha256": "d557a4182472428659b92955c5889985c7f2a30e10c527101aebe36eb2ec40b9",
+      "originalBytes": 35912,
+      "sha256": "c023017922e0175febe5ef2d205e6e1313fb1850766a0db4452bd48fb29392de",
+      "bytes": 35936
     },
     {
       "original": "src/components/about/AboutIdentityScene.vue",
       "path": "源码/项目源码/组件/人物与作品/人物身份场景.vue",
       "role": "entry",
-      "originalSha256": "04c3d1c699c72cb0f0a035a9892078a9c30b13704542c543d93bd48f0777e3c9",
-      "originalBytes": 15382,
-      "sha256": "0f5fe36596c25a41ce02564df8f2a34d1d03f699934bc33c0427e3faf11260c5",
-      "bytes": 15411
+      "originalSha256": "b03b1cf888746d8999345f1b5adc0e828dbb453aec22686f1af1a4d4b8683f25",
+      "originalBytes": 18005,
+      "sha256": "193821984404aba1c3318e278ab317f8083368cb135c4d313a8333d687af1be0",
+      "bytes": 18043
     },
     {
       "original": "src/components/about/AboutMotionHero.vue",
       "path": "源码/项目源码/组件/人物与作品/人物动态首屏.vue",
       "role": "entry",
-      "originalSha256": "910de0755321efc9648ea7b49e4f930774f50f8ecea45f80ba72bbf74e183058",
-      "originalBytes": 12066,
-      "sha256": "3c775f434242b3c7ef6165660587a99128b05ec1ebdbf4e30b4d1c87999ad934",
-      "bytes": 12076
+      "originalSha256": "2391086a78330d7ec5d9f6da84d95b5612aa7f775a3f10a8540d912ccad8247b",
+      "originalBytes": 15211,
+      "sha256": "50db75291b4f064169667e178abb8bb938fc5589b7ad9ae2f8478be01c88b6df",
+      "bytes": 15230
     },
     {
       "original": "src/components/about/AboutObservationRail.vue",
       "path": "源码/项目源码/组件/人物与作品/人物观察轨道.vue",
       "role": "entry",
-      "originalSha256": "c7165a7d439a040e4fbbbc8c9d2ee2da190bf80f3067c6fb0cdea283891ad498",
-      "originalBytes": 18545,
-      "sha256": "5abd98da607647ab0be8b19d57d138486d2241ffde32d75591809b4de2956fc2",
-      "bytes": 18560
+      "originalSha256": "10e20da7eef2c00496d041fbb119052ed39f3373126b6175639067df61181a71",
+      "originalBytes": 20707,
+      "sha256": "79f12af1db4a4f154a4994de88d4043975c162f5fcbc58b2ae073b88bb6c9610",
+      "bytes": 20731
     },
     {
       "original": "src/components/about/AboutQuoteScene.vue",
       "path": "源码/项目源码/组件/人物与作品/人物引言场景.vue",
       "role": "entry",
-      "originalSha256": "f36546f7ec1f20f14ca04e81953ca813e182d5ee5682c5784d591ca3c98ff83d",
-      "originalBytes": 6439,
-      "sha256": "4056cbde9e8b3eaa2dc7efbed83a8c30427f6a3977fbc00c87998fa7809419cb",
-      "bytes": 6449
+      "originalSha256": "77b17ffab12f814ccdf0e21687bc2db27d467a1ca83c432c9b85c255b988961b",
+      "originalBytes": 7583,
+      "sha256": "d4c9e3fd4df8650af044e685d47d0950227c448beb34b6eb985b44d080eb838e",
+      "bytes": 7602
     },
     {
       "original": "src/components/about/AboutScrollChapter.vue",
       "path": "源码/项目源码/组件/人物与作品/人物滚动章节.vue",
       "role": "entry",
-      "originalSha256": "9c44d25c6a68465974f585c9193b9a2b02c7388c94d2dd04ff78cfbfb41ece52",
-      "originalBytes": 11511,
-      "sha256": "a324b19c2daed07799d6844385509a64b0372389c7350fe2a841a1bdf7406dc9",
-      "bytes": 11520
+      "originalSha256": "13ec707ad9ed669af756bb2938569f758424d6505de64c74d68eb2492c901d62",
+      "originalBytes": 13894,
+      "sha256": "dbf2e549071342f1f360fcaf34bfdca82cde616690d682e18feba8e8c2ce68d0",
+      "bytes": 13913
+    },
+    {
+      "original": "src/components/about/AboutWordZoom.vue",
+      "path": "源码/项目源码/组件/人物与作品/字形越界放大.vue",
+      "role": "entry",
+      "originalSha256": "15a210481a19c3b6ac4fecce95d77f5ce41b69907a8b994bcddac0cc3be8c9ce",
+      "originalBytes": 10276,
+      "sha256": "d4eb3448a88032871065a36dfde3d542d97ebf5a894b8cb383a9cbbfe5c98ac6",
+      "bytes": 10286
     },
     {
       "original": "src/data/aboutProfile.ts",
       "path": "源码/项目源码/数据/人物资料.ts",
       "role": "dependency",
-      "originalSha256": "9bc993e2ef9aab5c9aa0f30e53412fb646e0691e107a01230b62cc65cb1b61e5",
-      "originalBytes": 21975,
-      "sha256": "9bc993e2ef9aab5c9aa0f30e53412fb646e0691e107a01230b62cc65cb1b61e5",
-      "bytes": 21975
+      "originalSha256": "809793a021b5fecb82640038956bcd9a322f137d89bf6e28726b87d182d08850",
+      "originalBytes": 22419,
+      "sha256": "3766047afc4c6282f7a3ad8cd4ecdd7185f22cce62987918573f5cd0fd1a6c1c",
+      "bytes": 22426
     },
     {
       "original": "src/data/aiTools.ts",
@@ -442,6 +511,15 @@
       "originalBytes": 12605,
       "sha256": "14e09713c5eeaf886e5070e91559145fc6914b67b25a97d86af51351bc40482a",
       "bytes": 12605
+    },
+    {
+      "original": "src/data/personalPortfolio.ts",
+      "path": "源码/项目源码/数据/本机个人内容接口.ts",
+      "role": "dependency",
+      "originalSha256": "2a16ae2d67b26a0a24a1eefcc7e747d15925a8e7bf1d0c46b8c6c02149d83bc1",
+      "originalBytes": 1752,
+      "sha256": "ebd7f84f520b18ba43b8f00569aacc94439b4aa3cce10f75e9894e7bb6c54658",
+      "bytes": 1755
     },
     {
       "original": "src/data/resumeEmphasis.ts",
@@ -483,19 +561,19 @@
       "original": "src/utils/responsiveImage.ts",
       "path": "源码/项目源码/工具/响应式图片.ts",
       "role": "dependency",
-      "originalSha256": "3f4f4a263ee92ff55c4048446ad55eaaf37a31d6c83f1905c3027f85f02b0714",
-      "originalBytes": 1118,
-      "sha256": "171997e336dea8d1282714c3473e5a5847c18f0a5731483fbf2d09d59a27bdd8",
-      "bytes": 1125
+      "originalSha256": "1da57df0406457b4b0ace433f4ff8eaa330817e1d46a2dcd5eb2c45ae8ab51e1",
+      "originalBytes": 1262,
+      "sha256": "634aba5c953aabbdcfa92ba65947be8f969631136d16122f89cd228050daa9bc",
+      "bytes": 1278
     },
     {
       "original": "src/views/AboutView.vue",
       "path": "集成示例/项目源码/页面/人物介绍页.vue",
       "role": "integration-context",
-      "originalSha256": "1efc91505aad293596252b63e40079dcd4a7f51b2db4d721e0ff01857ca0b66d",
-      "originalBytes": 12141,
-      "sha256": "8bf2d330856573e560f9d6b722e419c281cb11a93114821ed77f1358140dde4e",
-      "bytes": 12254
+      "originalSha256": "735e6c05c6b9d6efd113541dbfeeb4838a1e800f2847883d73250eb4fcb92972",
+      "originalBytes": 13397,
+      "sha256": "fc2ed12a63128a21858967e575229022f576e803dd2c4c57d72224552d4557e1",
+      "bytes": 13531
     },
     {
       "original": "src/components/LazySection.vue",

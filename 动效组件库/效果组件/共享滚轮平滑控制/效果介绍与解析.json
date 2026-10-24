@@ -202,10 +202,10 @@
       "original": "src/App.vue",
       "path": "集成示例/项目源码/应用根组件.vue",
       "role": "integration-context",
-      "originalSha256": "41bdd7d5a9dea2fa1e687c665b0d0f32a616ebd579feb4901349e467fb0da5ee",
-      "originalBytes": 4888,
-      "sha256": "18eb5107cfa5e9af4cfc998ca59bc3c1456aeaa283f13417caa15b0083bbb2a7",
-      "bytes": 4889
+      "originalSha256": "d279771030af6b94eab1b0a784dc322f6fed63d080c82824b6b50cf49adf9694",
+      "originalBytes": 5026,
+      "sha256": "dd00907aa9174cd8aef105e8294edc6cfda5aed9c8cf9f308ade300fee5e3dda",
+      "bytes": 5036
     },
     {
       "original": "src/views/ColorView.vue",

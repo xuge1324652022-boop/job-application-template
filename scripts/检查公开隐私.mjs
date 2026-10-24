@@ -232,11 +232,34 @@ export function checkPublicPrivacy({ localAudit = false } = {}) {
   assert(normalFile('src/data/aboutProfile.ts'), '默认人物模块不是普通文件')
   const source = readFileSync('src/data/aboutProfile.ts', 'utf8')
   const exports = {}
+  // This VM has no document, so the optional local edition must remain inactive.
+  // Isolated historical gate fixtures omit this browser-only helper entirely.
+  const personalHelper = { personalPortfolio: null, isPersonalPortfolio: false }
+  const helperPath = 'src/data/personalPortfolio.ts'
+  if (existsSync(helperPath)) {
+    assert(normalFile(helperPath), '个人版读取模块不是普通文件')
+    vm.runInNewContext(
+      ts.transpileModule(readFileSync(helperPath, 'utf8'), {
+        compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+      }).outputText,
+      { exports: personalHelper },
+    )
+    assert(
+      personalHelper.personalPortfolio === null && personalHelper.isPersonalPortfolio === false,
+      '默认模板不应读取本机个人内容',
+    )
+  }
   vm.runInNewContext(
     ts.transpileModule(source, {
       compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
     }).outputText,
-    { exports },
+    {
+      exports,
+      require: (request) => {
+        assert(request === './personalPortfolio', '默认人物模块包含未核验的运行时依赖')
+        return personalHelper
+      },
+    },
   )
   assert(
     exports.IDENTITY.nameZh === '示例求职者' && exports.IDENTITY.nameEn === 'Example Candidate',
