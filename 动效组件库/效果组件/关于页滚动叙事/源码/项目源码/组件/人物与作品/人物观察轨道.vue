@@ -105,6 +105,7 @@ import gsap from 'gsap'
 import ScrollTrigger from 'gsap/ScrollTrigger'
 import { pick, type Bi, type Lang } from '../../数据/人物资料'
 import { photography, type VisualAsset } from '../../数据/视觉作品资料'
+import { requestMotionLayoutRefresh } from '../../工具/动效布局调度'
 import { visualImageSources } from '../../工具/响应式图片'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -148,7 +149,7 @@ const track = ref<HTMLElement | null>(null)
 const current = ref(0)
 let media: gsap.MatchMedia | undefined
 let scrollScene: ScrollTrigger | null = null
-let refreshFrame = 0
+let cancelRefresh: (() => void) | undefined
 let mounted = false
 
 function openLabel(item: VisualAsset) {
@@ -163,10 +164,8 @@ function openImage(item: VisualAsset, event: MouseEvent) {
 
 function scheduleRefresh() {
   if (!mounted) return
-  cancelAnimationFrame(refreshFrame)
-  refreshFrame = requestAnimationFrame(() => {
-    if (mounted) ScrollTrigger.refresh()
-  })
+  cancelRefresh?.()
+  cancelRefresh = requestMotionLayoutRefresh()
 }
 
 /** Keep native tab order: keyboard focus seeks the vertical scroll that exposes its panel. */
@@ -175,6 +174,16 @@ function revealFocusedPanel(event: FocusEvent) {
   if (!scrollScene || !(target instanceof HTMLElement) || !target.matches(':focus-visible')) return
   const panel = target.closest<HTMLElement>('.observation-rail__panel')
   if (!panel || !track.value || !viewport.value) return
+  const focusedBounds = target.getBoundingClientRect()
+  const viewportBounds = viewport.value.getBoundingClientRect()
+  // Viewer focus restoration must keep its saved scroll position when the trigger is visible.
+  if (
+    focusedBounds.right > viewportBounds.left + 12 &&
+    focusedBounds.left < viewportBounds.right - 12 &&
+    viewportBounds.bottom > 0 &&
+    viewportBounds.top < window.innerHeight
+  )
+    return
   const distance = track.value.scrollWidth - viewport.value.clientWidth
   const progress = distance > 0 ? Math.min(1, Math.max(0, panel.offsetLeft / distance)) : 0
   viewport.value.scrollLeft = 0
@@ -268,7 +277,7 @@ watch(
 
 onBeforeUnmount(() => {
   mounted = false
-  cancelAnimationFrame(refreshFrame)
+  cancelRefresh?.()
   media?.revert()
   scrollScene = null
 })
@@ -512,6 +521,9 @@ onBeforeUnmount(() => {
   color: var(--ab-accent, #6a9cff);
 }
 @media (min-width: 981px) and (min-height: 650px) and (prefers-reduced-motion: no-preference) {
+  .is-pinned .observation-rail__head {
+    padding-right: 88px;
+  }
   .is-pinned .observation-rail__stage {
     display: grid;
     grid-template-rows: auto minmax(0, 1fr) auto;

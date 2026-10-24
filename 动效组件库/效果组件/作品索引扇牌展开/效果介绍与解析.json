@@ -239,10 +239,10 @@
       "original": "src/router/index.ts",
       "path": "集成示例/项目源码/路由/应用路由.ts",
       "role": "integration-context",
-      "originalSha256": "2c515120588b3a08d1e5c080b677429242d2a238219e16e78b1685b12e0358d4",
-      "originalBytes": 5700,
-      "sha256": "7f598f3f4808f044baa622f90274f0d7e145db5bcc3ec39fa4a63c1c6c60f05e",
-      "bytes": 5767
+      "originalSha256": "aa2d240b591bfc9a90da92f9675ff26f583599c520daccb4cb133a91178690fd",
+      "originalBytes": 5395,
+      "sha256": "a4f848f8696caa1097563ec4a20ec5884b24663eab9f3567f536718e1eec2c31",
+      "bytes": 5454
     }
   ]
 }

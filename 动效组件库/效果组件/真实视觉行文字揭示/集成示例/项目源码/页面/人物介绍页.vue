@@ -1,20 +1,24 @@
 <template>
   <!-- 滚动叙事与完整履历共用原有资料；各场景独立清理动画。首屏以下区块延迟挂载。 -->
   <div class="about-page" @click="onAnchorClick">
-    <AboutMotionHero :active="heroActive" />
-    <AboutScrollChapter name="identity" heading="WHO I AM" :label="{ zh: '关于我', en: 'A little about me' }"
-      :lines="{ zh: ['把想法做成影像', '让内容被看见'], en: ['From ideas to images.', 'Making content seen.'] }" />
+    <AboutMotionHero :active="heroActive" :lang="lang" />
+    <!-- 开场连续场景：简介拼贴 → 选图放大铺满 → 横向图文叙事，随后交给暗色人物引言。 -->
+    <AboutCollageStage :lang="lang" @open="onOpenVisual" />
+    <AboutQuoteScene :lang="lang" />
+    <AboutScrollChapter name="identity" heading="WHO I AM" card backdrop :label="{ zh: '关于我', en: 'A little about me' }"
+      :lines="{ zh: ['内容策划', '视觉表达', '制作与协作'], en: ['Content planning', 'Visual communication', 'Production & collaboration'] }" />
     <main class="about-body">
       <AboutIdentityScene v-model:active-tool="activeTool" :lang="lang" :active="heroActive" />
       <div class="about-reading">
         <p class="about-section-word" lang="en">IN PRACTICE.</p>
-        <LazySection min-height="190vh" :eager="eagerAll"><ExperienceTimeline :lang="lang" /></LazySection>
+        <LazySection ref="experienceSection" min-height="190vh" :eager="eagerAll"><ExperienceTimeline :lang="lang" /></LazySection>
       </div>
       <AboutScrollChapter name="process" heading="HOW I WORK" size="12.2vw" :label="ABOUT_DIVIDERS.process.label"
-        :lines="{ zh: ['工具参与过程', '判断留在自己手里'], en: ['Tools support the process.', 'Judgment stays with me.'] }" />
-      <div class="about-reading about-process"><LazySection min-height="150vh" :eager="eagerAll"><AiWorkflow v-model:active-tool="activeTool" :lang="lang" /></LazySection></div>
-      <LazySection min-height="110vh" :eager="eagerAll"><AboutObservationRail :lang="lang" @open="onOpenVisual" /></LazySection>
-      <LazySection min-height="95vh" :eager="eagerAll"><ContactEnd :lang="lang" /></LazySection>
+        :lead="{ zh: ['工具参与过程', '判断留在自己手里'], en: ['Tools support the process.', 'Judgment stays with me.'] }"
+        :lines="{ zh: ['从需求与脚本', '到分镜、画面与交付'], en: ['From brief and script', 'to storyboard, image and delivery.'] }" />
+      <div class="about-reading about-process"><LazySection ref="workflowSection" min-height="150vh" :eager="eagerAll"><AiWorkflow v-model:active-tool="activeTool" :lang="lang" /></LazySection></div>
+      <LazySection ref="observationSection" min-height="110vh" :eager="eagerAll"><AboutObservationRail :lang="lang" @open="onOpenVisual" /></LazySection>
+      <LazySection ref="contactSection" min-height="95vh" :eager="eagerAll"><ContactEnd :lang="lang" /></LazySection>
     </main>
     <VisualViewer v-if="viewerItem" :item="viewerItem" :lang="lang" @close="closeViewer" />
   </div>
@@ -27,9 +31,14 @@
  * 首屏以下的重区块经 LazySection 提前一屏加载：锚点跳转（含刷新带 hash 进入）
  * 会立即转急载并在挂载后定位，正常浏览仍按需加载。
  */
-import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { onBeforeRouteLeave, useRouter, type RouterScrollBehavior } from 'vue-router'
+import { registerRouteScrollPreparation } from '../工具/路由滚动准备'
 import { referenceIntroductionGate } from '../组件/引导文字状态'
 import AboutMotionHero from '../组件/人物与作品/人物动态首屏.vue'
+import AboutCollageStage from '../组件/人物与作品/简介拼贴场景.vue'
+import AboutQuoteScene from '../组件/人物与作品/人物引言场景.vue'
 import AboutScrollChapter from '../组件/人物与作品/人物滚动章节.vue'
 import AboutIdentityScene from '../组件/人物与作品/人物身份场景.vue'
 import LazySection from '../组件/延迟挂载区块.vue'
@@ -60,36 +69,131 @@ markSubpageVisit(ABOUT_PAGE_ID)
 const heroActive = computed(() => !routeCurtainBlocked.value && !jumpTarget.value && !overlayActive.value && !isTransitioning.value)
 provide(referenceIntroductionGate, heroActive)
 const activeTool = ref('kimi')
+const aboutRouter = useRouter()
 
-// 首屏以下区块默认按需加载；点页内锚点或带 hash 进入时全部转急载，再定位到目标。
+// 正常阅读继续按需加载。锚点和历史恢复等待真实组件、字体及固定舞台落位，
+// 再把坐标交还原有 scrollBehavior；每次等待都有唯一所有者与取消信号。
 const eagerAll = ref(false)
-async function scrollToAnchorWhenReady(id: string): Promise<void> {
-  for (let attempt = 0; attempt < 120; attempt++) {
-    const element = document.getElementById(id)
-    if (element) {
-      element.scrollIntoView({ behavior: 'instant' as ScrollBehavior })
-      return
+const experienceSection = ref<InstanceType<typeof LazySection> | null>(null)
+const workflowSection = ref<InstanceType<typeof LazySection> | null>(null)
+const observationSection = ref<InstanceType<typeof LazySection> | null>(null)
+const contactSection = ref<InstanceType<typeof LazySection> | null>(null)
+let scrollRequest: AbortController | undefined
+let disposed = false
+
+function cancelScrollRequest(): void {
+  scrollRequest?.abort()
+  scrollRequest = undefined
+}
+
+function abortable<T>(work: PromiseLike<T>, signal: AbortSignal): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const abort = () => reject(new DOMException('Scroll request cancelled', 'AbortError'))
+    if (signal.aborted) { abort(); return }
+    signal.addEventListener('abort', abort, { once: true })
+    Promise.resolve(work).then(value => {
+      signal.removeEventListener('abort', abort)
+      resolve(value)
+    }, error => {
+      signal.removeEventListener('abort', abort)
+      reject(error)
+    })
+  })
+}
+
+function nextFrame(signal: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) { reject(new DOMException('Scroll request cancelled', 'AbortError')); return }
+    const frame = requestAnimationFrame(() => {
+      signal.removeEventListener('abort', abort)
+      resolve()
+    })
+    const abort = () => {
+      cancelAnimationFrame(frame)
+      reject(new DOMException('Scroll request cancelled', 'AbortError'))
     }
-    await new Promise(requestAnimationFrame)
+    signal.addEventListener('abort', abort, { once: true })
+  })
+}
+
+function waitForCurtain(signal: AbortSignal): Promise<void> {
+  // Seek while the curtain is revealing, before the page accepts input.
+  // Waiting for its full exit exposes the old coordinate for a visible frame.
+  if (!routeCurtainBlocked.value) return Promise.resolve()
+  return new Promise((resolve, reject) => {
+    const stop = watch(routeCurtainBlocked, active => {
+      if (active) return
+      stop()
+      signal.removeEventListener('abort', abort)
+      resolve()
+    })
+    const abort = () => { stop(); reject(new DOMException('Scroll request cancelled', 'AbortError')) }
+    signal.addEventListener('abort', abort, { once: true })
+    if (signal.aborted) abort()
+  })
+}
+
+async function prepareScroll(hash: string, saved: Parameters<RouterScrollBehavior>[2]): Promise<boolean> {
+  cancelScrollRequest()
+  let validHash = false
+  try { validHash = !!decodeURIComponent(hash.slice(1)) } catch { /* The router safely handles malformed hashes. */ }
+  if (!saved && !validHash) return true
+  const request = new AbortController()
+  scrollRequest = request
+  const { signal } = request
+  try {
+    eagerAll.value = true
+    await nextTick()
+    await abortable(Promise.all([experienceSection, workflowSection, observationSection, contactSection]
+      .map(section => section.value?.ensureReady())), signal)
+    await abortable(document.fonts.ready, signal)
+    await waitForCurtain(signal)
+    // Mounted children schedule their motion work in the shared layout queue.
+    // Two paint boundaries let that work commit; one final refresh measures all
+    // upstream pins before the router applies the requested coordinate once.
+    await nextFrame(signal)
+    await nextFrame(signal)
+    if (disposed || signal.aborted) return false
+    ScrollTrigger.refresh()
+    return true
+  } catch (error) {
+    if (signal.aborted || disposed) return false
+    throw error
+  } finally {
+    if (scrollRequest === request) scrollRequest = undefined
   }
 }
+const unregisterScrollPreparation = registerRouteScrollPreparation('/about', prepareScroll)
+onBeforeRouteLeave(cancelScrollRequest)
+
 function onAnchorClick(event: MouseEvent): void {
-  const anchor = (event.target as HTMLElement | null)?.closest?.('a[href^="#"]')
-  const id = anchor?.getAttribute('href')?.slice(1)
-  if (!id) return
+  if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
+  const anchor = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href^="#"]') : null
+  if (!anchor || anchor.hasAttribute('download') || (anchor.target && anchor.target !== '_self')) return
+  const hash = anchor.getAttribute('href')
+  if (!hash || hash === '#') return
   event.preventDefault()
-  eagerAll.value = true
-  void scrollToAnchorWhenReady(id)
+  const route = aboutRouter.currentRoute.value
+  void aboutRouter.push({ path: route.path, query: route.query, hash })
+}
+
+function onManualKey(event: KeyboardEvent): void {
+  if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' '].includes(event.key)) cancelScrollRequest()
 }
 onMounted(() => {
-  const id = decodeURIComponent(window.location.hash.slice(1))
-  if (!id) return
-  eagerAll.value = true
-  const stop = watch(heroActive, active => {
-    if (!active) return
-    stop()
-    void scrollToAnchorWhenReady(id)
-  }, { immediate: true })
+  window.addEventListener('wheel', cancelScrollRequest, { passive: true })
+  window.addEventListener('touchstart', cancelScrollRequest, { passive: true })
+  window.addEventListener('pointerdown', cancelScrollRequest, { passive: true })
+  window.addEventListener('keydown', onManualKey)
+})
+onBeforeUnmount(() => {
+  disposed = true
+  cancelScrollRequest()
+  unregisterScrollPreparation()
+  window.removeEventListener('wheel', cancelScrollRequest)
+  window.removeEventListener('touchstart', cancelScrollRequest)
+  window.removeEventListener('pointerdown', cancelScrollRequest)
+  window.removeEventListener('keydown', onManualKey)
 })
 </script>
 

@@ -58,9 +58,11 @@
       "file": "src/router/index.ts",
       "symbols": [
         "router",
-        "preparedScrollTarget"
+        "scrollBehavior",
+        "getRouteScrollPreparation",
+        "savedPosition"
       ],
-      "purpose": "全遮挡跨页导航在 beforeResolve 归零；scrollBehavior 处理历史位置与章节锚点。"
+      "purpose": "scrollBehavior在导航提交后处理坐标：先等待页面异步布局准备，再优先恢复历史位置，其次定位章节锚点，普通新页面最后回顶；离开的页面不提前归零，保留浏览器历史记录的真实阅读位置。"
     },
     {
       "file": "src/utils/navigationOwnership.ts",
@@ -204,6 +206,7 @@
       "从首页与 /cards 分别进入六个子页，检查盖满后换页、无露底。",
       "直达 /photo 与 /card/06，检查章节名及初访揭幕。",
       "覆盖、等待、揭幕期间快速后退/前进以及同页锚点导航，检查旧 Promise 不复写新幕。",
+      "从长页深处跳转到其他页面再后退，确认恢复离开时的真实阅读位置，地址保留旧 hash 时也应优先使用 savedPosition。",
       "开启动效减少，检查短淡入淡出及交互解锁。"
     ]
   },

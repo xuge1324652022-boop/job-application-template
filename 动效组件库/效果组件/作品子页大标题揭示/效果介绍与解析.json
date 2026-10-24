@@ -233,10 +233,10 @@
       "original": "src/components/LazySection.vue",
       "path": "源码/项目源码/组件/延迟挂载区块.vue",
       "role": "dependency",
-      "originalSha256": "82065be0adcee3db660c24dadfcfa2e205939d7ffa4d4db80538814574869ba7",
-      "originalBytes": 1753,
-      "sha256": "e9e5d49210a53d90aa6de9186c087cc2267a0d389ea5ff4300e01feca0f327fb",
-      "bytes": 1760
+      "originalSha256": "019b74ccd290861069dfae5b1701861fe207161997e85f9f70000fe34745787f",
+      "originalBytes": 2861,
+      "sha256": "bf461cdf889a86b065992500ebb22db0a2299764625e4947690b542996cdcafc",
+      "bytes": 2868
     },
     {
       "original": "src/components/ReferenceIntroduction.ts",

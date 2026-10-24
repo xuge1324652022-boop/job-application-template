@@ -2,13 +2,12 @@
   <section id="profile" ref="root" class="identity-scene" aria-labelledby="identity-name">
     <div class="identity-scene__intro">
       <div class="identity-scene__visual">
-        <figure ref="portraitFigure" class="identity-scene__portrait">
+        <figure class="identity-scene__portrait">
           <div ref="imageMask" class="identity-scene__image-mask">
             <img :src="portraitSources.src" :srcset="visualImageSources(portraitSources)"
               sizes="(max-width: 760px) calc(100vw - 40px), 49vw" width="1448" height="1086"
               :alt="lang === 'zh' ? '用于个人简介版式演示的合成几何占位图' : 'Synthetic geometric placeholder illustrating the profile layout'"
               decoding="async" loading="lazy" />
-            <span class="identity-scene__dim" aria-hidden="true"></span>
           </div>
           <figcaption>合成图像示例<span lang="en">Synthetic image example</span></figcaption>
         </figure>
@@ -62,8 +61,9 @@
 
 <script setup lang="ts">
 /**
- * 自然阅读流中的简介：图片遮罩与文字亮度随滚动变化，不创建新的滚动容器或固定区域。
- * 工具按钮直接复用工作流共享 ID；其可用性只由页面转场门闩决定。
+ * 简介沿原生页面滚动阅读；桌面端在读完正文后固定照片，居中放大并暗化。
+ * 工具按钮位于固定照片之外，不参与淡出或位移，继续复用工作流共享 ID。
+ * 小屏、短屏与减少动态模式保留完整自然流，卸载时撤销全部固定与动画样式。
  */
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import gsap from 'gsap'
@@ -78,7 +78,6 @@ const props = defineProps<{ lang: Lang; active: boolean; activeTool: string }>()
 const emit = defineEmits<{ 'update:activeTool': [id: string] }>()
 const root = ref<HTMLElement | null>(null)
 const imageMask = ref<HTMLElement | null>(null)
-const portraitFigure = ref<HTMLElement | null>(null)
 const portraitSources = { thumb: '/about/portrait-400.webp', src: '/about/portrait-900.webp', large: '/about/portrait-1448.webp' }
 const textParts = (text: string, lang: Lang): string[] => lang === 'zh' ? Array.from(text) : text.match(/\S+\s*/gu) ?? [text]
 
@@ -110,31 +109,6 @@ onMounted(() => {
           scrollTrigger: { trigger: paragraph, start: 'top 88%', end: 'bottom 55%', scrub: .4, invalidateOnRefresh: true },
         })
       })
-      // 照片放大接管：人物图固定后等比铺满视口，简介、工具与图注同步淡出；
-      // 铺满后叠加暗化蒙层并轻微回缩，让基本信息与技能从暗化的照片上滚入。
-      const dim = imageMask.value!.querySelector<HTMLElement>('.identity-scene__dim')
-      if (portraitFigure.value && dim) {
-        const coverScale = () => {
-          // offsetWidth/Height 是布局尺寸，不受缩放影响，refresh 时可安全重算。
-          const width = imageMask.value!.offsetWidth
-          const height = imageMask.value!.offsetHeight
-          const center = innerHeight * .12 + height / 2
-          return Math.max(innerWidth / width, 2 * Math.max(center, innerHeight - center) / height)
-        }
-        const fadeGroup = Array.from(root.value!.querySelectorAll<HTMLElement>(
-          '.identity-scene__biography, .identity-scene__tools, .identity-scene__process-link, .identity-scene__portrait figcaption'))
-        // 起步放缓并拉长距离：单次滚轮只引起轻微增长，避免照片“突然”铺满视口。
-        gsap.timeline({
-          scrollTrigger: {
-            id: 'about-portrait-takeover', trigger: portraitFigure.value, refreshPriority: 15,
-            start: 'top 12%', end: '+=150%', pin: true, anticipatePin: 1, scrub: .5, invalidateOnRefresh: true,
-          },
-        })
-          .fromTo(imageMask.value!, { scale: 1 }, { scale: coverScale, duration: .68, ease: 'power2.inOut' }, 0)
-          .fromTo(fadeGroup, { autoAlpha: 1, y: 0 }, { autoAlpha: 0, y: -24, duration: .5, ease: 'none' }, .05)
-          .fromTo(dim, { autoAlpha: 0 }, { autoAlpha: .58, duration: .45, ease: 'none' }, .55)
-          .to(imageMask.value!, { scale: () => coverScale() * .965, duration: .28, ease: 'power1.inOut' }, .72)
-      }
     }, root.value)
     cancelRefresh = requestMotionLayoutRefresh()
     void document.fonts.ready.then(() => {
@@ -157,11 +131,9 @@ onBeforeUnmount(() => {
 .identity-scene { position:relative; padding:clamp(76px,10vw,160px) 0 clamp(90px,12vw,180px); color:var(--ab-ink,#f1f1ed); scroll-margin-top:80px; }
 .identity-scene__intro { display:grid; grid-template-columns:minmax(0,1.16fr) minmax(0,1fr); column-gap:clamp(44px,7vw,120px); align-items:start; }
 .identity-scene__visual { position:relative; z-index:2; min-width:0; }
-.identity-scene__portrait { margin:0; }
+.identity-scene__portrait { position:relative; margin:0; }
 .identity-scene__image-mask { aspect-ratio:4/3; overflow:hidden; background:#171a20; pointer-events:none; }
 .identity-scene__image-mask img { display:block; width:100%; height:100%; object-fit:contain; }
-/* 放大接管期间的暗化层；无脚本时保持不可见。 */
-.identity-scene__dim { position:absolute; inset:0; background:var(--ab-bg,#0c0d0f); opacity:0; visibility:hidden; }
 .identity-scene__portrait figcaption { display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:14px; color:var(--ab-soft,#a4a7ae); font-size:11px; line-height:1.6; }
 .identity-scene__portrait figcaption span { font-size:10px; }
 .identity-scene__biography { position:relative; z-index:1; padding-top:5px; min-width:0; }
@@ -178,7 +150,7 @@ onBeforeUnmount(() => {
 .identity-scene__reading[lang=en] { max-width:58ch; margin-top:20px; font-size:14px; line-height:1.8; letter-spacing:0; color:var(--ab-soft,#a4a7ae); }
 .identity-scene__word { white-space:pre-wrap; }
 .identity-scene__readable { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; border:0; }
-.identity-scene__tools { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px 16px; margin-top:32px; }
+.identity-scene__tools { position:relative; z-index:1; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px 16px; margin-top:32px; }
 .identity-scene__tools button { position:relative; display:flex; gap:10px; align-items:center; min-height:54px; padding:8px 0; background:none; border:0; border-bottom:1px solid var(--ab-line,#30333a); font:inherit; font-size:13px; line-height:1.4; text-align:left; color:var(--ab-soft,#a4a7ae); cursor:pointer; }
 .identity-scene__tools button.is-selected,.identity-scene__tools button:hover { color:var(--ab-ink,#f1f1ed); border-color:#6289ff; }
 .identity-scene__tools button:disabled { cursor:default; }
@@ -186,7 +158,7 @@ onBeforeUnmount(() => {
 .identity-scene__tool-icon img { display:block; max-width:28px; max-height:28px; object-fit:contain; }
 .identity-scene__tool-icon--light { background:#23262d; }
 .identity-scene__selected { width:5px; height:5px; margin-left:auto; flex:0 0 5px; border-radius:50%; background:#6289ff; }
-.identity-scene__process-link { display:flex; flex-wrap:wrap; align-items:center; gap:5px 12px; width:fit-content; min-height:44px; margin-top:18px; color:inherit; font-size:12px; line-height:1.6; text-decoration:none; }
+.identity-scene__process-link { position:relative; z-index:1; display:flex; flex-wrap:wrap; align-items:center; gap:5px 12px; width:fit-content; min-height:44px; margin-top:18px; color:inherit; font-size:12px; line-height:1.6; text-decoration:none; }
 .identity-scene__process-link span[lang=en] { color:var(--ab-soft,#a4a7ae); font-size:11px; }
 .identity-scene__process-link span:last-child { margin-left:10px; font-size:22px; }
 /* 接管结束后放大的暗化照片仍在视觉列内；后续区块以更高层叠滚入其上方。 */

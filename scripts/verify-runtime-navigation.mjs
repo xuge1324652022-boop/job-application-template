@@ -38,19 +38,24 @@ for (let n = 1; n <= 6; n++) {
 }
 pass('六卡面包屑、旧格式与损坏输入均安全处理')
 
-// 实际 router 配置：beforeResolve 先在遮罩下归零，视图就绪后恢复 hash/历史位置。
-let config, beforeResolve
+// Actual router configuration: the outgoing page must retain its position until
+// history records it; only the finalized destination supplies a new coordinate.
+let config
 const target = { id: 'work-campus-media' }
 let scrollCalls = 0
+const currentRoute = { value: { fullPath: '' } }
+const scrollPreparation = {}
+vm.runInNewContext(compile(read('src/utils/routeScrollPreparation.ts')), { exports: scrollPreparation })
 vm.runInNewContext(compile(read('src/router/index.ts')), {
   exports: {}, window: { scrollX: 0, scrollY: 600, scrollTo() { scrollCalls++ } },
   document: { getElementById: id => id === target.id ? target : null },
   require(name) {
     if (name === 'vue-router') return { createWebHistory: () => ({}), createRouter(options) {
-      config = options; return { beforeResolve: fn => { beforeResolve = fn } }
+      config = options; return { currentRoute }
     } }
     if (name.endsWith('usePageCurtain')) return { routeCurtainBlocked: { value: true } }
     if (name.endsWith('useTransition')) return transition
+    if (name.endsWith('routeScrollPreparation')) return scrollPreparation
     throw Error(name)
   },
 })
@@ -63,16 +68,43 @@ for (let n = 1; n <= 6; n++) {
 }
 const from = { name: 'gallery', path: '/' }
 const to = { path: '/about', fullPath: '/about#work-campus-media', hash: '#work-campus-media' }
-beforeResolve(to, from)
-assert.equal(scrollCalls, 1)
-assert.equal(config.scrollBehavior(to, from, null).el, target)
-assert.equal(config.scrollBehavior(to, from, { top: 950 }).top, 950)
-assert.equal(config.scrollBehavior({ path: '/photo', fullPath: '/photo', hash: '' }, from, { top: 420 }).top, 420)
-assert.equal(config.scrollBehavior({ ...to, hash: '#%E0%A4' }, from, null).top, 0)
-beforeResolve({ path: '/photo', fullPath: '/photo' }, from)
-assert.equal(config.scrollBehavior({ path: '/photo', fullPath: '/photo', hash: '' }, from, null), false)
-assert.equal(config.scrollBehavior({ path: '/photo', fullPath: '/photo', hash: '' }, from, null).top, 0)
-pass('六个旧链接保留 query/hash；遮罩归零与深链/后退恢复相容，准备标记只消费一次')
+assert.equal(scrollCalls, 0, 'router preparation must not erase the outgoing history position')
+async function routeScroll(destination, saved = null) {
+  currentRoute.value = destination
+  return config.scrollBehavior(destination, from, saved)
+}
+assert.equal((await routeScroll(to)).el, target)
+assert.equal((await routeScroll(to, { top: 950 })).top, 950)
+assert.equal((await routeScroll({ path: '/photo', fullPath: '/photo', hash: '' }, { top: 420 })).top, 420)
+assert.equal((await routeScroll({ ...to, hash: '#%E0%A4' })).top, 0)
+assert.equal((await routeScroll({ path: '/photo', fullPath: '/photo', hash: '' })).top, 0)
+assert.equal(scrollCalls, 0)
+pass('六个旧链接保留 query/hash；目标页默认回顶，深链与历史位置恢复不提前抹掉旧坐标')
+
+// Run the real preparation registry and router: delayed page layout must not
+// overwrite a later navigation, or replace a saved history position with a hash.
+let finishPreparation
+let preparationInput
+const unregisterOld = scrollPreparation.registerRouteScrollPreparation('/about', (hash, saved) => {
+  preparationInput = { hash, saved }
+  return new Promise(resolve => { finishPreparation = resolve })
+})
+const savedPosition = { top: 950 }
+const delayedHistory = routeScroll(to, savedPosition)
+assert.equal(preparationInput.hash, to.hash)
+assert.equal(preparationInput.saved, savedPosition)
+finishPreparation(true)
+assert.equal(await delayedHistory, savedPosition)
+const staleNavigation = routeScroll(to)
+currentRoute.value = { fullPath: '/photo' }
+finishPreparation(true)
+assert.equal(await staleNavigation, false)
+const unregisterNew = scrollPreparation.registerRouteScrollPreparation('/about', async () => false)
+unregisterOld()
+assert.equal(await routeScroll(to), false)
+unregisterNew()
+assert.equal((await routeScroll(to)).el, target)
+pass('异步布局保留历史坐标，旧导航准备不能滚动新页面，旧组件清理不能移除新注册')
 
 // 实际 Preloader lifecycle：提前卸载不可晚发 complete，也不可遗留 overflow 锁。
 async function preloaderCase(completeNormally) {

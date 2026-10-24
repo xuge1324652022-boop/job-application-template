@@ -300,10 +300,10 @@
       "original": "src/views/AboutView.vue",
       "path": "集成示例/项目源码/页面/人物介绍页.vue",
       "role": "integration-context",
-      "originalSha256": "d032ede6ee37ee37b4845fafc599cc65abc87a5ad3269584581719f457f375e7",
-      "originalBytes": 6823,
-      "sha256": "cc7eb5f9dbb6454c8efbf8c2188fc2ab2fbef6da5686900e366a9703fe9610b2",
-      "bytes": 6923
+      "originalSha256": "a7cadde50615faa57d3e89ba45e188f483283968661e7bb71672d4d4bb85f3d0",
+      "originalBytes": 12007,
+      "sha256": "b16f20b093f06b45c9e5e6426998e7451f34b041569f6c0f58f86a16ac603c37",
+      "bytes": 12120
     }
   ]
 }

@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
-import { routeCurtainBlocked } from '../composables/usePageCurtain'
 import { jumpPathFor } from '../composables/useTransition'
+import { getRouteScrollPreparation } from '../utils/routeScrollPreparation'
 
 /**
  * 路由表：
@@ -109,14 +109,14 @@ for (const route of [...routes]) {
   })
 }
 
-let preparedScrollTarget = ''
-
 export const router = createRouter({
   history: createWebHistory(),
   routes,
-  scrollBehavior: (to, _from, savedPosition) => {
-    const prepared = preparedScrollTarget === to.fullPath
-    preparedScrollTarget = ''
+  scrollBehavior: async (to, _from, savedPosition) => {
+    const prepare = getRouteScrollPreparation(to.path)
+    if (prepare && !await prepare(to.hash, savedPosition)) return false
+    // A newer navigation may complete while this route's async sections load.
+    if (router.currentRoute.value.fullPath !== to.fullPath) return false
     // 后退/前进恢复离开时的阅读位置，优先于地址中可能仍保留的旧章节 hash。
     if (savedPosition) return savedPosition
     // 刷新带章节 hash 的地址应落到该章节；未知/损坏 hash 仍安全回顶。
@@ -126,18 +126,8 @@ export const router = createRouter({
         if (element) return { el: element, top: 24, behavior: 'instant' }
       } catch { /* 无效编码不应让整次导航的 scrollBehavior reject。 */ }
     }
-    // 全遮挡期间已在旧页面归零，避免新长页刚挂载时再次 scrollTo，
-    // 把整页强制布局挤到标题入场的同一个主线程任务中。
-    if (prepared) return false
+    // Reset only after navigation commits. Resetting the outgoing page in a
+    // beforeResolve guard would make history.push save zero as its reading position.
     return { top: 0 }
   },
-})
-
-// 懒加载组件与守卫均成功、旧视图尚未卸载时才归零。
-// 只在全遮挡的跨页导航中预处理，失败导航与同页锚点不提前改动可见页面。
-router.beforeResolve((to, from) => {
-  if (from.name && to.path !== from.path && routeCurtainBlocked.value) {
-    if (window.scrollY || window.scrollX) window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
-    preparedScrollTarget = to.fullPath
-  }
 })

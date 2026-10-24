@@ -81,7 +81,9 @@ import { photography, editorial } from '../../data/visualPortfolio'
 import { pick, type Lang } from '../../data/aboutProfile'
 const props = defineProps<{ lang: Lang; activeTool?: string }>()
 const emit = defineEmits<{ 'update:activeTool': [id: string] }>()
-const index = ref(0)
+// 延迟挂载时，简介可能已选好工具；首次渲染也须落在包含该工具的阶段。
+const initialStage = CREATIVE_STAGES.findIndex(step => step.tools.includes(props.activeTool ?? 'kimi'))
+const index = ref(Math.max(0, initialStage))
 const stage = computed(() => CREATIVE_STAGES[index.value]!)
 const tools = computed(() => AI_TOOLS.filter(tool => stage.value.tools.includes(tool.id)))
 const toolId = ref(props.activeTool ?? 'kimi')
