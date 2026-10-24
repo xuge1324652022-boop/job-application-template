@@ -666,6 +666,7 @@ onBeforeUnmount(() => {
 .collage__stage {
   position: relative;
   padding: clamp(72px, 9vw, 140px) clamp(22px, 5vw, 88px) clamp(88px, 10vw, 160px);
+  padding-left: clamp(72px, 5vw, 96px);
   color: #241d16;
   isolation: isolate;
 }
@@ -872,7 +873,7 @@ onBeforeUnmount(() => {
   .is-pinned .collage__intro {
     position: absolute;
     z-index: 2;
-    left: clamp(24px, 5vw, 88px);
+    left: clamp(72px, 5vw, 88px);
     top: clamp(56px, 9vh, 120px);
     max-width: 780px;
     color: #241d16;
@@ -891,7 +892,7 @@ onBeforeUnmount(() => {
   .is-pinned .collage__keyboard-index {
     position: absolute;
     z-index: 5;
-    left: clamp(24px, 5vw, 88px);
+    left: clamp(72px, 5vw, 88px);
     bottom: 28px;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));

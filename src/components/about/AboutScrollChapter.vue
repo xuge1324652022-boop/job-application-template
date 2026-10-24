@@ -1,5 +1,11 @@
 <template>
-  <section ref="root" class="scroll-chapter" :aria-labelledby="`${name}-chapter-title`">
+  <section
+    :id="name"
+    ref="root"
+    class="scroll-chapter"
+    :class="{ 'scroll-chapter--paper': paper, 'scroll-chapter--bleed': bleed }"
+    :aria-labelledby="`${name}-chapter-title`"
+  >
     <div ref="stage" class="scroll-chapter__stage">
       <!-- 人物衬底（可选）：与暗色引言共用同一张人物图，让背景贯穿引言与折叠阅读。 -->
       <div v-if="backdrop" class="scroll-chapter__backdrop" aria-hidden="true">
@@ -55,6 +61,19 @@
           }}</span>
         </p>
       </div>
+      <!-- 行业式标签跑马灯（bleed 变体）：两行小标签对开滑入后反向漂移。 -->
+      <div v-if="marqueeRows.length" ref="tags" class="scroll-chapter__tags" aria-hidden="true">
+        <div
+          v-for="(row, r) in marqueeRows"
+          :key="r"
+          class="scroll-chapter__tag-row"
+          :class="{ 'scroll-chapter__tag-row--end': r % 2 === 1 }"
+        >
+          <span v-for="(tag, i) in row" :key="i" class="scroll-chapter__tag">{{
+            tag
+          }}</span>
+        </div>
+      </div>
       <!-- 章节收尾的小人物卡：最后一行正文上移退出时从下方进入中央；倒滚退回。 -->
       <figure v-if="card" ref="cardEl" class="scroll-chapter__card" aria-hidden="true">
         <img
@@ -72,10 +91,10 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import type { Bi } from '../../data/aboutProfile'
+import type { Bi, Lang } from '../../data/aboutProfile'
 import { aboutPortrait } from '../../data/personalPortfolio'
 import { visualImageSources } from '../../utils/responsiveImage'
 import { prepareMotionLayout, requestMotionLayoutRefresh } from '../../utils/motionLayout'
@@ -88,11 +107,18 @@ const props = defineProps<{
   name: string
   heading: string
   label: Bi
+  lang?: Lang
   lead?: ChapterCopy
   lines: ChapterCopy
   size?: string
   card?: boolean
   backdrop?: boolean
+  /** 奶油纸底红字变体：正文大段落在浅色纸上以强调色点亮。 */
+  paper?: boolean
+  /** 通栏贴底巨字变体：标题折合后沉到幕布底缘，配合标签跑马灯。 */
+  bleed?: boolean
+  /** bleed 变体的标签词（双语），平分两行对开滚动。 */
+  marquee?: readonly Bi[]
 }>()
 const root = ref<HTMLElement | null>(null)
 const stage = ref<HTMLElement | null>(null)
@@ -100,6 +126,14 @@ const title = ref<HTMLElement | null>(null)
 const body = ref<HTMLElement | null>(null)
 const leadCopy = ref<HTMLElement | null>(null)
 const cardEl = ref<HTMLElement | null>(null)
+const tags = ref<HTMLElement | null>(null)
+// 标签按当前语言展平后平分两行；空数组表示不出跑马灯层。
+const marqueeRows = computed(() => {
+  const words = (props.marquee ?? []).map(tag => tag[props.lang ?? 'zh'])
+  if (!words.length) return []
+  const half = Math.ceil(words.length / 2)
+  return [words.slice(0, half), words.slice(half)]
+})
 let media: gsap.MatchMedia | undefined
 let cancelPreparation: (() => void) | undefined
 let cancelRefresh: (() => void) | undefined
@@ -138,7 +172,12 @@ onMounted(() => {
         const fitTitle = () =>
           root.value?.style.setProperty(
             '--chapter-fit',
-            `${Math.floor(Math.min((innerWidth * 0.92) / widthPerPixel, innerHeight * 0.32))}px`,
+            `${Math.floor(
+              Math.min(
+                (innerWidth * (props.bleed ? 0.98 : 0.92)) / widthPerPixel,
+                innerHeight * (props.bleed ? 0.42 : 0.32),
+              ),
+            )}px`,
           )
         fitTitle()
         // Each duplicate becomes one third of the final word. Moving the clips and
@@ -150,7 +189,10 @@ onMounted(() => {
             pin: stage.value!,
             start: 'top top',
             refreshPriority: props.name === 'identity' ? 30 : 20,
-            end: () => `+=${Math.round(innerHeight * (props.lead ? 5 : 4.1))}`,
+            end: () =>
+              `+=${Math.round(
+                innerHeight * (props.bleed ? 6.6 : props.lead ? 5 : 4.1),
+              )}`,
             scrub: 0.35,
             invalidateOnRefresh: true,
             onRefreshInit: fitTitle,
@@ -207,41 +249,110 @@ onMounted(() => {
             },
             entry + 2.8,
           )
-          .to(title.value!, { scale: 0.065, duration: 1.15, ease: 'power2.inOut' }, entry + 4.7)
-          .to(
-            title.value!,
-            { y: () => -innerHeight * 0.34, duration: 1.3, ease: 'power1.inOut' },
-            entry + 5.5,
+        const ghostColor = props.paper ? '#b39b80' : '#6a5c4c'
+        const solidColor = props.paper ? 'var(--ab-accent)' : 'var(--ab-ink)'
+        const ghostEnglish = props.paper ? '#a08466' : '#6a5c4c'
+        const solidEnglish = props.paper ? '#8a6a52' : '#cfc4b4'
+        if (props.bleed) {
+          // 通栏贴底：标题折合后沉至幕布底缘，正文在上方点亮，标签带对开漂移后整幕离场。
+          const sinkTitle = () =>
+            (stage.value!.clientHeight - title.value!.offsetHeight) / 2 - innerHeight * 0.035
+          timeline
+            .to(
+              title.value!,
+              { y: sinkTitle, duration: 1.05, ease: 'power2.inOut' },
+              entry + 4.7,
+            )
+            .fromTo(
+              body.value!,
+              { y: () => innerHeight * 0.5, autoAlpha: 0 },
+              { y: 0, autoAlpha: 1, duration: 1.2, ease: 'power1.out' },
+              entry + 4.95,
+            )
+            .fromTo(
+              chinese,
+              { color: ghostColor },
+              { color: solidColor, duration: 0.65, stagger: 0.2, ease: 'none' },
+              entry + 5.3,
+            )
+            .fromTo(
+              english,
+              { color: ghostEnglish },
+              { color: solidEnglish, duration: 0.65, stagger: 0.2, ease: 'none' },
+              entry + 5.3,
+            )
+          if (tags.value) {
+            const tagRows = tags.value.querySelectorAll('.scroll-chapter__tag-row')
+            timeline
+              .fromTo(
+                tagRows,
+                {
+                  x: (i: number) => (i === 0 ? 1 : -1) * innerWidth * 0.5,
+                  autoAlpha: 0,
+                },
+                {
+                  x: (i: number) => (i === 0 ? 1 : -1) * innerWidth * 0.03,
+                  autoAlpha: 1,
+                  duration: 0.95,
+                  ease: 'power2.out',
+                },
+                entry + 5.9,
+              )
+              .to(
+                tagRows,
+                {
+                  x: (i: number) => (i === 0 ? 1 : -1) * innerWidth * 0.26,
+                  duration: 1.5,
+                  ease: 'none',
+                },
+                entry + 6.95,
+              )
+          }
+          const leaving: HTMLElement[] = [title.value!, body.value!]
+          if (tags.value) leaving.push(tags.value)
+          timeline.to(
+            leaving,
+            { y: () => -innerHeight * 1.08, duration: 0.9, ease: 'power2.inOut' },
+            entry + 8.15,
           )
-          .fromTo(
-            body.value!,
-            { y: () => innerHeight * 0.55, autoAlpha: 0 },
-            { y: 0, autoAlpha: 1, duration: 1.3, ease: 'power1.out' },
-            entry + 5.65,
-          )
-          .fromTo(
-            chinese,
-            { color: '#6a5c4c' },
-            { color: 'var(--ab-ink)', duration: 0.65, stagger: 0.2, ease: 'none' },
-            entry + 6,
-          )
-          .fromTo(
-            english,
-            { color: '#6a5c4c' },
-            { color: '#cfc4b4', duration: 0.65, stagger: 0.2, ease: 'none' },
-            entry + 6,
-          )
-          // 正文点亮后继续上移离场：标题按固定视口倍数，正文按自身实际高度计算，
-          // 确保末行完全退出后再交给小人物卡；小人物卡随最后一行退出升至中央。
-          .to(
-            [title.value!, body.value!],
-            {
-              y: (index: number) => (index === 0 ? -innerHeight * 1.06 : -bodyExit()),
-              duration: 0.85,
-              ease: 'power2.inOut',
-            },
-            entry + 6.95,
-          )
+        } else {
+          timeline
+            .to(title.value!, { scale: 0.065, duration: 1.15, ease: 'power2.inOut' }, entry + 4.7)
+            .to(
+              title.value!,
+              { y: () => -innerHeight * 0.34, duration: 1.3, ease: 'power1.inOut' },
+              entry + 5.5,
+            )
+            .fromTo(
+              body.value!,
+              { y: () => innerHeight * 0.55, autoAlpha: 0 },
+              { y: 0, autoAlpha: 1, duration: 1.3, ease: 'power1.out' },
+              entry + 5.65,
+            )
+            .fromTo(
+              chinese,
+              { color: ghostColor },
+              { color: solidColor, duration: 0.65, stagger: 0.2, ease: 'none' },
+              entry + 6,
+            )
+            .fromTo(
+              english,
+              { color: ghostEnglish },
+              { color: solidEnglish, duration: 0.65, stagger: 0.2, ease: 'none' },
+              entry + 6,
+            )
+            // 正文点亮后继续上移离场：标题按固定视口倍数，正文按自身实际高度计算，
+            // 确保末行完全退出后再交给小人物卡；小人物卡随最后一行退出升至中央。
+            .to(
+              [title.value!, body.value!],
+              {
+                y: (index: number) => (index === 0 ? -innerHeight * 1.06 : -bodyExit()),
+                duration: 0.85,
+                ease: 'power2.inOut',
+              },
+              entry + 6.95,
+            )
+        }
         if (cardEl.value) {
           timeline.fromTo(
             cardEl.value,
@@ -273,6 +384,70 @@ onBeforeUnmount(() => {
   position: relative;
   background: var(--ab-bg);
 }
+/* 奶油纸底变体：整幕切换为浅纸色，正文以强调色点亮（原站 experience 段的深浅交替）。 */
+.scroll-chapter--paper .scroll-chapter__stage {
+  background: var(--ab-paper);
+}
+.scroll-chapter--paper .scroll-chapter__caption {
+  color: #7a5f47;
+}
+.scroll-chapter--paper .scroll-chapter__caption span {
+  color: #9a7c5f;
+}
+.scroll-chapter--paper .scroll-chapter__copy {
+  color: var(--ab-accent);
+}
+.scroll-chapter--paper .scroll-chapter__translation {
+  color: #8a6a52;
+}
+.scroll-chapter--paper .scroll-chapter__cue {
+  color: #8a6a52;
+}
+/* 通栏贴底变体：标题沉至幕布底缘（INDUSTRIES 式基线出血）。 */
+.scroll-chapter--bleed .scroll-chapter__anchor {
+  place-items: end center;
+}
+.scroll-chapter--bleed .scroll-chapter__title {
+  line-height: 0.78;
+}
+.scroll-chapter__tags {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 32vh;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(12px, 2.2vh, 22px);
+  overflow: clip;
+  pointer-events: none;
+}
+.scroll-chapter__tag-row {
+  width: max-content;
+  display: flex;
+  align-items: baseline;
+  gap: clamp(26px, 2.6vw, 46px);
+  padding-left: clamp(84px, 8vw, 140px);
+  white-space: nowrap;
+  visibility: hidden;
+}
+.scroll-chapter__tag-row--end {
+  padding-left: clamp(120px, 14vw, 240px);
+}
+.scroll-chapter__tag {
+  font-size: clamp(12px, 1.05vw, 15px);
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ab-soft);
+}
+.scroll-chapter__tag::before {
+  content: '●';
+  margin-right: 13px;
+  color: var(--ab-accent);
+  font-size: 8px;
+  vertical-align: 2px;
+}
 .scroll-chapter__stage {
   position: relative;
   min-height: 100vh;
@@ -300,7 +475,7 @@ onBeforeUnmount(() => {
   position: absolute;
   z-index: 1;
   top: 38px;
-  left: clamp(24px, 5vw, 88px);
+  left: clamp(72px, 5vw, 88px);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -421,6 +596,12 @@ onBeforeUnmount(() => {
     position: relative;
     display: block;
   }
+  .scroll-chapter--bleed .scroll-chapter__anchor {
+    padding-top: 34px;
+  }
+  .scroll-chapter--bleed .scroll-chapter__title {
+    line-height: 0.84;
+  }
   .scroll-chapter__lead-anchor {
     position: relative;
     display: block;
@@ -452,6 +633,18 @@ onBeforeUnmount(() => {
   .scroll-chapter__translation {
     font-size: 14px;
     margin-top: 22px;
+  }
+  .scroll-chapter__tags {
+    position: static;
+    margin-top: 44px;
+    overflow: visible;
+    pointer-events: auto;
+  }
+  .scroll-chapter__tag-row {
+    flex-wrap: wrap;
+    visibility: visible;
+    padding-left: 0;
+    gap: 10px 22px;
   }
   .scroll-chapter__card {
     display: none;

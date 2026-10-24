@@ -14,8 +14,8 @@
                 height="80"
                 alt=""
                 loading="lazy"
-              />下一段内容</span
-            ><span>一起开始</span><small lang="en">Let’s work together</small>
+              />保持联络</span
+            ><span>让我们聊聊</span><small lang="en">Let’s have a chat</small>
           </h2>
           <svg
             ref="headingArrow"
@@ -361,6 +361,8 @@ onBeforeUnmount(() => {
   max-width: 1440px;
   margin: auto;
   padding: clamp(136px, 17vh, 190px) clamp(20px, 4.4vw, 64px) 30px;
+  /* 桌面端让出左侧竖排章节导航的宽度。 */
+  padding-left: clamp(24px, calc(4.4vw + 30px), 96px);
 }
 .end__head {
   display: flex;

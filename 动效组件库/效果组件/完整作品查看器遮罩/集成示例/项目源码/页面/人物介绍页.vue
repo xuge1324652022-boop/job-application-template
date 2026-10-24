@@ -1,10 +1,12 @@
 <template>
   <!-- 滚动叙事与完整履历共用原有资料；各场景独立清理动画。首屏以下区块延迟挂载。 -->
   <div class="about-page" @click="onAnchorClick">
+    <AboutSideRail :lang="lang" />
     <AboutMotionHero :active="heroActive" :lang="lang" />
-    <!-- 开场连续场景：简介拼贴 → 选图放大铺满 → 横向图文叙事，随后交给暗色人物引言。 -->
-    <AboutCollageStage :lang="lang" @open="onOpenVisual" />
+    <!-- 开场连续叙事：人物主张大字 + WHO I AM 巨字出屏 → 方向词双向跑马灯 → 拼贴横向叙事。 -->
     <AboutQuoteScene :lang="lang" />
+    <AboutWordMarquee :lang="lang" />
+    <AboutCollageStage :lang="lang" @open="onOpenVisual" />
     <AboutWordZoom
       :lang="lang"
       :word="{ zh: '表达', en: 'CREATE' }"
@@ -15,8 +17,8 @@
     <AboutScrollChapter
       name="identity"
       heading="WHO I AM"
-      card
-      backdrop
+      paper
+      :lang="lang"
       :label="{ zh: '关于我', en: 'A little about me' }"
       :lines="{
         zh: [
@@ -43,6 +45,9 @@
         name="process"
         heading="HOW I WORK"
         size="12.2vw"
+        bleed
+        :lang="lang"
+        :marquee="processTags"
         :label="ABOUT_DIVIDERS.process.label"
         :lead="{
           zh: ['工具参与过程', '判断留在自己手里'],
@@ -91,8 +96,10 @@ import { onBeforeRouteLeave, useRouter, type RouterScrollBehavior } from 'vue-ro
 import { registerRouteScrollPreparation } from '../工具/路由滚动准备'
 import { referenceIntroductionGate } from '../组件/引导文字状态'
 import AboutMotionHero from '../组件/人物与作品/人物动态首屏.vue'
+import AboutSideRail from '../组件/人物与作品/竖排章节导航.vue'
 import AboutCollageStage from '../组件/人物与作品/简介拼贴场景.vue'
 import AboutQuoteScene from '../组件/人物与作品/人物引言场景.vue'
+import AboutWordMarquee from '../组件/人物与作品/方向词双向跑马灯.vue'
 import AboutWordZoom from '../组件/人物与作品/字形越界放大.vue'
 import { aboutPortrait } from '../数据/本机个人内容接口'
 import { visualImageSources } from '../工具/响应式图片'
@@ -109,7 +116,7 @@ const AboutObservationRail = defineAsyncComponent(
 )
 const ContactEnd = defineAsyncComponent(() => import('../组件/人物与作品/结尾联系球.vue'))
 const VisualViewer = defineAsyncComponent(() => import('../组件/人物与作品/完整作品查看器.vue'))
-import { WORKS, assertParity } from '../数据/人物资料'
+import { RESUME_SKILLS, WORKS, assertParity, type Bi } from '../数据/人物资料'
 import { ABOUT_DIVIDERS } from '../数据/人物页分隔资料'
 import { assertVisuals, type VisualAsset } from '../数据/视觉作品资料'
 import { subpageLanguage as lang } from '../组合函数/子页语言状态'
@@ -149,6 +156,16 @@ const heroActive = computed(
 )
 provide(referenceIntroductionGate, heroActive)
 const activeTool = ref('kimi')
+// 过程章标签跑马灯词条：技能组标题加作品标签去重，全部来自现有示例资料。
+const seenTags = new Set<string>()
+const processTags: Bi[] = [...RESUME_SKILLS.map(skill => skill.title)]
+for (const work of WORKS) {
+  for (const tag of work.tags) {
+    if (seenTags.has(tag.zh)) continue
+    seenTags.add(tag.zh)
+    processTags.push(tag)
+  }
+}
 const aboutRouter = useRouter()
 
 // 正常阅读继续按需加载。锚点和历史恢复等待真实组件、字体及固定舞台落位，

@@ -7,11 +7,13 @@
   },
   "category": "scroll",
   "status": "active",
-  "summary": "关于页以黑底、奶油正文与红色巨字串联连续滚动：首屏先露出约两行方向词，再整体上移呈现四行、与人物图组成左右构图，末段轻移后随自然滚动离场；奶油底上的整条倾斜图片带横移，同一主图脱离、归正并放大覆盖视口，再缩入横向故事；人物引言读完离场后，独立字形层从完整可读放大至局部笔画越界，随后交给 WHO I AM 三行折叠缩小、正文提亮和小人物卡。个人履历与作品通过可选本机内容包供给，没有该包时继续使用公开模板数据。",
+  "summary": "关于页以原站 wonjyou.studio/about 为参照的深色滚动叙事：左侧常驻竖排罗马数字章节导航随滚动高亮；开场为全宽英文姓名巨字压住右侧全出血人物图、中文姓名作红色斜签，随滚动以三层不同速度视差离场；人物主张大字逐行点亮成波浪后，红色 WHO I AM 巨字带（实心+描边两行）横向滑出视口；方向词以两行反向巨字跑马灯交错穿过视口；奶油底拼贴图带横移、同一主图归正放大再缩入横向故事；独立字形层放大出屏；WHO I AM 章在奶油纸底上以红字点亮，HOW I WORK 章通栏贴底巨字配对开标签跑马灯收束到联系区分行大字。个人履历与作品通过可选本机内容包供给，没有该包时继续使用公开模板数据。",
   "entryFiles": [
     "src/components/about/AboutMotionHero.vue",
     "src/components/about/AboutCollageStage.vue",
     "src/components/about/AboutQuoteScene.vue",
+    "src/components/about/AboutWordMarquee.vue",
+    "src/components/about/AboutSideRail.vue",
     "src/components/about/AboutWordZoom.vue",
     "src/components/about/AboutScrollChapter.vue",
     "src/components/about/AboutIdentityScene.vue",
@@ -26,12 +28,40 @@
     {
       "file": "src/components/about/AboutMotionHero.vue",
       "symbols": [
-        "IDENTITY_ROWS",
-        "fitWords",
-        "geometry",
-        "about-hero-rearrange"
+        "nameWords",
+        "roleParts",
+        "about-hero-parallax",
+        "photoMask"
       ],
-      "purpose": "实测四行方向词宽高；开场在窗口约0.48H位置先露出两行，整组上移至完整可读，再缩小左移与人物图组成左右构图；末段仅上移0.16H保留构图，由自然滚动整体带出。"
+      "purpose": "开场：姓名巨字与照片重叠"
+    },
+    {
+      "file": "src/components/about/AboutQuoteScene.vue",
+      "symbols": [
+        "PROFILE_LINES",
+        "giantTravel",
+        "about-quote-mission",
+        "refreshLayout"
+      ],
+      "purpose": "主张大字与巨字出屏"
+    },
+    {
+      "file": "src/components/about/AboutWordMarquee.vue",
+      "symbols": [
+        "words",
+        "travel",
+        "about-words-marquee"
+      ],
+      "purpose": "方向词双向跑马灯"
+    },
+    {
+      "file": "src/components/about/AboutSideRail.vue",
+      "symbols": [
+        "chapters",
+        "activeIndex",
+        "about-rail"
+      ],
+      "purpose": "竖排章节导航"
     },
     {
       "file": "src/components/about/AboutCollageStage.vue",
@@ -46,16 +76,6 @@
         "disposeScene"
       ],
       "purpose": "整条图片带按同一角度倾斜横移，停在主图中心约45%视口宽的位置；浮动主图随后归正覆盖并落到故事首格，按钮与图像同步移动。全部作品保留可聚焦入口，sizes按实际cover宽度选择资源，独立context由dispose显式管理。"
-    },
-    {
-      "file": "src/components/about/AboutQuoteScene.vue",
-      "symbols": [
-        "lines",
-        "statement",
-        "backdropMask",
-        "refreshLayout"
-      ],
-      "purpose": "暗化人物衬底，姓名与TAGLINE中的简短主张分行提亮，停留后上移退出；完整PROFILE_LINES保留在个人资料章节，不在此处重复长段落。"
     },
     {
       "file": "src/components/about/AboutWordZoom.vue",
@@ -126,18 +146,19 @@
     }
   ],
   "mechanism": {
-    "trigger": "各场景读取浏览器文档滚动。首屏、拼贴、引言、独立字形与折叠章节各自固定外壳并 scrub；简介只按段落进入视口展开与提亮；工作之外使用固定横向轨道。版式准备和刷新统一调度，倒滚按相同时间线恢复。",
+    "trigger": "各场景读取浏览器文档滚动：主张、方向词带、拼贴、字形与折叠章节各自固定外壳并 scrub；开场不固定，巨字/照片/小字以三条不同速度视差离场；左侧导航用 ScrollTrigger 观察锚点亮当前章节；工作之外使用固定横向轨道。版式准备和刷新统一调度，倒滚按相同时间线恢复。",
     "stages": [
       {
-        "name": "hero-track",
-        "description": "四行方向词作为同一轨道呈现，起点y=窗口高度0.48倍，先露出约两行；上移后四行完整可读，再实测人物图占用宽度形成左右构图。末段仅较构图位置上移0.16H，人物同步轻移，保留文字尾部与人物，由原生滚动自然带出，不在固定窗口内全部清空。",
+        "name": "hero-name-parallax",
+        "description": "开场参照原站：右侧全出血人物图先以 clipPath 从左向右展开，英文姓名大写巨字（两行，约16vw）压在照片上自下错峰进入，中文姓名以红色斜签弹入；左下方向词与主张小字渐显。滚动后不固定，巨字以0.3H、照片以-0.14H、小字以0.12H 视差离场。",
         "properties": [
-          "track.x/y/scale",
-          "portrait.autoAlpha/x",
-          "portraitMask.clipPath",
-          "--hero-word-size"
+          "photoMask.clipPath",
+          "line.yPercent/rotation/autoAlpha",
+          "sign.autoAlpha/scale",
+          "meta.autoAlpha/y",
+          "title/photoMask/meta.y"
         ],
-        "timing": "top top，固定距离2.35H，scrub:true；整体入场0–1.6、居中停留至1.88、左右构图1.88–2.63、组合停留2.68–3.3、文字与人物轻移3.3–3.9；人物从2.03进入。均为滚动相对时标。"
+        "timing": "入场一次性播放（幕布揭开后 active 放行，断点重建清旧状态）；视差 top top→bottom top，scrub:true。"
       },
       {
         "name": "collage-ribbon",
@@ -163,15 +184,14 @@
         "timing": "top top，scrub:true；storyDuration=max(1,横向行程/H)，end=H×(2.85+storyDuration+0.2)。takeover放大0.55、回缩从+0.62开始、+0.76落位、story从+1.2开始；横向段ease:none。桌面内resize防抖重建，构建通过mediaContext.ignore隔离独立context；disposeScene先revert，再只清除本场景拥有的transform/opacity/visibility等属性并失效变换缓存，保留模板静态比例，防止跨断点重放旧隐藏起点。"
       },
       {
-        "name": "quote-portrait",
-        "description": "人物图内缩遮罩展开为暗色背景，姓名进入；主张取TAGLINE，中文按标点形成简短行（当前约两行）并保留英文译文。短暂阅读后按内容实际高度上移离场，随后交给独立字形组件；完整个人简介留在PROFILE_LINES驱动的资料章节。",
+        "name": "quote-mission-giant",
+        "description": "人物主张取 PROFILE_LINES 首段按标点拆行，全部行自暗色起逐行点亮为奶油色，点亮后随进度退暗上移形成滚动波浪；英文译文随行展示。主张整体离场后，红色 WHO I AM 巨字带（一行实心、一行描边）自右侧进入并横移出左缘，行程为带宽超出视口部分加两端余量。",
         "properties": [
-          "backdropMask.clipPath",
-          "name.yPercent/autoAlpha",
-          "line.color",
-          "content.y"
+          "line.color/y",
+          "content.y/autoAlpha",
+          "giant.x/autoAlpha"
         ],
-        "timing": "top top，固定距离1.65H，scrub:true；正文提亮从0.25开始、duration0.24、stagger0.12；reading后停留0.32，再用0.65退出。"
+        "timing": "top top，固定距离3.6H，scrub:true；行点亮0–1.9、退暗0.9–2.3、主张离场2.05–2.85、巨字2.2–4.45。"
       },
       {
         "name": "independent-word-zoom",
