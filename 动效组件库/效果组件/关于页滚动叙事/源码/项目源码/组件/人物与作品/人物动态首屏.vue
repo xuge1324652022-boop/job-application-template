@@ -7,8 +7,7 @@
     <div ref="stage" class="about-motion-hero__stage">
       <!-- 四行身份巨字构成页面主标题：入场时居中堆叠，滚动后重排到左侧，右侧人物图显现。 -->
       <h1 id="about-title" ref="rows" class="about-motion-hero__rows">
-        <span v-for="row in IDENTITY_ROWS" :key="row.en" class="about-motion-hero__row"
-          :style="{ '--word-fit': `${92 / (row.en.length * 0.62)}vw` }">
+        <span v-for="row in IDENTITY_ROWS" :key="row.en" class="about-motion-hero__row">
           <span class="about-motion-hero__word" lang="en">{{ row.en }}</span><span class="about-motion-hero__zh">{{ row.zh }}</span>
         </span>
       </h1>
@@ -54,6 +53,7 @@ let media: gsap.MatchMedia | undefined
 let entrance: gsap.core.Timeline | undefined
 let cancelPreparation: (() => void) | undefined
 let cancelRefresh: (() => void) | undefined
+let resizeClean: (() => void) | undefined
 let played = false
 let dead = false
 gsap.registerPlugin(ScrollTrigger)
@@ -69,10 +69,49 @@ function rowsShift(): number {
   const padding = parseFloat(getComputedStyle(stage.value).paddingLeft) || 0
   return padding - rows.value.offsetLeft
 }
+/** 重排后的行组缩放：同时满足「避开右侧人物图」与「不越过舞台上下缘」。 */
+function rowsFit(): number {
+  if (!rows.value || !stage.value || !portrait.value) return .74
+  const stageElement = stage.value
+  const padding = parseFloat(getComputedStyle(stageElement).paddingLeft) || 24
+  const availableWidth = stageElement.clientWidth - portrait.value.offsetWidth - padding * 2.4
+  const availableHeight = stageElement.clientHeight * .92
+  const width = Math.max(1, rows.value.offsetWidth)
+  const height = Math.max(1, rows.value.offsetHeight)
+  return Math.max(.4, Math.min(.78, availableWidth / width, availableHeight / height))
+}
+/** 逐词测量真实文字宽度（Range + 字号/宽度比），换算成可用宽度内的像素字号。 */
+function fitWords(): void {
+  if (!root.value) return
+  const mobile = window.matchMedia('(max-width: 760px)').matches
+  const available = mobile ? window.innerWidth - 44 : window.innerWidth * .92
+  root.value.querySelectorAll<HTMLElement>('.about-motion-hero__word').forEach(word => {
+    const fontSize = parseFloat(getComputedStyle(word).fontSize)
+    if (!fontSize) return
+    const range = document.createRange()
+    range.selectNodeContents(word)
+    const width = range.getBoundingClientRect().width
+    if (!width) return
+    word.style.setProperty('--word-fit-px', `${Math.floor(available / (width / fontSize))}px`)
+  })
+}
 onMounted(() => {
   if (!root.value) return
   cancelPreparation = prepareMotionLayout(root.value, () => {
     if (dead || !root.value || !stage.value || !rows.value || !portrait.value || !portraitMask.value) return
+    fitWords()
+    let resizeTimer = 0
+    const onResize = () => {
+      // 首屏滚出后行组带着缩放变换，此时测宽会失真；回到顶部附近再重算。
+      if (window.scrollY > 4) return
+      window.clearTimeout(resizeTimer)
+      resizeTimer = window.setTimeout(() => { if (!dead) fitWords() }, 200)
+    }
+    window.addEventListener('resize', onResize)
+    resizeClean = () => {
+      window.removeEventListener('resize', onResize)
+      window.clearTimeout(resizeTimer)
+    }
     media = gsap.matchMedia()
     media.add('(min-width: 761px) and (min-height: 620px) and (prefers-reduced-motion: no-preference)', () => {
       const lines = rows.value!.querySelectorAll('.about-motion-hero__row')
@@ -88,16 +127,16 @@ onMounted(() => {
             { yPercent: 0, rotation: 0, autoAlpha: 1, duration: 1.05, stagger: .085, ease: 'expo.out', clearProps: 'transform,opacity,visibility' })
         play()
       }
-      // 滚动重排：舞台短暂固定，行组自居中位置左移缩小，右侧人物图遮罩展开、
-      // 中文小字渐显，完整停留片刻后再随页面退场；行组缩至 .74 避开右侧人物图。
+      // 滚动重排：整个首屏短暂固定（顶栏、巨字与底部说明同为一个构图），
+      // 行组按人物边界与舞台高度实测缩放、左移避开人物图，完整停留后再退场。
       gsap.timeline({
         scrollTrigger: {
-          id: 'about-hero-rearrange', trigger: stage.value!, refreshPriority: 45,
+          id: 'about-hero-rearrange', trigger: root.value!, refreshPriority: 45,
           start: 'top top', end: () => `+=${Math.round(innerHeight * .55)}`,
           pin: true, anticipatePin: 1, scrub: .5, invalidateOnRefresh: true,
         },
       })
-        .fromTo(rows.value!, { x: 0, scale: 1 }, { x: rowsShift, scale: .74, transformOrigin: 'left center', duration: .6, ease: 'power2.inOut' }, 0)
+        .fromTo(rows.value!, { x: 0, scale: 1 }, { x: rowsShift, scale: rowsFit, transformOrigin: 'left center', duration: .6, ease: 'power2.inOut' }, 0)
         .fromTo(portrait.value!, { autoAlpha: 0, x: '7vw' }, { autoAlpha: 1, x: 0, duration: .45, ease: 'power2.out' }, .22)
         .fromTo(portraitMask.value!, { clipPath: 'inset(14% 20% 14% 20%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: .55, ease: 'power2.inOut' }, .3)
         .fromTo(zh, { autoAlpha: 0 }, { autoAlpha: 1, stagger: .06, duration: .3, ease: 'none' }, .42)
@@ -105,10 +144,22 @@ onMounted(() => {
       return () => { entrance = undefined }
     }, root.value)
     cancelRefresh = requestMotionLayoutRefresh()
+    void document.fonts.ready.then(() => {
+      if (dead) return
+      fitWords()
+      cancelRefresh?.()
+      cancelRefresh = requestMotionLayoutRefresh()
+    })
   })
 })
 watch(() => props.active, play)
-onBeforeUnmount(() => { dead = true; cancelPreparation?.(); cancelRefresh?.(); media?.revert() })
+onBeforeUnmount(() => {
+  dead = true
+  resizeClean?.()
+  cancelPreparation?.()
+  cancelRefresh?.()
+  media?.revert()
+})
 </script>
 
 <style scoped>
@@ -120,7 +171,7 @@ onBeforeUnmount(() => { dead = true; cancelPreparation?.(); cancelRefresh?.(); m
 .about-motion-hero__stage { position:relative; flex:1; min-height:0; display:flex; align-items:center; justify-content:center; margin-top:clamp(28px,6vh,84px); }
 .about-motion-hero__rows { position:relative; margin:0; text-align:center; }
 .about-motion-hero__row { display:block; margin:0; line-height:1.02; }
-.about-motion-hero__word { display:block; color:var(--ab-accent); font-family:'Arial Black','Helvetica Neue',Arial,sans-serif; font-size:min(clamp(46px,8.6vw,136px), var(--word-fit, 136px)); font-weight:900; letter-spacing:-.05em; white-space:nowrap; }
+.about-motion-hero__word { display:block; color:var(--ab-accent); font-family:'Arial Black','Helvetica Neue',Arial,sans-serif; font-size:min(clamp(46px,8.6vw,136px), var(--word-fit-px, 136px)); font-weight:900; letter-spacing:-.05em; white-space:nowrap; }
 .about-motion-hero__zh { display:block; margin-top:2px; color:var(--ab-soft); font-size:clamp(12px,1.05vw,15px); letter-spacing:.32em; text-indent:.32em; }
 .about-motion-hero__portrait { position:absolute; right:0; top:50%; width:min(34vw,430px); margin:0; transform:translateY(-50%); pointer-events:none; }
 .about-motion-hero__portrait-mask { aspect-ratio:4/3; overflow:hidden; background:#171a20; }
@@ -140,7 +191,7 @@ a:focus-visible { outline:2px solid var(--ab-accent); outline-offset:8px; }
   .about-motion-hero__top a { display:none; }
   .about-motion-hero__stage { flex-direction:column; align-items:flex-start; justify-content:flex-start; margin-top:64px; gap:52px; }
   .about-motion-hero__rows { text-align:left; }
-  .about-motion-hero__word { font-size:min(11.4vw, var(--word-fit, 11.4vw)); }
+  .about-motion-hero__word { font-size:min(11.4vw, var(--word-fit-px, 11.4vw)); }
   .about-motion-hero__zh { letter-spacing:.2em; text-indent:.2em; }
   .about-motion-hero__portrait { position:relative; top:auto; transform:none; width:100%; pointer-events:auto; }
   .about-motion-hero__bottom { align-items:start; flex-direction:column; gap:36px; margin-top:40px; }

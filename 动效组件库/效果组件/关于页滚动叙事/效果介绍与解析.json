@@ -117,7 +117,7 @@
       },
       {
         "name": "hero-rearrange",
-        "description": "四行身份巨字（构成页面 h1，按文字宽度自适应字号）入场居中堆叠后，舞台短暂固定：行组左移缩至 0.74 完全避开人物图，右侧人物图遮罩展开、中文小字渐显，完整停留片刻再随页面退场。",
+        "description": "整个首屏（顶栏、四行 h1 巨字、底部说明）短暂固定为一个完整构图：行组按右侧人物边界与舞台高度实测缩放并左移避开人物图，人物图遮罩展开、中文小字渐显，完整停留后整体退场；巨字字号按真实文字宽度（Range 测量）适配，320/390px 完整可读。",
         "properties": [
           "rows.x:0→rowsShift",
           "rows.scale:1→0.78",
@@ -129,7 +129,7 @@
       },
       {
         "name": "collage-story",
-        "description": "浅色底纸上作品速览与倾斜图片带开场；主角图（同一 DOM 元素）脱离拼贴等比放大覆盖视口（舞台裁切超出部分，完整图由查看器承载），底纸随之淡出转深，再缩入横向轨道第一格并与整轨同步左移，完成方向/方法/协作/作品四段图文叙事；倒滚沿原路恢复。桌面断点内窗口变化时整体重建场景并重算轨道距离。",
+        "description": "浅色底纸上作品速览与倾斜图片带开场；主角图（同一 DOM 元素）脱离拼贴等比放大覆盖视口（舞台裁切超出部分，完整图由查看器承载），底纸随之淡出转深，再缩入横向轨道第一格并与整轨同步左移，完成方向/方法/协作/作品四段图文叙事；倒滚沿原路恢复。桌面断点内窗口变化时整体重建场景并重算轨道距离。断点退出与卸载时显式 revert 场景 context，不留固定占位与内联样式。",
         "properties": [
           "fly.x/y/scale: 拼贴→铺满→第一格",
           "fly.x -= travel（与轨道同步）",
@@ -366,10 +366,10 @@
       "original": "src/components/about/AboutCollageStage.vue",
       "path": "源码/项目源码/组件/人物与作品/简介拼贴场景.vue",
       "role": "entry",
-      "originalSha256": "b8add765041a5d3658a05380276353e983502a0fbfd5fcfdf13f3aa7c0464f5e",
-      "originalBytes": 21235,
-      "sha256": "497091bf09016b944199337f854d71e842f905260f7cdf65e34d7c99f8843ef2",
-      "bytes": 21250
+      "originalSha256": "269167070b31c7f1ae6be14600a9a5fdef50f6f176d25235f05b6bea613d2ea8",
+      "originalBytes": 21490,
+      "sha256": "b0558a386fa318c09c1087d71007d98e14c5450f0c57ae76ad118627a00c7490",
+      "bytes": 21505
     },
     {
       "original": "src/components/about/AboutIdentityScene.vue",
@@ -384,10 +384,10 @@
       "original": "src/components/about/AboutMotionHero.vue",
       "path": "源码/项目源码/组件/人物与作品/人物动态首屏.vue",
       "role": "entry",
-      "originalSha256": "cab376523c505dec391bddc642caacbd9c05e3033a31c480a36c3afb44f3e5eb",
-      "originalBytes": 9992,
-      "sha256": "e53fcb8fc1e27e674bb79e2065552066f480513ad978ed58aa5399492fc3a283",
-      "bytes": 10002
+      "originalSha256": "910de0755321efc9648ea7b49e4f930774f50f8ecea45f80ba72bbf74e183058",
+      "originalBytes": 12066,
+      "sha256": "3c775f434242b3c7ef6165660587a99128b05ec1ebdbf4e30b4d1c87999ad934",
+      "bytes": 12076
     },
     {
       "original": "src/components/about/AboutObservationRail.vue",

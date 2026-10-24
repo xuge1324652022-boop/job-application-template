@@ -257,6 +257,10 @@ onMounted(() => {
         ScrollTrigger.update()
       }
       return () => {
+        // 先撤销当前场景 context（含固定占位与内联动画状态），再摘类名；
+        // 否则退出断点或卸载时会残留 pin-spacer 和主角图/轨道的内联样式。
+        context?.revert()
+        context = undefined
         window.removeEventListener('resize', onResize)
         rootElement.removeEventListener('focusin', onPanelFocus)
         window.clearTimeout(resizeTimer)
