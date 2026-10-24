@@ -117,7 +117,7 @@
       },
       {
         "name": "hero-rearrange",
-        "description": "四行身份巨字入场居中堆叠后，随滚动左移缩小重排；右侧人物图遮罩展开并渐显中文小字。文案取自现有内容方向词，不引入原作者身份。",
+        "description": "四行身份巨字（构成页面 h1，按文字宽度自适应字号）入场居中堆叠后，舞台短暂固定：行组左移缩至 0.74 完全避开人物图，右侧人物图遮罩展开、中文小字渐显，完整停留片刻再随页面退场。",
         "properties": [
           "rows.x:0→rowsShift",
           "rows.scale:1→0.78",
@@ -125,11 +125,11 @@
           "portraitMask.clipPath:inset(14% 20%)→inset(0%)",
           "zh.autoAlpha:0→1"
         ],
-        "timing": "触发区为舞台 top top 至 bottom 32%，scrub:0.5；不固定，随页面自然离场。"
+        "timing": "top top 固定，end 为视口高 0.55 倍，scrub:0.5；尾段 0.25 为完整构图停留。"
       },
       {
         "name": "collage-story",
-        "description": "浅色底纸上作品速览与倾斜图片带开场；主角图（同一 DOM 元素）脱离拼贴等比放大接近铺满视口（底纸随之淡出、场景转深），再缩入横向轨道第一格并与整轨同步左移，完成方向/方法/协作/作品四段图文叙事（文案取自现有资料）；倒滚沿原路恢复。主角卡与槽位坐标沿 offsetParent 链换算，不依赖模板 ref 时序。",
+        "description": "浅色底纸上作品速览与倾斜图片带开场；主角图（同一 DOM 元素）脱离拼贴等比放大覆盖视口（舞台裁切超出部分，完整图由查看器承载），底纸随之淡出转深，再缩入横向轨道第一格并与整轨同步左移，完成方向/方法/协作/作品四段图文叙事；倒滚沿原路恢复。桌面断点内窗口变化时整体重建场景并重算轨道距离。",
         "properties": [
           "fly.x/y/scale: 拼贴→铺满→第一格",
           "fly.x -= travel（与轨道同步）",
@@ -153,7 +153,7 @@
       },
       {
         "name": "chapter-fold",
-        "description": "三份装饰标题错位汇合、互补裁切折叠成单词，缩小上移后多行正文进入并逐行点亮，末段标题与正文继续上移离场，小人物卡随最后一行退出升至中央（仅 identity 章节）。身份章节以人物衬底贯穿（与引言同图），不再带导语；过程章节保留先行导语。",
+        "description": "三份装饰标题错位汇合、互补裁切折叠成单词，缩小上移后多行具体短句正文进入并逐行点亮，末段按正文实际高度计算退出距离、末行出屏后小人物卡升至画面居中（仅 identity 章节）。身份章节以人物衬底贯穿（与引言同图）且不带导语；过程章节保留先行导语。",
         "properties": [
           "lead.color/y/autoAlpha",
           "row.x/y/yPercent/clipPath",
@@ -366,10 +366,10 @@
       "original": "src/components/about/AboutCollageStage.vue",
       "path": "源码/项目源码/组件/人物与作品/简介拼贴场景.vue",
       "role": "entry",
-      "originalSha256": "c96068c12a1e147670a6df6f8fdd79cbb94b73dd522e38bbca2f804ad2d2b07b",
-      "originalBytes": 18581,
-      "sha256": "3c7f066728e9182bd8f4d60ce11a755c4903e8ac1d614642915ceefc480e7761",
-      "bytes": 18596
+      "originalSha256": "b8add765041a5d3658a05380276353e983502a0fbfd5fcfdf13f3aa7c0464f5e",
+      "originalBytes": 21235,
+      "sha256": "497091bf09016b944199337f854d71e842f905260f7cdf65e34d7c99f8843ef2",
+      "bytes": 21250
     },
     {
       "original": "src/components/about/AboutIdentityScene.vue",
@@ -384,10 +384,10 @@
       "original": "src/components/about/AboutMotionHero.vue",
       "path": "源码/项目源码/组件/人物与作品/人物动态首屏.vue",
       "role": "entry",
-      "originalSha256": "c64508bad0419fb2d1c2972e38c4809a7906fe564080ed886fbc3fa2361d2a59",
-      "originalBytes": 9557,
-      "sha256": "b293429f04fc1444aea5a2d88c1f16d3fde9cd48ded2e0386dd146b73de2753f",
-      "bytes": 9567
+      "originalSha256": "cab376523c505dec391bddc642caacbd9c05e3033a31c480a36c3afb44f3e5eb",
+      "originalBytes": 9992,
+      "sha256": "e53fcb8fc1e27e674bb79e2065552066f480513ad978ed58aa5399492fc3a283",
+      "bytes": 10002
     },
     {
       "original": "src/components/about/AboutObservationRail.vue",
@@ -411,10 +411,10 @@
       "original": "src/components/about/AboutScrollChapter.vue",
       "path": "源码/项目源码/组件/人物与作品/人物滚动章节.vue",
       "role": "entry",
-      "originalSha256": "799dda16c97e81f3f62432d18c9f0aa614ac534b5a34b87c64ab96cdcfa585ef",
-      "originalBytes": 10921,
-      "sha256": "e2bf99ad81a321b21e961ef79dd9dde60e4d24c0b0853c5b6f6cacaedee62e07",
-      "bytes": 10930
+      "originalSha256": "9c44d25c6a68465974f585c9193b9a2b02c7388c94d2dd04ff78cfbfb41ece52",
+      "originalBytes": 11511,
+      "sha256": "a324b19c2daed07799d6844385509a64b0372389c7350fe2a841a1bdf7406dc9",
+      "bytes": 11520
     },
     {
       "original": "src/data/aboutProfile.ts",
@@ -492,10 +492,10 @@
       "original": "src/views/AboutView.vue",
       "path": "集成示例/项目源码/页面/人物介绍页.vue",
       "role": "integration-context",
-      "originalSha256": "a7cadde50615faa57d3e89ba45e188f483283968661e7bb71672d4d4bb85f3d0",
-      "originalBytes": 12007,
-      "sha256": "b16f20b093f06b45c9e5e6426998e7451f34b041569f6c0f58f86a16ac603c37",
-      "bytes": 12120
+      "originalSha256": "1efc91505aad293596252b63e40079dcd4a7f51b2db4d721e0ff01857ca0b66d",
+      "originalBytes": 12141,
+      "sha256": "8bf2d330856573e560f9d6b722e419c281cb11a93114821ed77f1358140dde4e",
+      "bytes": 12254
     },
     {
       "original": "src/components/LazySection.vue",

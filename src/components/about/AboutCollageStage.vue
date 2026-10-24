@@ -139,84 +139,127 @@ onMounted(() => {
     // 桌面：固定舞台连续场景；其余尺寸走自然纵向阅读（默认样式即完整内容）。
     media.add('(min-width: 981px) and (min-height: 650px) and (prefers-reduced-motion: no-preference)', () => {
       rootElement.classList.add('is-pinned')
-      // 主角卡与第一格槽位直接按类名查询：模板 ref 数组在挂载时序上不可靠，
-      // 曾导致主角图坐标读到空值、飞入第一格后消失。
-      const featuredCard = rootElement.querySelector<HTMLElement>('.collage__card--featured')
-      const fly = featuredCard?.querySelector<HTMLElement>('.collage__fly') ?? null
-      const slotElement = rootElement.querySelector<HTMLElement>('.collage__slot')
-      const siblings = [...rootElement.querySelectorAll<HTMLElement>('.collage__card')].filter(card => card !== featuredCard)
-      if (!featuredCard || !fly || !slotElement) return
-      const travel = () => Math.max(0, trackElement.scrollWidth - stageElement.clientWidth)
-      // 时长取创建时的常数并归一到常规量级（总时长 10）：与观察轨道一致的做法，
-      // 端点仍用函数值，resize 后由断点分支重建与 end 重算兜底。
-      const trackDuration = Math.max(1, travel())
-      const durationScale = 10 / (950 + trackDuration + 60)
-      /** 沿 offsetParent 链把布局坐标（不受 transform 影响）换算到舞台坐标系。 */
-      const offsetWithinStage = (element: HTMLElement) => {
-        let left = 0
-        let top = 0
-        let node: HTMLElement | null = element
-        while (node && node !== stageElement) {
-          left += node.offsetLeft
-          top += node.offsetTop
-          node = node.offsetParent as HTMLElement | null
-        }
-        return { left, top }
+      let scene: ScrollTrigger | null = null
+      let travelDistance = () => 0
+      let context: gsap.Context | undefined
+      // 场景构建放进 context：桌面断点内调整窗口尺寸时防抖整体重建，
+      // 轨道距离、时长比例与主角图坐标全部按新布局重算。
+      const buildScene = (): void => {
+        context = gsap.context(() => {
+          // 主角卡与第一格槽位直接按类名查询：模板 ref 数组在挂载时序上不可靠，
+          // 曾导致主角图坐标读到空值、飞入第一格后消失。
+          const featuredCard = rootElement.querySelector<HTMLElement>('.collage__card--featured')
+          const fly = featuredCard?.querySelector<HTMLElement>('.collage__fly') ?? null
+          const slotElement = rootElement.querySelector<HTMLElement>('.collage__slot')
+          const siblings = [...rootElement.querySelectorAll<HTMLElement>('.collage__card')].filter(card => card !== featuredCard)
+          if (!featuredCard || !fly || !slotElement) return
+          travelDistance = () => Math.max(0, trackElement.scrollWidth - stageElement.clientWidth)
+          const travel = travelDistance
+          // 时长取创建时的常数并归一到常规量级（总时长 10）：与观察轨道一致的做法，
+          // 端点仍用函数值；窗口变化由上面的整体重建兜底。
+          const trackDuration = Math.max(1, travel())
+          const durationScale = 10 / (950 + trackDuration + 60)
+          /** 沿 offsetParent 链把布局坐标（不受 transform 影响）换算到舞台坐标系。 */
+          const offsetWithinStage = (element: HTMLElement) => {
+            let left = 0
+            let top = 0
+            let node: HTMLElement | null = element
+            while (node && node !== stageElement) {
+              left += node.offsetLeft
+              top += node.offsetTop
+              node = node.offsetParent as HTMLElement | null
+            }
+            return { left, top }
+          }
+          const fillShift = () => {
+            const width = featuredCard!.offsetWidth
+            const height = featuredCard!.offsetHeight
+            const base = offsetWithinStage(featuredCard!)
+            const centerX = base.left + width / 2
+            const centerY = base.top + height / 2
+            // 等比覆盖视口：舞台 overflow:clip 负责裁切，超出部分不显示；
+            // 完整图片仍由查看器承载，这里追求的是“接管画面”的力度。
+            const fillScale = Math.max(stageElement.clientWidth / width, stageElement.clientHeight / height) * 1.02
+            return { x: stageElement.clientWidth / 2 - centerX, y: stageElement.clientHeight / 2 - centerY, scale: fillScale }
+          }
+          const slotShift = () => {
+            const base = offsetWithinStage(featuredCard!)
+            const centerX = base.left + featuredCard!.offsetWidth / 2
+            const centerY = base.top + featuredCard!.offsetHeight / 2
+            const slotBase = offsetWithinStage(slotElement!)
+            return {
+              x: slotBase.left + slotElement!.offsetWidth / 2 - centerX,
+              y: slotBase.top + slotElement!.offsetHeight / 2 - centerY,
+              scale: slotElement!.offsetWidth / featuredCard!.offsetWidth,
+            }
+          }
+          const scrollLength = () => 950 + travel() + 60
+          // 阶段比例与滚动行程对应：放大段 950px、轨道位移段、尾部 60px。
+          const timeline = gsap.timeline({
+            scrollTrigger: {
+              id: 'about-collage-story', trigger: stageElement, refreshPriority: 40,
+              start: 'top top', end: () => `+=${Math.round(scrollLength())}`,
+              pin: true, anticipatePin: 1, scrub: true, invalidateOnRefresh: true,
+              onUpdate: self => {
+                const trackPortion = Math.max(0, Math.min(1, (self.progress * scrollLength() - 950) / Math.max(1, travel())))
+                current.value = Math.round(trackPortion * (panels.length - 1))
+              },
+            },
+          })
+          const notes = trackElement.querySelectorAll('.collage__note')
+          const panelImages = trackElement.querySelectorAll('.collage__panel-image')
+          timeline
+            // ① 主角图脱离拼贴，等比放大覆盖视口；其余卡片散开淡出，简介上移淡出。
+            .to(fly, { x: () => fillShift().x, y: () => fillShift().y, scale: () => fillShift().scale, duration: 430 * durationScale, ease: 'power2.inOut' }, 0)
+            .to(siblings, { autoAlpha: 0, x: index => (index % 2 ? 1 : -1) * 90, rotation: index => (index % 2 ? 7 : -9), duration: 300 * durationScale, stagger: 40 * durationScale, ease: 'power2.in' }, 40 * durationScale)
+            .to(intro.value!, { autoAlpha: 0, y: -70, duration: 320 * durationScale, ease: 'power2.in' }, 0)
+            // ② 覆盖停留：浅色底纸淡出，场景过渡到深色。
+            .to(wash.value!, { autoAlpha: 0, duration: 150 * durationScale, ease: 'none' }, 420 * durationScale)
+            .to(fly, { scale: () => fillShift().scale * .985, duration: 130 * durationScale, ease: 'power1.inOut' }, 430 * durationScale)
+            // ③ 主角图缩入轨道第一格；轨道、面板与文字进入。
+            .to(fly, { x: () => slotShift().x, y: () => slotShift().y, scale: () => slotShift().scale, duration: 390 * durationScale, ease: 'power2.inOut' }, 560 * durationScale)
+            .fromTo(trackElement, { autoAlpha: 0 }, { autoAlpha: 1, duration: 200 * durationScale, ease: 'none' }, 620 * durationScale)
+            .fromTo(panelImages, { autoAlpha: 0, x: 46 }, { autoAlpha: 1, x: 0, duration: 260 * durationScale, stagger: 70 * durationScale, ease: 'power2.out' }, 660 * durationScale)
+            .fromTo(notes, { autoAlpha: 0, y: 34 }, { autoAlpha: 1, y: 0, duration: 240 * durationScale, stagger: 90 * durationScale, ease: 'power2.out' }, 700 * durationScale)
+            .fromTo(counter.value!, { autoAlpha: 0 }, { autoAlpha: 1, duration: 120 * durationScale, ease: 'none' }, 760 * durationScale)
+            // ④ 轨道与主角图同步左移，完成图片与文字交错的横向叙事。
+            .to(trackElement, { x: () => -travel(), duration: trackDuration * durationScale, ease: 'none' }, 950 * durationScale)
+            .to(fly, { x: () => slotShift().x - travel(), duration: trackDuration * durationScale, ease: 'none' }, 950 * durationScale)
+            .to({}, { duration: 60 * durationScale })
+          scene = timeline.scrollTrigger ?? null
+        }, rootElement)
       }
-      const fillShift = () => {
-        const width = featuredCard!.offsetWidth
-        const height = featuredCard!.offsetHeight
-        const base = offsetWithinStage(featuredCard!)
-        const centerX = base.left + width / 2
-        const centerY = base.top + height / 2
-        const fillScale = Math.min(stageElement.clientWidth * .94 / width, stageElement.clientHeight * .86 / height)
-        return { x: stageElement.clientWidth / 2 - centerX, y: stageElement.clientHeight * .46 - centerY, scale: fillScale }
+      buildScene()
+      let resizeTimer = 0
+      const onResize = () => {
+        window.clearTimeout(resizeTimer)
+        resizeTimer = window.setTimeout(() => {
+          if (dead || !rootElement.classList.contains('is-pinned')) return
+          context?.revert()
+          buildScene()
+          scheduleRefresh()
+        }, 250)
       }
-      const slotShift = () => {
-        const base = offsetWithinStage(featuredCard!)
-        const centerX = base.left + featuredCard!.offsetWidth / 2
-        const centerY = base.top + featuredCard!.offsetHeight / 2
-        const slotBase = offsetWithinStage(slotElement!)
-        return {
-          x: slotBase.left + slotElement!.offsetWidth / 2 - centerX,
-          y: slotBase.top + slotElement!.offsetHeight / 2 - centerY,
-          scale: slotElement!.offsetWidth / featuredCard!.offsetWidth,
-        }
+      window.addEventListener('resize', onResize)
+      /** 键盘焦点进入离屏面板时，把对应画面滚入视口（与观察轨道同约定）。 */
+      rootElement.addEventListener('focusin', onPanelFocus)
+      function onPanelFocus(event: FocusEvent): void {
+        const target = event.target
+        if (!scene || !(target instanceof HTMLElement) || !target.matches(':focus-visible')) return
+        const button = target.closest<HTMLElement>('.collage__panel-image')
+        if (!button || !track.value || !stage.value) return
+        const bounds = button.getBoundingClientRect()
+        if (bounds.right > 12 && bounds.left < innerWidth - 12 && bounds.bottom > 0 && bounds.top < innerHeight) return
+        const panelsInTrack = [...track.value.querySelectorAll<HTMLElement>('.collage__panel')]
+        const index = panelsInTrack.indexOf(button.closest<HTMLElement>('.collage__panel')!)
+        const portion = Math.min(1, Math.max(0, index * stage.value.clientWidth / Math.max(1, travelDistance())))
+        window.scrollTo({ top: scene.start + 950 + portion * travelDistance(), behavior: 'auto' })
+        ScrollTrigger.update()
       }
-      const scrollLength = () => 950 + travel() + 60
-      // 阶段比例与滚动行程对应：放大段 950px、轨道位移段、尾部 60px。
-      const timeline = gsap.timeline({
-        scrollTrigger: {
-          id: 'about-collage-story', trigger: stageElement, refreshPriority: 40,
-          start: 'top top', end: () => `+=${Math.round(scrollLength())}`,
-          pin: true, anticipatePin: 1, scrub: true, invalidateOnRefresh: true,
-          onUpdate: self => {
-            const trackPortion = Math.max(0, Math.min(1, (self.progress * scrollLength() - 950) / Math.max(1, travel())))
-            current.value = Math.round(trackPortion * (panels.length - 1))
-          },
-        },
-      })
-      const notes = trackElement.querySelectorAll('.collage__note')
-      const panelImages = trackElement.querySelectorAll('.collage__panel-image')
-      timeline
-        // ① 主角图脱离拼贴，等比放大接近铺满视口；其余卡片散开淡出，简介上移淡出。
-        .to(fly, { x: () => fillShift().x, y: () => fillShift().y, scale: () => fillShift().scale, duration: 430 * durationScale, ease: 'power2.inOut' }, 0)
-        .to(siblings, { autoAlpha: 0, x: index => (index % 2 ? 1 : -1) * 90, rotation: index => (index % 2 ? 7 : -9), duration: 300 * durationScale, stagger: 40 * durationScale, ease: 'power2.in' }, 40 * durationScale)
-        .to(intro.value!, { autoAlpha: 0, y: -70, duration: 320 * durationScale, ease: 'power2.in' }, 0)
-        // ② 铺满呼吸：浅色底纸淡出，场景过渡到深色。
-        .to(wash.value!, { autoAlpha: 0, duration: 150 * durationScale, ease: 'none' }, 420 * durationScale)
-        .to(fly, { scale: () => fillShift().scale * .985, duration: 130 * durationScale, ease: 'power1.inOut' }, 430 * durationScale)
-        // ③ 主角图缩入轨道第一格；轨道、面板与文字进入。
-        .to(fly, { x: () => slotShift().x, y: () => slotShift().y, scale: () => slotShift().scale, duration: 390 * durationScale, ease: 'power2.inOut' }, 560 * durationScale)
-        .fromTo(trackElement, { autoAlpha: 0 }, { autoAlpha: 1, duration: 200 * durationScale, ease: 'none' }, 620 * durationScale)
-        .fromTo(panelImages, { autoAlpha: 0, x: 46 }, { autoAlpha: 1, x: 0, duration: 260 * durationScale, stagger: 70 * durationScale, ease: 'power2.out' }, 660 * durationScale)
-        .fromTo(notes, { autoAlpha: 0, y: 34 }, { autoAlpha: 1, y: 0, duration: 240 * durationScale, stagger: 90 * durationScale, ease: 'power2.out' }, 700 * durationScale)
-        .fromTo(counter.value!, { autoAlpha: 0 }, { autoAlpha: 1, duration: 120 * durationScale, ease: 'none' }, 760 * durationScale)
-        // ④ 轨道与主角图同步左移，完成图片与文字交错的横向叙事。
-        .to(trackElement, { x: () => -travel(), duration: trackDuration * durationScale, ease: 'none' }, 950 * durationScale)
-        .to(fly, { x: () => slotShift().x - travel(), duration: trackDuration * durationScale, ease: 'none' }, 950 * durationScale)
-        .to({}, { duration: 60 * durationScale })
       return () => {
+        window.removeEventListener('resize', onResize)
+        rootElement.removeEventListener('focusin', onPanelFocus)
+        window.clearTimeout(resizeTimer)
         rootElement.classList.remove('is-pinned')
         current.value = 0
       }
@@ -282,6 +325,6 @@ onBeforeUnmount(() => { dead = true; cancelPreparation?.(); cancelRefresh?.(); m
   .is-pinned .collage__note-label span { color:var(--ab-soft); }
   .is-pinned .collage__note h3 span { color:var(--ab-soft); }
   .is-pinned .collage__note-copy span { color:var(--ab-soft); }
-  .is-pinned .collage__counter { display:block; position:absolute; z-index:5; right:clamp(24px,5vw,88px); top:clamp(30px,5vh,56px); color:var(--ab-soft); opacity:0; }
+  .is-pinned .collage__counter { display:block; position:absolute; z-index:5; right:clamp(24px,5vw,88px); top:clamp(96px,14vh,132px); color:var(--ab-soft); opacity:0; }
 }
 </style>

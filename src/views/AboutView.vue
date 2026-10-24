@@ -6,7 +6,7 @@
     <AboutCollageStage :lang="lang" @open="onOpenVisual" />
     <AboutQuoteScene :lang="lang" />
     <AboutScrollChapter name="identity" heading="WHO I AM" card backdrop :label="{ zh: '关于我', en: 'A little about me' }"
-      :lines="{ zh: ['内容策划', '视觉表达', '制作与协作'], en: ['Content planning', 'Visual communication', 'Production & collaboration'] }" />
+      :lines="{ zh: ['把想法整理成清晰的表达', '在版面与色彩之间做取舍', '让工具参与过程，判断留在自己手里'], en: ['Shape ideas into clear communication.', 'Weigh layout against colour.', 'Let tools support the process and keep judgment with me.'] }" />
     <main class="about-body">
       <AboutIdentityScene v-model:active-tool="activeTool" :lang="lang" :active="heroActive" />
       <div class="about-reading">

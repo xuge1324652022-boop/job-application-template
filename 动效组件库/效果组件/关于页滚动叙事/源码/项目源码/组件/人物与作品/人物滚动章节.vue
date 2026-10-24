@@ -64,6 +64,16 @@ onMounted(() => {
       const range = document.createRange()
       range.selectNodeContents(rows[0]!)
       const widthPerPixel = range.getBoundingClientRect().width / parseFloat(getComputedStyle(title.value!).fontSize)
+      // 正文退出距离：正文顶端在舞台中的布局位置 + 自身高度，末行出屏后再留 10% 视口余量。
+      const bodyExit = () => {
+        let top = 0
+        let node: HTMLElement | null = body.value as HTMLElement
+        while (node && node !== stage.value) {
+          top += node.offsetTop
+          node = node.offsetParent as HTMLElement | null
+        }
+        return top + body.value!.offsetHeight + innerHeight * .1
+      }
       // Measure the untransformed text once. Later refreshes only use viewport
       // dimensions, so resizing mid-fold cannot measure a scaled-down title.
       const fitTitle = () => root.value?.style.setProperty('--chapter-fit', `${Math.floor(Math.min(innerWidth * .92 / widthPerPixel, innerHeight * .32))}px`)
@@ -96,10 +106,14 @@ onMounted(() => {
         .fromTo(body.value!, { y: () => innerHeight * .55, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 1.3, ease: 'power1.out' }, entry + 5.65)
         .fromTo(chinese, { color: '#595b62' }, { color: '#f2f1ec', duration: .65, stagger: .2, ease: 'none' }, entry + 6)
         .fromTo(english, { color: '#595b62' }, { color: '#c3c5cc', duration: .65, stagger: .2, ease: 'none' }, entry + 6)
-        // 正文点亮后继续上移离场；小人物卡随最后一行退出从下方进入中央。
-        .to([title.value!, body.value!], { y: (index: number) => -innerHeight * (index === 0 ? 1.06 : .78), duration: .85, ease: 'power2.inOut' }, entry + 6.95)
+        // 正文点亮后继续上移离场：标题按固定视口倍数，正文按自身实际高度计算，
+        // 确保末行完全退出后再交给小人物卡；小人物卡随最后一行退出升至中央。
+        .to([title.value!, body.value!], {
+          y: (index: number) => index === 0 ? -innerHeight * 1.06 : -bodyExit(),
+          duration: .85, ease: 'power2.inOut',
+        }, entry + 6.95)
       if (cardEl.value) {
-        timeline.fromTo(cardEl.value, { yPercent: 128, autoAlpha: 0 }, { yPercent: 0, autoAlpha: 1, duration: .6, ease: 'power2.out' }, entry + 7.15)
+        timeline.fromTo(cardEl.value, { yPercent: 128, xPercent: -50 }, { yPercent: -50, autoAlpha: 1, duration: .6, ease: 'power2.out' }, entry + 7.15)
       }
       timeline.to({}, { duration: .3 })
       return () => root.value?.style.removeProperty('--chapter-fit')
@@ -131,7 +145,7 @@ onBeforeUnmount(() => { dead = true; cancelPreparation?.(); cancelRefresh?.(); m
 .scroll-chapter__copy { font-size:clamp(26px,3.2vw,48px); font-weight:600; line-height:1.6; letter-spacing:-.04em; }
 .scroll-chapter__translation { max-width:36em; margin:28px auto 0; color:var(--ab-soft); font-size:clamp(14px,1.4vw,20px); line-height:1.65; }
 .scroll-chapter__line { display:block; }
-.scroll-chapter__card { position:absolute; left:50%; top:50%; width:clamp(140px,13vw,190px); margin:0; aspect-ratio:3/4; overflow:hidden; background:#171a20; transform:translate(-50%,-50%); visibility:hidden; opacity:0; }
+.scroll-chapter__card { position:absolute; left:50%; top:46%; width:clamp(140px,13vw,190px); margin:0; aspect-ratio:3/4; overflow:hidden; background:#171a20; visibility:hidden; opacity:0; }
 .scroll-chapter__card img { display:block; width:100%; height:100%; object-fit:cover; }
 .scroll-chapter__cue { position:absolute; left:50%; bottom:28px; color:var(--ab-soft); font-size:24px; }
 /* The unanimated layout is the complete, readable fallback. */
