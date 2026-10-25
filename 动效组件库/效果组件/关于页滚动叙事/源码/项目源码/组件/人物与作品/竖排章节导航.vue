@@ -2,10 +2,18 @@
   <!--
     桌面端左侧竖排章节导航（参照原站 wonjyou.studio/about 的常驻侧栏）：
     罗马数字索引随滚动高亮当前章节，底部奶油色块直达联系区。
-    窄屏、矮视口与减弱动效偏好下不渲染，锚点跳转沿用页面级处理。
+    窄屏与矮视口隐藏，减弱动效偏好下保留纯导航；锚点跳转沿用页面级处理。
   -->
-  <nav ref="rail" class="about-rail" :aria-label="lang === 'zh' ? '关于页章节导航' : 'About sections'">
-    <a class="about-rail__home" href="#about-intro" :aria-label="lang === 'zh' ? '回到开场' : 'Back to intro'">
+  <nav
+    ref="rail"
+    class="about-rail"
+    :aria-label="lang === 'zh' ? '关于页章节导航' : 'About sections'"
+  >
+    <a
+      class="about-rail__home"
+      href="#about-intro"
+      :aria-label="lang === 'zh' ? '回到开场' : 'Back to intro'"
+    >
       <span class="about-rail__burger" aria-hidden="true"><i></i><i></i><i></i></span>
       <span class="about-rail__initials" lang="en">{{ IDENTITY.initials }}</span>
     </a>
@@ -36,6 +44,7 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { IDENTITY, type Lang } from '../../数据/人物资料'
+import { requestMotionLayoutRefresh } from '../../工具/动效布局调度'
 
 /**
  * 章节锚点与页面场景一一对应：开场巨字、人物主张、方向词带、
@@ -54,32 +63,75 @@ const chapters = [
 defineProps<{ lang: Lang }>()
 const rail = ref<HTMLElement | null>(null)
 const activeIndex = ref(-1)
-let triggers: ScrollTrigger[] = []
+type ChapterId = (typeof chapters)[number]['id']
+const triggers = new Map<ChapterId, { target: HTMLElement; trigger: ScrollTrigger }>()
+const chapterSelector = chapters.map((chapter) => `#${chapter.id}`).join(',')
+let observer: MutationObserver | undefined
+let reconcileFrame = 0
+let cancelRefresh: (() => void) | undefined
+let disposed = false
 gsap.registerPlugin(ScrollTrigger)
 
 onMounted(() => {
-  if (!rail.value) return
-  // 每个章节建一个观察区：进入视口中段即点亮；固定舞台（pin）的占位高度
-  // 已包含在锚点元素的布局盒中，onToggle 的顺序天然与页面顺序一致。
-  triggers = chapters
-    .map((chapter, index) => {
-      const target = document.getElementById(chapter.id)
-      if (!target) return null
-      return ScrollTrigger.create({
+  const page = rail.value?.closest<HTMLElement>('.about-page')
+  if (!page) return
+  // 延迟挂载的联系区稍后才有真实节点；按锚点与元素身份补建，已有章节不重建。
+  const reconcile = () => {
+    reconcileFrame = 0
+    if (disposed) return
+    let changed = false
+    chapters.forEach((chapter, index) => {
+      const target = page.querySelector<HTMLElement>(`#${chapter.id}`)
+      const previous = triggers.get(chapter.id)
+      if (previous?.target === target) return
+      if (previous) {
+        previous.trigger.kill()
+        triggers.delete(chapter.id)
+        changed = true
+      }
+      if (!target) return
+      const trigger = ScrollTrigger.create({
+        id: `about-rail-${chapter.id}`,
         trigger: target,
         start: 'top 55%',
         end: 'bottom 45%',
-        onToggle: self => {
+        onToggle: (self) => {
+          if (self.isActive) activeIndex.value = index
+        },
+        onRefresh: (self) => {
           if (self.isActive) activeIndex.value = index
         },
       })
+      triggers.set(chapter.id, { target, trigger })
+      changed = true
     })
-    .filter((trigger): trigger is ScrollTrigger => trigger !== null)
+    if (changed) {
+      cancelRefresh?.()
+      cancelRefresh = requestMotionLayoutRefresh()
+    }
+  }
+  reconcile()
+  observer = new MutationObserver((records) => {
+    if (disposed || reconcileFrame) return
+    const chapterChanged = records.some((record) =>
+      [...record.addedNodes, ...record.removedNodes].some(
+        (node) =>
+          node instanceof Element &&
+          (node.matches(chapterSelector) || node.querySelector(chapterSelector)),
+      ),
+    )
+    if (chapterChanged) reconcileFrame = requestAnimationFrame(reconcile)
+  })
+  observer.observe(page, { childList: true, subtree: true })
 })
 
 onBeforeUnmount(() => {
-  triggers.forEach(trigger => trigger.kill())
-  triggers = []
+  disposed = true
+  observer?.disconnect()
+  if (reconcileFrame) cancelAnimationFrame(reconcileFrame)
+  cancelRefresh?.()
+  triggers.forEach(({ trigger }) => trigger.kill())
+  triggers.clear()
 })
 </script>
 

@@ -11,8 +11,8 @@
       :lang="lang"
       :word="{ zh: '表达', en: 'CREATE' }"
       :label="{ zh: '把想法变成看得见的表达', en: 'Turning ideas into something you can see' }"
-      :background-src="aboutPortrait.src"
-      :background-srcset="visualImageSources(aboutPortrait)"
+      :background-src="aboutQuotePortrait.src"
+      :background-srcset="visualImageSources(aboutQuotePortrait)"
     />
     <AboutScrollChapter
       name="identity"
@@ -101,7 +101,7 @@ import AboutCollageStage from '../组件/人物与作品/简介拼贴场景.vue'
 import AboutQuoteScene from '../组件/人物与作品/人物引言场景.vue'
 import AboutWordMarquee from '../组件/人物与作品/方向词双向跑马灯.vue'
 import AboutWordZoom from '../组件/人物与作品/字形越界放大.vue'
-import { aboutPortrait } from '../数据/本机个人内容接口'
+import { aboutQuotePortrait } from '../数据/本机个人内容接口'
 import { visualImageSources } from '../工具/响应式图片'
 import AboutScrollChapter from '../组件/人物与作品/人物滚动章节.vue'
 import AboutIdentityScene from '../组件/人物与作品/人物身份场景.vue'

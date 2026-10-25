@@ -94,6 +94,16 @@ const routes: RouteRecordRaw[] = [
     name: 'photo',
     component: () => import('../views/PhotoView.vue'),
   },
+  {
+    /*
+     * /morph：粒子变形演示页（复刻参考视频：巨字 hero + 粒子汇聚成字母 + 双列网格）。
+     * 独立演示入口，不进入六卡导航；文案保留视频原句作效果演示，素材均为合成图。
+     * ⚠️ 必须排在兜底路由之前。
+     */
+    path: '/morph',
+    name: 'morph',
+    component: () => import('../views/MorphView.vue'),
+  },
   // 保留坏链便于修正；HTTP 404 由部署层与 Vite 预览中间件共同提供。
   { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('../views/NotFoundView.vue') },
 ]

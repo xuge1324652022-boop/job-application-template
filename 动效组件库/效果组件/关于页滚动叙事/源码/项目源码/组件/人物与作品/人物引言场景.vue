@@ -1,5 +1,11 @@
 <template>
-  <section id="voice" ref="root" class="quote-scene" aria-labelledby="quote-title">
+  <section
+    id="voice"
+    ref="root"
+    class="quote-scene"
+    :class="{ 'has-scene-portrait': hasScenePortrait }"
+    aria-labelledby="quote-title"
+  >
     <div ref="stage" class="quote-scene__stage">
       <!-- 暗色人物衬底贯穿：引言段压得更暗，巨字段稍亮，同一张合成图连续。 -->
       <div class="quote-scene__backdrop" aria-hidden="true">
@@ -17,16 +23,15 @@
       </div>
       <div ref="content" class="quote-scene__content">
         <p class="quote-scene__kicker">
-          {{ lang === 'zh' ? '我的主张' : 'MY MISSION' }}<span>{{
-            lang === 'zh' ? 'MY MISSION' : '我的主张'
-          }}</span>
+          {{ lang === 'zh' ? '我的主张' : 'MY MISSION'
+          }}<span>{{ lang === 'zh' ? 'MY MISSION' : '我的主张' }}</span>
         </p>
         <h2 id="quote-title" ref="statement" class="quote-scene__statement">
           <span v-for="(line, index) in lines" :key="index" class="quote-scene__line">{{
             line
           }}</span>
         </h2>
-        <p class="quote-scene__translation" lang="en">{{ PROFILE_LINES[0].en }}</p>
+        <p class="quote-scene__translation" lang="en">{{ TAGLINE.en }}</p>
       </div>
       <!-- 巨字横带：红色 WHO I AM 两行，随滚动自右向左滑出视口（aria 隐藏，语义在上文）。 -->
       <div ref="giant" class="quote-scene__giant" aria-hidden="true">
@@ -42,10 +47,10 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { PROFILE_LINES, type Lang } from '../../数据/人物资料'
+import { TAGLINE, type Lang } from '../../数据/人物资料'
 import { prepareMotionLayout, requestMotionLayoutRefresh } from '../../工具/动效布局调度'
 import { visualImageSources } from '../../工具/响应式图片'
-import { aboutPortrait } from '../../数据/本机个人内容接口'
+import { aboutQuotePortrait, personalPortfolio } from '../../数据/本机个人内容接口'
 
 /**
  * 主张段（参照原站 mission + WHO I AM 巨字）：
@@ -53,8 +58,9 @@ import { aboutPortrait } from '../../数据/本机个人内容接口'
  * 随后红色 WHO I AM 巨字带自右向左滑出屏幕，交棒方向词跑马灯。
  */
 defineProps<{ lang: Lang }>()
-const PORTRAIT = aboutPortrait
-const lines = PROFILE_LINES[0].zh.match(/[^，。！？;；]+[，。！？;；]?/gu) ?? [PROFILE_LINES[0].zh]
+const PORTRAIT = aboutQuotePortrait
+const hasScenePortrait = Boolean(personalPortfolio?.portraits?.quote)
+const lines = TAGLINE.zh.match(/[^，。！？;；]+[，。！？;；]?/gu) ?? [TAGLINE.zh]
 
 const root = ref<HTMLElement | null>(null)
 const stage = ref<HTMLElement | null>(null)
@@ -94,7 +100,7 @@ onMounted(() => {
             scrollTrigger: {
               id: 'about-quote-mission',
               trigger: stageElement,
-              refreshPriority: 35,
+              refreshPriority: 45,
               start: 'top top',
               end: () => `+=${Math.round(innerHeight * 3.6)}`,
               pin: true,
@@ -111,11 +117,7 @@ onMounted(() => {
             { color: 'var(--ab-ink)', y: -14, stagger: 0.34, duration: 1 },
             0,
           )
-          .to(
-            rows,
-            { color: '#574e42', stagger: 0.22, duration: 0.7 },
-            0.9,
-          )
+          .to(rows, { color: '#574e42', stagger: 0.22, duration: 0.7 }, 0.9)
           // ② 主张整体上移离场，为巨字让屏。
           .to(
             content.value!,
@@ -183,6 +185,13 @@ onBeforeUnmount(() => {
   position: absolute;
   inset: 0;
   background: linear-gradient(to bottom, rgb(5 5 5 / 0.55), rgb(5 5 5 / 0.85));
+}
+.has-scene-portrait .quote-scene__backdrop img {
+  opacity: 0.72;
+  filter: saturate(0.8);
+}
+.has-scene-portrait .quote-scene__backdrop::after {
+  background: linear-gradient(90deg, rgb(5 5 5 / 0.6), rgb(5 5 5 / 0.42) 50%, rgb(5 5 5 / 0.08));
 }
 .quote-scene__content {
   position: relative;

@@ -164,13 +164,13 @@ import {
 import { resumeFactParts, resumeSkillParts } from '../../数据/简历强调内容'
 import { prepareMotionLayout, requestMotionLayoutRefresh } from '../../工具/动效布局调度'
 import { visualImageSources } from '../../工具/响应式图片'
-import { aboutPortrait, isPersonalPortfolio } from '../../数据/本机个人内容接口'
+import { aboutProfilePortrait, isPersonalPortfolio } from '../../数据/本机个人内容接口'
 
 const props = defineProps<{ lang: Lang; active: boolean; activeTool: string }>()
 const emit = defineEmits<{ 'update:activeTool': [id: string] }>()
 const root = ref<HTMLElement | null>(null)
 const imageMask = ref<HTMLElement | null>(null)
-const portraitSources = aboutPortrait
+const portraitSources = aboutProfilePortrait
 const textParts = (text: string, lang: Lang): string[] =>
   lang === 'zh' ? Array.from(text) : (text.match(/\S+\s*/gu) ?? [text])
 

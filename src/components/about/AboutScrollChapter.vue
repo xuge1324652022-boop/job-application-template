@@ -10,12 +10,12 @@
       <!-- 人物衬底（可选）：与暗色引言共用同一张人物图，让背景贯穿引言与折叠阅读。 -->
       <div v-if="backdrop" class="scroll-chapter__backdrop" aria-hidden="true">
         <img
-          :src="aboutPortrait.src"
-          :srcset="visualImageSources(aboutPortrait)"
+          :src="aboutQuotePortrait.src"
+          :srcset="visualImageSources(aboutQuotePortrait)"
           sizes="100vw"
           alt=""
-          :width="aboutPortrait.width"
-          :height="aboutPortrait.height"
+          :width="aboutQuotePortrait.width"
+          :height="aboutQuotePortrait.height"
           decoding="async"
           loading="lazy"
         />
@@ -77,10 +77,10 @@
       <!-- 章节收尾的小人物卡：最后一行正文上移退出时从下方进入中央；倒滚退回。 -->
       <figure v-if="card" ref="cardEl" class="scroll-chapter__card" aria-hidden="true">
         <img
-          :src="aboutPortrait.thumb"
+          :src="aboutCardPortrait.thumb"
           alt=""
-          :width="aboutPortrait.width"
-          :height="aboutPortrait.height"
+          :width="aboutCardPortrait.width"
+          :height="aboutCardPortrait.height"
           decoding="async"
           loading="lazy"
         />
@@ -95,7 +95,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import type { Bi, Lang } from '../../data/aboutProfile'
-import { aboutPortrait } from '../../data/personalPortfolio'
+import { aboutCardPortrait, aboutQuotePortrait } from '../../data/personalPortfolio'
 import { visualImageSources } from '../../utils/responsiveImage'
 import { prepareMotionLayout, requestMotionLayoutRefresh } from '../../utils/motionLayout'
 
@@ -255,8 +255,8 @@ onMounted(() => {
         const solidEnglish = props.paper ? '#8a6a52' : '#cfc4b4'
         if (props.bleed) {
           // 通栏贴底：标题折合后沉至幕布底缘，正文在上方点亮，标签带对开漂移后整幕离场。
-          const sinkTitle = () =>
-            (stage.value!.clientHeight - title.value!.offsetHeight) / 2 - innerHeight * 0.035
+          // bleed 的 anchor 已经底部对齐，只修正基线留白，不再叠加从居中到底部的位移。
+          const sinkTitle = () => -stage.value!.clientHeight * 0.035
           timeline
             .to(
               title.value!,

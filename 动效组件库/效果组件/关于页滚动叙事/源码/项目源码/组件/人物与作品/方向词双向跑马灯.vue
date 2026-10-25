@@ -12,16 +12,22 @@
     <div ref="stage" class="word-marquee__stage">
       <div ref="rowA" class="word-marquee__row word-marquee__row--solid">
         <span v-for="(word, i) in words" :key="`a${i}`" class="word-marquee__item">
-          <b>{{ word.zh }}</b><i lang="en">{{ word.en }}</i>
+          <b>{{ word.zh }}</b
+          ><i lang="en">{{ word.en }}</i>
         </span>
       </div>
       <div ref="rowB" class="word-marquee__row word-marquee__row--ghost">
         <span v-for="(word, i) in words" :key="`b${i}`" class="word-marquee__item">
-          <b>{{ word.zh }}</b><i lang="en">{{ word.en }}</i>
+          <b>{{ word.zh }}</b
+          ><i lang="en">{{ word.en }}</i>
         </span>
       </div>
       <p class="word-marquee__caption">
-        {{ lang === 'zh' ? '工作的关键词，也是这份模板的动效目录' : 'Practice keywords, and the motion index of this template' }}
+        {{
+          lang === 'zh'
+            ? '从策划到交付，让想法成为画面'
+            : 'From planning to delivery, bringing ideas into view'
+        }}
       </p>
     </div>
   </section>
@@ -74,7 +80,7 @@ onMounted(() => {
             scrollTrigger: {
               id: 'about-words-marquee',
               trigger: stageElement,
-              refreshPriority: 32,
+              refreshPriority: 42,
               start: 'top top',
               end: () => `+=${Math.round(innerHeight * 1.9)}`,
               pin: true,
@@ -185,18 +191,45 @@ onBeforeUnmount(() => {
 @media (max-width: 760px), (max-height: 619px), (prefers-reduced-motion: reduce) {
   .word-marquee__stage {
     min-height: 0;
+    overflow: visible;
     gap: 28px;
-    padding: 84px 0 64px;
+    padding: 84px 22px 64px;
+  }
+  .word-marquee__row {
+    width: 100%;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 24px 32px;
+    white-space: normal;
+    will-change: auto;
   }
   .word-marquee__row--solid,
   .word-marquee__row--ghost {
-    margin-left: 22px;
+    margin-left: 0;
+  }
+  .word-marquee__row--ghost {
+    display: none;
+  }
+  .word-marquee__item {
+    display: flex;
+    min-width: 0;
+    max-width: 100%;
+    flex-direction: column;
+    gap: 10px;
   }
   .word-marquee__item b {
-    font-size: 13.5vw;
+    font-size: clamp(26px, 7vw, 64px);
+    line-height: 1.15;
+  }
+  .word-marquee__item i {
+    margin-left: 0;
+    font-size: 11px;
+    line-height: 1.5;
+    letter-spacing: 0.12em;
+    overflow-wrap: anywhere;
   }
   .word-marquee__caption {
-    margin: 34px 22px 0;
+    margin: 6px 0 0;
   }
 }
 </style>

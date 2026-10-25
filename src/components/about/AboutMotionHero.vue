@@ -3,7 +3,7 @@
     id="about-intro"
     ref="root"
     class="about-hero"
-    :class="{ 'is-active': active }"
+    :class="{ 'is-active': active, 'has-scene-portrait': hasScenePortrait }"
     aria-labelledby="about-title"
   >
     <!-- 右侧全出血人物图铺底，姓名巨字压在照片上，参照原站开场的图文重叠。 -->
@@ -13,7 +13,7 @@
           ref="photo"
           :src="PORTRAIT.src"
           :srcset="visualImageSources(PORTRAIT)"
-          sizes="(max-width: 760px) 100vw, 48vw"
+          :sizes="hasScenePortrait ? '100vw' : '(max-width: 760px) 100vw, 48vw'"
           :width="PORTRAIT.width"
           :height="PORTRAIT.height"
           alt=""
@@ -25,8 +25,12 @@
         {{
           isPersonalPortfolio
             ? lang === 'zh'
-              ? '个人形象照片'
-              : 'Personal portrait'
+              ? hasScenePortrait
+                ? 'AI 创作形象'
+                : '个人形象照片'
+              : hasScenePortrait
+                ? 'AI-created portrait'
+                : 'Personal portrait'
             : lang === 'zh'
               ? '合成图像示例'
               : 'Synthetic image example'
@@ -34,12 +38,16 @@
       </figcaption>
     </figure>
     <div class="about-hero__stage">
-      <!-- 姓名巨字：英文大写逐行铺满宽度，中文姓名以红色斜签叠在字角。 -->
+      <!-- 英文姓名巨字铺满可用宽度。 -->
       <h1 id="about-title" ref="title" class="about-hero__title">
-        <span v-for="word in nameWords" :key="word" class="about-hero__line" lang="en">{{
-          word
+        <span v-if="hasScenePortrait" ref="sceneName" class="about-hero__line" lang="en">{{
+          IDENTITY.nameEn.toUpperCase()
         }}</span>
-        <span ref="sign" class="about-hero__sign" aria-hidden="true">{{ IDENTITY.nameZh }}</span>
+        <template v-else>
+          <span v-for="word in nameWords" :key="word" class="about-hero__line" lang="en">{{
+            word
+          }}</span>
+        </template>
         <span class="about-hero__screen-reader">{{ IDENTITY.nameZh }} · {{ IDENTITY.nameEn }}</span>
       </h1>
       <div ref="meta" class="about-hero__meta">
@@ -59,30 +67,39 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { IDENTITY, ROLE_LINE, TAGLINE, pick, type Lang } from '../../data/aboutProfile'
-import { aboutPortrait, isPersonalPortfolio } from '../../data/personalPortfolio'
+import {
+  aboutHeroPortrait,
+  isPersonalPortfolio,
+  personalPortfolio,
+} from '../../data/personalPortfolio'
 import { prepareMotionLayout, requestMotionLayoutRefresh } from '../../utils/motionLayout'
 import { visualImageSources } from '../../utils/responsiveImage'
+import { useFitText } from '../../composables/useFitText'
 
 /**
  * 开场（参照 wonjyou.studio/about 的 hero）：右侧全出血人物图，
- * 英文姓名大写巨字压图，中文姓名作红色斜签；左下方向与主张小字。
+ * 英文姓名大写巨字压图；左下方向与主张小字。
  * 入场一次性播放；滚动段不固定，巨字与照片以不同速度视差离场。
  */
 const props = defineProps<{ active: boolean; lang: Lang }>()
-const PORTRAIT = aboutPortrait
+const PORTRAIT = aboutHeroPortrait
+const hasScenePortrait = Boolean(personalPortfolio?.portraits?.hero)
 const nameWords = IDENTITY.nameEn.toUpperCase().split(/\s+/u)
-const roleParts = ROLE_LINE.zh
-  .split('·')
-  .map(part => part.trim())
-  .filter(Boolean)
+const roleParts = computed(() =>
+  pick(ROLE_LINE, props.lang)
+    .split('·')
+    .map((part) => part.trim())
+    .filter(Boolean),
+)
 
 const root = ref<HTMLElement | null>(null)
 const title = ref<HTMLElement | null>(null)
-const sign = ref<HTMLElement | null>(null)
+const sceneName = ref<HTMLElement | null>(null)
+useFitText(sceneName, { min: 20, max: 180 })
 const meta = ref<HTMLElement | null>(null)
 const photo = ref<HTMLElement | null>(null)
 const photoMask = ref<HTMLElement | null>(null)
@@ -108,7 +125,6 @@ onMounted(() => {
       dead ||
       !root.value ||
       !title.value ||
-      !sign.value ||
       !meta.value ||
       !photo.value ||
       !photoMask.value
@@ -121,7 +137,9 @@ onMounted(() => {
         const lines = title.value!.querySelectorAll('.about-hero__line')
         // 入场只播一次；断点分支重建时清掉旧状态，避免元素停在隐藏起点。
         if (played) {
-          gsap.set([lines, sign.value!, meta.value!], { clearProps: 'transform,opacity,visibility' })
+          gsap.set([lines, meta.value!], {
+            clearProps: 'transform,opacity,visibility',
+          })
           gsap.set(photoMask.value!, { clearProps: 'clipPath' })
         } else {
           entrance = gsap
@@ -144,12 +162,6 @@ onMounted(() => {
                 clearProps: 'transform,opacity,visibility',
               },
               0.2,
-            )
-            .fromTo(
-              sign.value!,
-              { autoAlpha: 0, scale: 0.72 },
-              { autoAlpha: 1, scale: 1, duration: 0.5, ease: 'back.out(2.2)' },
-              0.95,
             )
             .fromTo(
               meta.value!,
@@ -188,7 +200,7 @@ onMounted(() => {
 // 布局可在幕布下准备；呈现闸门由父页 active 控制，揭幕时同步当前滚动位置。
 watch(
   () => props.active,
-  active => {
+  (active) => {
     if (active) {
       play()
       parallax?.update()
@@ -270,20 +282,8 @@ onBeforeUnmount(() => {
   display: block;
   white-space: nowrap;
 }
-.about-hero__sign {
-  position: absolute;
-  right: clamp(8px, 2vw, 44px);
-  bottom: -0.14em;
-  z-index: 3;
-  font-family: Georgia, 'Times New Roman', 'Kaiti SC', serif;
-  font-style: italic;
-  font-size: clamp(26px, 3vw, 54px);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--ab-accent, #ef4b40);
-  transform: rotate(-7deg);
-  text-shadow: 0 2px 18px rgb(5 5 5 / 0.5);
-  white-space: nowrap;
+.has-scene-portrait .about-hero__line {
+  letter-spacing: -0.055em;
 }
 .about-hero__screen-reader {
   position: absolute;
@@ -359,6 +359,33 @@ a:focus-visible {
   outline: 2px solid var(--ab-accent, #ef4b40);
   outline-offset: 8px;
 }
+@media (min-width: 761px) and (min-height: 620px) and (prefers-reduced-motion: no-preference) {
+  .has-scene-portrait .about-hero__photo {
+    width: 100%;
+  }
+  .has-scene-portrait .about-hero__photo-mask img {
+    object-position: 66% center;
+  }
+  .has-scene-portrait .about-hero__stage {
+    justify-content: flex-start;
+    padding-top: 28px;
+    padding-inline: clamp(76px, 6vw, 100px) 30px;
+  }
+  .has-scene-portrait .about-hero__title {
+    font-size: min(11.6vw, 22svh);
+    letter-spacing: -0.055em;
+  }
+  .has-scene-portrait .about-hero__meta {
+    max-width: 36%;
+    margin-top: 36px;
+    color: #171717;
+  }
+  .has-scene-portrait .about-hero__role,
+  .has-scene-portrait .about-hero__tagline span,
+  .has-scene-portrait .about-hero__scroll {
+    color: #33312e;
+  }
+}
 @media (max-width: 760px), (max-height: 619px), (prefers-reduced-motion: reduce) {
   .about-hero__photo {
     position: relative;
@@ -373,10 +400,11 @@ a:focus-visible {
   .about-hero__title {
     font-size: 14.5vw;
   }
-  .about-hero__sign {
-    right: 10px;
-    bottom: -0.2em;
-    font-size: 22px;
+  .has-scene-portrait .about-hero__title {
+    font-size: 9.5vw;
+  }
+  .has-scene-portrait .about-hero__photo-mask img {
+    object-position: 66% 38%;
   }
   .about-hero__meta {
     max-width: none;

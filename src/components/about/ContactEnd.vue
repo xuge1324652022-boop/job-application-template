@@ -9,7 +9,7 @@
           <h2 id="contact-title">
             <span class="end__title-line"
               ><img
-                :src="aboutPortrait.thumb"
+                :src="aboutCardPortrait.thumb"
                 width="80"
                 height="80"
                 alt=""
@@ -126,7 +126,7 @@ import { RouterLink, useRoute } from 'vue-router'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { CONTACT, FACTS, IDENTITY, type Lang } from '../../data/aboutProfile'
-import { aboutPortrait, isPersonalPortfolio } from '../../data/personalPortfolio'
+import { aboutCardPortrait, isPersonalPortfolio } from '../../data/personalPortfolio'
 import { prepareMotionLayout } from '../../utils/motionLayout'
 defineProps<{ lang: Lang }>()
 const route = useRoute()

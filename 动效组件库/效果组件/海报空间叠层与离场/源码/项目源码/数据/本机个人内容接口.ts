@@ -22,6 +22,12 @@ interface PersonalPortfolio {
     CONTACT: { email: string; gmail: string; resume: string; portfolio: string }
   }
   portrait: VisualAsset
+  portraits?: {
+    hero?: VisualAsset
+    quote?: VisualAsset
+    card?: VisualAsset
+    profile?: VisualAsset
+  }
   selectedWorks: VisualAsset[]
   storyPanels: { key: string; assetId: string; label: Bi; title: Bi; copy: Bi; href: string }[]
   imageDimensions: Record<string, { width: number; height: number }>
@@ -50,3 +56,9 @@ export const aboutPortrait: VisualAsset = personalPortfolio?.portrait ?? {
   width: 1448,
   height: 1086,
 }
+
+/** Scene-specific assets are optional; existing packs and the template keep their portrait. */
+export const aboutHeroPortrait: VisualAsset = personalPortfolio?.portraits?.hero ?? aboutPortrait
+export const aboutQuotePortrait: VisualAsset = personalPortfolio?.portraits?.quote ?? aboutPortrait
+export const aboutCardPortrait: VisualAsset = personalPortfolio?.portraits?.card ?? aboutPortrait
+export const aboutProfilePortrait: VisualAsset = personalPortfolio?.portraits?.profile ?? aboutPortrait

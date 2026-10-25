@@ -40,7 +40,8 @@
     "subpage-heading-reveal": "作品子页大标题揭示",
     "text-line-reveal": "真实视觉行文字揭示",
     "video-loop-fade": "循环视频接缝淡化",
-    "visual-viewer-overlay": "完整作品查看器遮罩"
+    "visual-viewer-overlay": "完整作品查看器遮罩",
+    "morph-particle-field": "粒子汇聚变形"
   },
   "sourcePaths": {
     "index.html": "开场页面.html",
@@ -123,6 +124,7 @@
     "src/components/cards/PhotoCardVisual.vue": "项目源码/组件/卡面/摄影卡面.vue",
     "src/components/cards/PosterCardVisual.vue": "项目源码/组件/卡面/海报卡面.vue",
     "src/components/color/ColorWave.vue": "项目源码/组件/调色/调色波形.vue",
+    "src/components/morph/MorphParticleField.vue": "项目源码/组件/粒子变形/粒子汇聚场.vue",
     "src/composables/setupEditorialScroll.ts": "项目源码/组合函数/编辑版面滚动控制.ts",
     "src/composables/useAboutReveal.ts": "项目源码/组合函数/数据标记揭示控制.ts",
     "src/composables/useCursor.ts": "项目源码/组合函数/动作光标控制.ts",
@@ -181,6 +183,7 @@
     "src/views/EditView.vue": "项目源码/页面/剪辑作品页.vue",
     "src/views/FoundationView.vue": "项目源码/页面/基础作品页.vue",
     "src/views/GalleryView.vue": "项目源码/页面/六卡画廊页.vue",
+    "src/views/MorphView.vue": "项目源码/页面/粒子变形演示页.vue",
     "src/views/NewsView.vue": "项目源码/页面/新闻作品页.vue",
     "src/views/NotFoundView.vue": "项目源码/页面/页面未找到.vue",
     "src/views/PhotoView.vue": "项目源码/页面/摄影作品页.vue",

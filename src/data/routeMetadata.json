@@ -104,6 +104,18 @@
         "en": "Fictional portfolio template demo. Explore selected photography and collections connected by colour, light and everyday observation."
       },
       "entry": "src/views/PhotoView.vue"
+    },
+    {
+      "path": "/morph",
+      "title": {
+        "zh": "粒子变形演示｜示例求职者",
+        "en": "Particle Morph Demo · Example Candidate"
+      },
+      "description": {
+        "zh": "虚构求职模板演示：散布粒子随滚动汇聚成大字母的交互动效演示页，含巨字开场与双列合成图网格。",
+        "en": "Fictional portfolio template demo. A scroll-driven particle morph demonstration with a bold-type opening and a two-column synthetic image grid."
+      },
+      "entry": "src/views/MorphView.vue"
     }
   ],
   "legacyPaths": {

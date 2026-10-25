@@ -164,13 +164,13 @@ import {
 import { resumeFactParts, resumeSkillParts } from '../../data/resumeEmphasis'
 import { prepareMotionLayout, requestMotionLayoutRefresh } from '../../utils/motionLayout'
 import { visualImageSources } from '../../utils/responsiveImage'
-import { aboutPortrait, isPersonalPortfolio } from '../../data/personalPortfolio'
+import { aboutProfilePortrait, isPersonalPortfolio } from '../../data/personalPortfolio'
 
 const props = defineProps<{ lang: Lang; active: boolean; activeTool: string }>()
 const emit = defineEmits<{ 'update:activeTool': [id: string] }>()
 const root = ref<HTMLElement | null>(null)
 const imageMask = ref<HTMLElement | null>(null)
-const portraitSources = aboutPortrait
+const portraitSources = aboutProfilePortrait
 const textParts = (text: string, lang: Lang): string[] =>
   lang === 'zh' ? Array.from(text) : (text.match(/\S+\s*/gu) ?? [text])
 

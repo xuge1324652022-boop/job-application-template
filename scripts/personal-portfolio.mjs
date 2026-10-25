@@ -10,7 +10,7 @@ const mediaTypes = {
   '.pdf': 'application/pdf',
   '.mp4': 'video/mp4',
 }
-const browserFields = ['profile', 'portrait', 'selectedWorks', 'storyPanels', 'imageDimensions']
+const browserFields = ['profile', 'portrait', 'portraits', 'selectedWorks', 'storyPanels', 'imageDimensions']
 const isRecord = (value) => value !== null && typeof value === 'object' && !Array.isArray(value)
 const within = (directory, file) => {
   const path = relative(directory, file)

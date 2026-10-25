@@ -45,6 +45,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { pick, type Bi, type Lang } from '../../data/aboutProfile'
 import { prepareMotionLayout, requestMotionLayoutRefresh } from '../../utils/motionLayout'
 import { visualImageSources } from '../../utils/responsiveImage'
+import { aboutQuotePortrait } from '../../data/personalPortfolio'
 
 const props = withDefaults(
   defineProps<{
@@ -57,16 +58,12 @@ const props = withDefaults(
     focusIndex?: number
     refreshPriority?: number
   }>(),
-  { refreshPriority: 32 },
+  { refreshPriority: 35 },
 )
 
 gsap.registerPlugin(ScrollTrigger)
 
-const portrait = {
-  thumb: '/about/portrait-400.webp',
-  src: '/about/portrait-900.webp',
-  large: '/about/portrait-1448.webp',
-}
+const portrait = aboutQuotePortrait
 const headingId = `word-zoom-${useId()}`
 const displayWord = computed(() => pick(props.word, props.lang).trim())
 const characters = computed(() => Array.from(displayWord.value))

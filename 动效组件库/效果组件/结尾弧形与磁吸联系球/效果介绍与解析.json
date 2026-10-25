@@ -229,10 +229,10 @@
       "original": "src/components/about/ContactEnd.vue",
       "path": "源码/项目源码/组件/人物与作品/结尾联系球.vue",
       "role": "entry",
-      "originalSha256": "d36343ae6e08c52c1e5e64965ac7022a67e8e5f31ad2e31f2e8099167303fb91",
-      "originalBytes": 19376,
-      "sha256": "203bb26189a52068c7e84c1e66e4a308dc9e2b0576ecf99f9e67460d5c827332",
-      "bytes": 19394
+      "originalSha256": "b0c9c06a486a08ea2ad865ef5aca949b861486d8d0408c339ccf9cc0b533cc17",
+      "originalBytes": 19384,
+      "sha256": "452564295ae226d271286e913e47a3f45c567076b8568037eba70fdbbb5c3a80",
+      "bytes": 19402
     },
     {
       "original": "src/data/aboutProfile.ts",
@@ -247,10 +247,10 @@
       "original": "src/data/personalPortfolio.ts",
       "path": "源码/项目源码/数据/本机个人内容接口.ts",
       "role": "dependency",
-      "originalSha256": "2a16ae2d67b26a0a24a1eefcc7e747d15925a8e7bf1d0c46b8c6c02149d83bc1",
-      "originalBytes": 1752,
-      "sha256": "ebd7f84f520b18ba43b8f00569aacc94439b4aa3cce10f75e9894e7bb6c54658",
-      "bytes": 1755
+      "originalSha256": "d27926f94127f844db0693996f94ff557e2ca4720e2d9819df31bf2bfa7ff4e2",
+      "originalBytes": 2365,
+      "sha256": "3d6914a5c09f1b50b0fcaebf77df4e365ffe5dae45271ef2f5983e2190f3e6f4",
+      "bytes": 2368
     },
     {
       "original": "src/data/visualPortfolio.ts",
@@ -283,10 +283,10 @@
       "original": "src/views/AboutView.vue",
       "path": "集成示例/项目源码/页面/人物介绍页.vue",
       "role": "integration-context",
-      "originalSha256": "7434d264eec151a7b7bd89e0a5ba95bfda4b3a13a30c6b381ac2e576690b7318",
-      "originalBytes": 14078,
-      "sha256": "149e0d43c31211bfe64dd942655e524fc8853cd45290fca9e48bbf2f62b20d6a",
-      "bytes": 14237
+      "originalSha256": "5b02cec41be17f662af36243946bfef978ae15b4770e1b2a15a71a6b4dc703a1",
+      "originalBytes": 14093,
+      "sha256": "df56fb8e2b0917eed4a5c21a1d4c10ba71c73f75cb1335049580bfd0cda51ddb",
+      "bytes": 14252
     }
   ]
 }
