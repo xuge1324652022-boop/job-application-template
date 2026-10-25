@@ -11,11 +11,10 @@
         :label="{ zh: '', en: '' }"
         :focus-index="lang === 'zh' ? 1 : 6"
         :refresh-priority="44"
-        :background-src="aboutQuotePortrait.src"
-        :background-srcset="visualImageSources(aboutQuotePortrait)"
       />
       <AboutWordMarquee :lang="lang" />
       <AboutStudioStory :lang="lang" @open="onOpenVisual" />
+      <AboutIndustries :lang="lang" />
       <LazySection ref="contactSection" min-height="100vh" :eager="eagerAll"
         ><ContactEnd :lang="lang"
       /></LazySection>
@@ -27,7 +26,7 @@
 <script setup lang="ts">
 /**
  * /about 人物专题入口：事实内容来自 data，版式与动效分别封装在 about 子组件中。
- * 本页只协调转场放行、头像与工作流共享的 AI 工具选择，以及统一图片查看器。
+ * 本页协调转场放行、章节锚点、横向履历定位与统一图片查看器。
  * 首屏以下的重区块经 LazySection 提前一屏加载：锚点跳转（含刷新带 hash 进入）
  * 会立即转急载并在挂载后定位，正常浏览仍按需加载。
  */
@@ -46,16 +45,15 @@ import { onBeforeRouteLeave, useRouter, type RouterScrollBehavior } from 'vue-ro
 import { registerRouteScrollPreparation } from '../工具/路由滚动准备'
 import { referenceIntroductionGate } from '../组件/引导文字状态'
 import AboutMotionHero from '../组件/人物与作品/人物动态首屏.vue'
+import AboutIndustries from '../组件/人物与作品/实践场景.vue'
 import AboutStudioStory from '../组件/人物与作品/工作室故事.vue'
 import AboutSideRail from '../组件/人物与作品/竖排章节导航.vue'
 import AboutQuoteScene from '../组件/人物与作品/人物引言场景.vue'
 import AboutWordMarquee from '../组件/人物与作品/方向词双向跑马灯.vue'
 import AboutWordZoom from '../组件/人物与作品/字形越界放大.vue'
-import { aboutQuotePortrait } from '../数据/本机个人内容接口'
-import { visualImageSources } from '../工具/响应式图片'
 import LazySection from '../组件/延迟挂载区块.vue'
 // 首屏以下重区块拆成独立 chunk，随 LazySection 按需加载；查看器打开时才加载。
-const ContactEnd = defineAsyncComponent(() => import('../组件/人物与作品/结尾联系球.vue'))
+const ContactEnd = defineAsyncComponent(() => import('../组件/人物与作品/工作室联系.vue'))
 const VisualViewer = defineAsyncComponent(() => import('../组件/人物与作品/完整作品查看器.vue'))
 import { WORKS, assertParity } from '../数据/人物资料'
 import { assertVisuals, type VisualAsset } from '../数据/视觉作品资料'
@@ -199,6 +197,24 @@ async function prepareScroll(
     await nextFrame(signal)
     if (disposed || signal.aborted) return false
     ScrollTrigger.refresh()
+    // Horizontal panels have the same document top; map deep links to their scroll progress.
+    if (!saved && validHash) {
+      const target = document.getElementById(decodeURIComponent(hash.slice(1)))
+      const panel = target?.closest<HTMLElement>('.studio-background__panel')
+      const horizontal = ScrollTrigger.getById('about-background-horizontal')
+      if (panel && horizontal) {
+        const track = panel.parentElement!
+        const travel = track.scrollWidth - track.parentElement!.clientWidth
+        const progress = Math.min(1, panel.offsetLeft / Math.max(1, travel))
+        window.scrollTo({
+          top: horizontal.start + (horizontal.end - horizontal.start) * progress,
+          behavior: 'instant',
+        })
+        horizontal.update()
+        horizontal.getTween()?.progress(1)
+        return false
+      }
+    }
     return true
   } catch (error) {
     if (signal.aborted || disposed) return false
@@ -254,6 +270,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .about-page {
+  --display-font: 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --ab-bg: #0a0a0a;
   --ab-ink: #fee9ce;
   --ab-paper: #fee9ce;
@@ -270,6 +287,7 @@ onBeforeUnmount(() => {
 }
 @media (min-width: 981px) and (min-height: 620px) {
   .about-page {
+    --display-font: 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
     padding-left: 48px;
   }
 }
@@ -279,46 +297,5 @@ onBeforeUnmount(() => {
 }
 .about-page :deep(.word-zoom__caption) {
   display: none;
-}
-.about-page :deep(.end) {
-  width: 100%;
-  margin: 0;
-  background: #0a0a0a;
-  --ab-ink: #fee9ce;
-  --ab-soft: #c2b29f;
-  --ab-line: #fee9ce33;
-}
-.about-page :deep(.end__curve) {
-  display: none;
-}
-.about-page :deep(.end__inner) {
-  padding: 10vw 6vw 32px;
-}
-.about-page :deep(.end__head h2) {
-  font-size: clamp(56px, 10vw, 180px);
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.055em;
-}
-.about-page :deep(.end__title-line) {
-  color: #fee9ce;
-}
-.about-page :deep(.end__title-line img) {
-  display: none;
-}
-.about-page :deep(.end__orb) {
-  background: #ffb15f;
-  color: #0a0a0a;
-}
-.about-page :deep(.end__orb-fill) {
-  background: #ef5143;
-}
-.about-page :deep(.end__head small) {
-  color: #fee9ce;
-}
-@media (max-width: 760px) {
-  .about-page :deep(.end__inner) {
-    padding-top: 100px;
-  }
 }
 </style>

@@ -7,24 +7,25 @@
   <nav
     ref="rail"
     class="about-rail"
+    :class="{ 'is-paper': activeIndex === 2 || activeIndex === 5, 'is-coral': activeIndex === 4 }"
     :aria-label="lang === 'zh' ? '关于页章节导航' : 'About sections'"
   >
-    <a
+    <RouterLink
+      to="/"
       class="about-rail__home"
-      href="#about-intro"
-      :aria-label="lang === 'zh' ? '回到开场' : 'Back to intro'"
+      :aria-label="lang === 'zh' ? '返回首页' : 'Back to home'"
+      ><span class="about-rail__mark" aria-hidden="true">Q</span></RouterLink
     >
-      <span class="about-rail__burger" aria-hidden="true"><i></i><i></i><i></i></span>
-      <span class="about-rail__initials" lang="en">{{ IDENTITY.initials }}</span>
-    </a>
     <ol class="about-rail__chapters">
       <li v-for="(chapter, index) in chapters" :key="chapter.id">
         <a
           :href="`#${chapter.id}`"
+          :aria-label="`${chapter.numeral} ${lang === 'zh' ? chapter.zh : chapter.en}`"
           class="about-rail__chapter"
           :class="{ 'is-active': index === activeIndex }"
           :aria-current="index === activeIndex ? 'true' : undefined"
         >
+          <span class="about-rail__progress" aria-hidden="true"></span>
           <span class="about-rail__numeral" lang="en">{{ chapter.numeral }}</span>
           <span class="about-rail__word">{{ lang === 'zh' ? chapter.zh : chapter.en }}</span>
         </a>
@@ -41,9 +42,10 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { RouterLink } from 'vue-router'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { IDENTITY, type Lang } from '../../数据/人物资料'
+import { INDUSTRIES, type Lang } from '../../数据/人物资料'
 import { requestMotionLayoutRefresh } from '../../工具/动效布局调度'
 
 /**
@@ -52,12 +54,15 @@ import { requestMotionLayoutRefresh } from '../../工具/动效布局调度'
  */
 const chapters = [
   { numeral: 'I.', id: 'about-intro', zh: '开场', en: 'INTRO' },
-  { numeral: 'II.', id: 'voice', zh: '关于我', en: 'WHO I AM' },
-  { numeral: 'III.', id: 'experience-reveal', zh: '经历', en: 'EXPERIENCE' },
-  { numeral: 'IV.', id: 'achievements', zh: '作品成果', en: 'ACHIEVEMENTS' },
+  { numeral: 'II.', id: 'voice', zh: '关于我', en: 'ABOUT' },
+  { numeral: 'III.', id: 'experience-reveal', zh: '经历', en: 'WORK' },
+  { numeral: 'IV.', id: 'achievements', zh: '作品成果', en: 'PROJECTS' },
   { numeral: 'V.', id: 'process', zh: '创作方向', en: 'PRACTICE' },
-  { numeral: 'VI.', id: 'recognition', zh: '个人履历', en: 'BACKGROUND' },
-  { numeral: 'VII.', id: 'contact', zh: '联系', en: 'GET IN TOUCH' },
+  { numeral: 'VI.', id: 'recognition', zh: '个人履历', en: 'PROFILE' },
+  ...(INDUSTRIES.length
+    ? [{ numeral: 'VII.', id: 'industries', zh: '实践场景', en: 'FIELDS' }]
+    : []),
+  { numeral: INDUSTRIES.length ? 'VIII.' : 'VII.', id: 'contact', zh: '联系', en: 'CONTACT' },
 ] as const
 
 defineProps<{ lang: Lang }>()
@@ -102,10 +107,19 @@ onMounted(() => {
             ? window.scrollY + next.getBoundingClientRect().top - innerHeight * 0.55
             : ScrollTrigger.maxScroll(window)
         },
+        onUpdate: (self) => {
+          rail.value
+            ?.querySelectorAll<HTMLElement>('.about-rail__chapter')
+            [index]?.style.setProperty('--rail-progress', String(self.progress))
+          if (self.isActive) activeIndex.value = index
+        },
         onToggle: (self) => {
           if (self.isActive) activeIndex.value = index
         },
         onRefresh: (self) => {
+          rail.value
+            ?.querySelectorAll<HTMLElement>('.about-rail__chapter')
+            [index]?.style.setProperty('--rail-progress', String(self.progress))
           if (self.isActive) activeIndex.value = index
         },
       })
@@ -149,9 +163,11 @@ onBeforeUnmount(() => {
   inset: 0 auto 0 0;
   display: none;
   width: 48px;
+  --rail-ink: #fee9ce;
+  --rail-line: #fee9ce18;
   background: #0a0a0a;
-  color: #fee9ce;
-  border-right: 1px solid #fee9ce18;
+  color: var(--rail-ink);
+  border-right: 1px solid var(--rail-line);
   flex-direction: column;
 }
 @media (min-width: 981px) and (min-height: 620px) {
@@ -164,69 +180,75 @@ onBeforeUnmount(() => {
   flex: none;
   display: grid;
   place-items: center;
-  border-bottom: 1px solid #fee9ce18;
+  border-bottom: 1px solid var(--rail-line);
   color: inherit;
 }
-.about-rail__burger {
-  width: 18px;
-  display: grid;
-  gap: 5px;
+.about-rail__home {
+  text-decoration: none;
 }
-.about-rail__burger i {
-  height: 1px;
-  background: currentColor;
-}
-.about-rail__burger i:nth-child(2) {
-  width: 12px;
-}
-.about-rail__burger i:last-child,
-.about-rail__initials {
-  display: none;
+.about-rail__mark {
+  font:
+    700 18px/1 'Helvetica Neue',
+    Arial,
+    sans-serif;
+  letter-spacing: -0.08em;
 }
 .about-rail__chapters {
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin: 48px 0 0;
 }
 .about-rail__chapter {
   position: relative;
+  width: 48px;
+  min-height: 55px;
   height: 55px;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 4px 0;
+  gap: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fee9ce55;
-  border-bottom: 1px solid #fee9ce18;
+  color: var(--rail-ink);
+  opacity: 0.7;
+  border-bottom: 1px solid var(--rail-line);
   text-decoration: none;
   font-size: 10px;
   font-weight: 700;
   writing-mode: vertical-rl;
-  transition:
-    height 0.3s,
-    color 0.3s;
+  transition: color 0.3s;
 }
 .about-rail__numeral {
   font-size: 10px;
 }
 .about-rail__word {
-  display: none;
+  display: block;
+  font-size: 9px;
 }
 .about-rail__chapter.is-active,
 .about-rail__chapter:hover {
-  color: #fee9ce;
-  border-left: 2px solid #ef5143;
+  color: var(--rail-ink);
+  opacity: 1;
+  background: color-mix(in srgb, var(--rail-ink) 12%, transparent);
 }
-.about-rail__chapter.is-active {
-  height: 88px;
+.about-rail__progress {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background: #ef5143;
+  transform: scaleY(var(--rail-progress, 0));
+  transform-origin: top;
 }
 .about-rail__chapter.is-active .about-rail__word {
   display: inline;
 }
-.about-rail__chapter.is-active .about-rail__numeral {
-  display: none;
-}
+
 .about-rail__connect {
   margin-top: auto;
-  min-height: 120px;
+  min-height: 72px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -249,5 +271,13 @@ a:focus-visible {
   .about-rail__chapter {
     transition: none;
   }
+}
+.about-rail.is-paper {
+  --rail-ink: #0a0a0a;
+  --rail-line: #0a0a0a18;
+  background: #fee9ce;
+}
+.about-rail.is-coral {
+  background: #ef5143;
 }
 </style>

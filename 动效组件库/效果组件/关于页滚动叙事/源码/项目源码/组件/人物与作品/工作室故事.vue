@@ -8,22 +8,29 @@
       </div>
       <div
         id="stories"
-        class="studio-ribbon"
+        class="studio-ribbons"
         :aria-label="lang === 'zh' ? '精选作品' : 'Selected work'"
       >
-        <div class="studio-ribbon__track">
-          <button v-for="item in images" :key="item.id" type="button" @click="open(item, $event)">
-            <img
-              :src="item.src"
-              :srcset="visualImageSources(item)"
-              sizes="(max-width: 760px) 65vw, 28vw"
-              :width="item.width"
-              :height="item.height"
-              :alt="pick(item.alt, lang)"
-              loading="lazy"
-              @load="refresh"
-            />
-          </button>
+        <div
+          v-for="(row, rowIndex) in ribbonRows"
+          :key="rowIndex"
+          class="studio-ribbon"
+          :class="{ 'studio-ribbon--second': rowIndex === 1 }"
+        >
+          <div class="studio-ribbon__track">
+            <button v-for="item in row" :key="item.id" type="button" @click="open(item, $event)">
+              <img
+                :src="item.src"
+                :srcset="visualImageSources(item)"
+                sizes="(max-width: 760px) 65vw, (max-width: 980px) 36vw, 36vw"
+                :width="item.width"
+                :height="item.height"
+                :alt="pick(item.alt, lang)"
+                loading="lazy"
+                @load="refresh"
+              />
+            </button>
+          </div>
         </div>
       </div>
       <div id="experience" class="studio-experience__history">
@@ -53,6 +60,7 @@
       <article
         v-for="(work, i) in projects"
         :key="work.id"
+        :id="i === projects.length - 1 ? 'beyond-work' : undefined"
         class="studio-project"
         :class="{ 'studio-project--reverse': i % 2 }"
       >
@@ -95,9 +103,16 @@
           }}</a>
         </details>
       </div>
-      <div class="studio-practice__tags" aria-hidden="true">
-        <span v-for="skill in RESUME_SKILLS" :key="skill.id">{{ pick(skill.title, lang) }}</span>
-      </div>
+      <p class="studio-practice__tools">
+        {{ lang === 'zh' ? '工具与协作：' : 'Tools & collaboration: '
+        }}{{
+          pick(
+            RESUME_SKILLS.find((skill) => skill.id === 'post-production')?.body ??
+              RESUME_SKILLS[0]!.body,
+            lang,
+          )
+        }}
+      </p>
     </section>
     <section id="recognition" ref="recognition" class="studio-background">
       <div ref="recognitionStage" class="studio-background__stage">
@@ -109,16 +124,36 @@
           </header>
           <article id="profile" class="studio-background__panel">
             <h3>{{ lang === 'zh' ? '个人信息' : 'Profile' }}</h3>
-            <dl>
-              <div v-for="(fact, i) in FACTS" :key="i">
-                <dt>{{ pick(fact.k, lang) }}</dt>
-                <dd>{{ pick(fact.v, lang) }}</dd>
-              </div>
-            </dl>
+            <div class="studio-background__content">
+              <img
+                class="studio-background__visual"
+                :src="images[4]?.src ?? images[0]?.src"
+                :alt="pick(images[4]?.alt ?? images[0]!.alt, lang)"
+                width="900"
+                height="420"
+                loading="lazy"
+                @load="refresh"
+              />
+              <dl>
+                <div v-for="(fact, i) in FACTS" :key="i">
+                  <dt>{{ pick(fact.k, lang) }}</dt>
+                  <dd>{{ pick(fact.v, lang) }}</dd>
+                </div>
+              </dl>
+            </div>
           </article>
           <article id="ai-workflow" class="studio-background__panel">
             <h3>{{ lang === 'zh' ? '技能与方法' : 'Skills & methods' }}</h3>
-            <div>
+            <div class="studio-background__content">
+              <img
+                class="studio-background__visual"
+                :src="images[0]?.src"
+                :alt="pick(images[0]!.alt, lang)"
+                width="900"
+                height="420"
+                loading="lazy"
+                @load="refresh"
+              />
               <section
                 v-for="skill in RESUME_SKILLS"
                 :key="skill.id"
@@ -131,11 +166,43 @@
           </article>
           <article class="studio-background__panel">
             <h3>{{ lang === 'zh' ? '交流与协作' : 'Conversation' }}</h3>
-            <div>
+            <div class="studio-background__content">
+              <img
+                class="studio-background__visual"
+                :src="images[6]?.src ?? images[0]?.src"
+                :alt="pick(images[6]?.alt ?? images[0]!.alt, lang)"
+                width="900"
+                height="420"
+                loading="lazy"
+                @load="refresh"
+              />
               <section v-for="(pair, i) in CHAT" :key="i" class="studio-background__row">
                 <h4>{{ pick(pair.q, lang) }}</h4>
                 <p>{{ pick(pair.a, lang) }}</p>
               </section>
+            </div>
+          </article>
+          <article v-if="RECOGNITION.length" class="studio-background__panel">
+            <h3>{{ lang === 'zh' ? '荣誉与认可' : 'Recognition' }}</h3>
+            <div class="studio-background__content">
+              <img
+                class="studio-background__visual"
+                :src="images[6]?.src ?? images[0]?.src"
+                :alt="pick(images[6]?.alt ?? images[0]!.alt, lang)"
+                width="900"
+                height="420"
+                loading="lazy"
+                @load="refresh"
+              />
+              <details
+                v-for="item in RECOGNITION"
+                :key="item.id"
+                class="studio-background__row"
+                @toggle="refresh"
+              >
+                <summary>{{ pick(item.title, lang) }}</summary>
+                <p>{{ pick(item.note, lang) }}</p>
+              </details>
             </div>
           </article>
         </div>
@@ -154,6 +221,7 @@ import {
   CAPABILITIES,
   FACTS,
   RESUME_SKILLS,
+  RECOGNITION,
   CHAT,
   pick,
   type Lang,
@@ -167,6 +235,11 @@ const emit = defineEmits<{ open: [item: VisualAsset, trigger: HTMLElement] }>()
 const images = personalPortfolio?.selectedWorks.length
   ? personalPortfolio.selectedWorks
   : [...editorial, ...photography].slice(0, 7)
+// Partition once: each image appears exactly once, including the flattened mobile strip.
+const ribbonSplit = Math.ceil(images.length / 2)
+const ribbonRows = [images.slice(0, ribbonSplit), images.slice(ribbonSplit)].filter(
+  (row) => row.length,
+)
 // Keep each image attached to its authored story; array order is not a project association.
 const projects = personalPortfolio?.storyPanels.length
   ? personalPortfolio.storyPanels.map((panel) => ({
@@ -227,17 +300,23 @@ onMounted(() => {
             },
           )
         })
-        const ribbon = el.querySelector<HTMLElement>('.studio-ribbon__track')!
-        gsap.to(ribbon, {
-          x: () => -Math.max(0, ribbon.scrollWidth - el.clientWidth),
-          ease: 'none',
-          scrollTrigger: {
-            trigger: ribbon.parentElement,
-            start: 'top bottom',
-            end: 'bottom top',
-            scrub: true,
-            invalidateOnRefresh: true,
-          },
+        gsap.utils.toArray<HTMLElement>('.studio-ribbon__track', el).forEach((ribbon, index) => {
+          const distance = () => Math.max(0, ribbon.scrollWidth - ribbon.parentElement!.clientWidth)
+          gsap.fromTo(
+            ribbon,
+            { x: () => (index === 0 ? 0 : -distance()) },
+            {
+              x: () => (index === 0 ? -distance() : 0),
+              ease: 'none',
+              scrollTrigger: {
+                trigger: ribbon.parentElement,
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: true,
+                invalidateOnRefresh: true,
+              },
+            },
+          )
         })
         const track = recognitionTrack.value!
         gsap.to(track, {
@@ -247,7 +326,8 @@ onMounted(() => {
             id: 'about-background-horizontal',
             trigger: recognition.value!,
             pin: recognitionStage.value!,
-            start: 'top top',
+            start: () =>
+              recognitionStage.value!.offsetHeight > innerHeight ? 'bottom bottom' : 'top top',
             end: () =>
               `+=${Math.max(1, track.scrollWidth - recognitionStage.value!.clientWidth) * 1.25}`,
             scrub: 0.35,
@@ -284,11 +364,11 @@ onBeforeUnmount(() => {
 .studio-experience {
   background: var(--studio-paper);
   color: var(--studio-black);
-  padding: 14svh 0 18svh;
+  padding: 8svh 0;
 }
 .studio-experience__intro {
   width: min(1120px, 83%);
-  margin: 0 auto 14svh;
+  margin: 0 auto 8svh;
   text-align: center;
 }
 .studio-statement {
@@ -307,7 +387,13 @@ onBeforeUnmount(() => {
   display: flex;
   gap: 24px;
   width: max-content;
-  transform: rotate(-5deg);
+  transform: rotate(-4deg);
+}
+.studio-ribbon--second .studio-ribbon__track {
+  transform: rotate(4deg);
+}
+.studio-ribbon.studio-ribbon--second button {
+  width: 36vw;
 }
 .studio-ribbon button {
   width: 28vw;
@@ -465,18 +551,11 @@ summary::-webkit-details-marker {
   margin-bottom: 32px;
   text-underline-offset: 6px;
 }
-.studio-practice__tags {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 18px;
-  margin-top: 85px;
-}
-.studio-practice__tags span {
-  border: 1px solid currentColor;
-  border-radius: 40px;
-  padding: 12px 26px;
-  font-size: 16px;
+.studio-practice__tools {
+  max-width: 760px;
+  margin: 48px auto 0;
+  font-size: 15px;
+  line-height: 1.8;
 }
 .studio-background {
   background: var(--studio-paper);
@@ -491,7 +570,7 @@ summary::-webkit-details-marker {
   min-height: 100svh;
 }
 .studio-background__cover {
-  width: 75vw;
+  width: calc(100vw - 48px);
   flex: none;
   padding: 7vw;
   display: flex;
@@ -512,12 +591,24 @@ summary::-webkit-details-marker {
   font-size: 100px;
 }
 .studio-background__panel {
-  width: 70vw;
+  width: calc(100vw - 48px);
+  flex: none;
+  box-sizing: border-box;
   display: grid;
   grid-template-columns: 90px 1fr;
   border-left: 1px solid #0a0a0a22;
-  padding: 45px 5vw 45px 0;
+  padding: 28px 5vw 28px 0;
   gap: 3vw;
+}
+.studio-background__visual {
+  width: 100%;
+  height: clamp(180px, 30svh, 320px);
+  object-fit: cover;
+  display: block;
+  margin-bottom: 24px;
+}
+.studio-background__content {
+  min-width: 0;
 }
 .studio-background__panel > h3 {
   align-self: end;
@@ -530,18 +621,18 @@ summary::-webkit-details-marker {
 .studio-background__panel dl > div,
 .studio-background__row {
   border-top: 1px solid #0a0a0a22;
-  padding: 23px 0;
+  padding: 15px 0;
 }
 .studio-background__panel dt,
 .studio-background__row h4 {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 700;
   margin-bottom: 10px;
 }
 .studio-background__panel dd,
 .studio-background__row p {
-  font-size: 16px;
-  line-height: 1.65;
+  font-size: 14px;
+  line-height: 1.6;
 }
 button:focus-visible,
 a:focus-visible,
@@ -564,6 +655,16 @@ summary:focus-visible {
     padding: 50px 6vw;
     border-top: 1px solid #0a0a0a22;
   }
+  .studio-background__visual {
+    width: 100%;
+    height: clamp(180px, 30svh, 320px);
+    object-fit: cover;
+    display: block;
+    margin-bottom: 24px;
+  }
+  .studio-background__content {
+    min-width: 0;
+  }
   .studio-background__panel > h3 {
     writing-mode: horizontal-tb;
     transform: none;
@@ -572,7 +673,8 @@ summary:focus-visible {
   .studio-ribbon {
     overflow-x: auto;
   }
-  .studio-ribbon__track {
+  .studio-ribbon__track,
+  .studio-ribbon--second .studio-ribbon__track {
     transform: none;
   }
 }
@@ -620,6 +722,25 @@ summary:focus-visible {
   }
   .studio-practice__list details > p {
     font-size: 16px;
+  }
+}
+@media (max-width: 980px) {
+  .studio-ribbons {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    padding: 16px 5vw;
+    scroll-padding-inline: 5vw;
+  }
+  .studio-ribbons .studio-ribbon,
+  .studio-ribbons .studio-ribbon__track {
+    display: contents;
+  }
+  .studio-ribbons .studio-ribbon button {
+    flex: 0 0 65vw;
+    width: 65vw;
+    height: 55vw;
+    min-width: 0;
   }
 }
 </style>

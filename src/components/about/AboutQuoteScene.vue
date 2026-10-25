@@ -1,19 +1,6 @@
 <template>
   <section id="voice" ref="root" class="quote-scene" aria-labelledby="quote-title">
     <div ref="stage" class="quote-scene__stage">
-      <div class="about-dark-portrait" aria-hidden="true">
-        <img
-          :src="PORTRAIT.src"
-          :srcset="visualImageSources(PORTRAIT)"
-          sizes="100vw"
-          :width="PORTRAIT.width"
-          :height="PORTRAIT.height"
-          alt=""
-          decoding="async"
-          loading="lazy"
-          @load="refreshLayout"
-        />
-      </div>
       <div ref="content" class="quote-scene__content">
         <h2 id="quote-title" ref="statement" class="quote-scene__statement">
           <span v-for="(line, index) in lines" :key="index" class="quote-scene__line">{{
@@ -32,16 +19,13 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { TAGLINE, type Lang } from '../../data/aboutProfile'
 import { prepareMotionLayout, requestMotionLayoutRefresh } from '../../utils/motionLayout'
-import { visualImageSources } from '../../utils/responsiveImage'
-import { aboutQuotePortrait } from '../../data/personalPortfolio'
 import '../../styles/aboutPortrait.css'
 
 /**
  * 主张从画面下方向上经过，每行先点亮再离场。
- * 人像保持固定构图，交给下一幕的橙色身份巨字继续放大。
+ * 深色文字场景交给下一幕的橙色三层标题合拢与缩小。
  */
 const props = defineProps<{ lang: Lang }>()
-const PORTRAIT = aboutQuotePortrait
 const lines = computed(() => {
   const text = TAGLINE[props.lang]
   return props.lang === 'zh'
@@ -86,7 +70,7 @@ onMounted(() => {
               trigger: stageElement,
               refreshPriority: 45,
               start: 'top top',
-              end: () => `+=${Math.round(innerHeight * 2.8)}`,
+              end: () => `+=${Math.round(innerHeight * 1.6)}`,
               pin: true,
               pinSpacing: true,
               anticipatePin: 1,

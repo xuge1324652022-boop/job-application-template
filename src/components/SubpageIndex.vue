@@ -1,6 +1,6 @@
 <template>
   <Teleport to="body">
-    <button ref="trigger" class="subpage-index" :class="{ 'is-visible': visible || open }"
+    <button ref="trigger" class="subpage-index" :class="{ 'is-visible': visible || open, 'is-about': route.path === '/about' }"
       type="button" :aria-label="subpageLanguage === 'zh' ? '打开作品索引' : 'Open works index'" aria-controls="subpage-index-menu" :aria-expanded="open" :tabindex="open || routeCurtainActive ? -1 : 0"
       @click="show" @mouseenter="hold = true" @mouseleave="release" @focus="visible = true" @blur="release">
       <span>{{ subpageLanguage === 'zh' ? '索引' : 'Index' }}</span>
@@ -350,5 +350,15 @@ html.page-turn-lock .subpage-index { opacity:0; pointer-events:none; }
   .subpage-menu__line,
   .subpage-menu__chapters a,
   .subpage-menu__language button { transition: none; }
+}
+@media (min-width: 981px) and (min-height: 620px) {
+  .subpage-index.is-about { top: 48px; left: 0; right: auto; width: 48px; height: 48px; opacity: 1; transform: none; pointer-events: auto; }
+  .subpage-index.is-about span { position: absolute; width: 1px; height: 1px; clip-path: inset(50%); overflow: hidden; }
+  .subpage-index.is-about::before { inset: 0; }
+  .subpage-index.is-about::after { content: ''; width: 18px; height: 1px; background: currentColor; box-shadow: 0 6px currentColor; transform: translateY(-3px); }
+}
+@media (max-width: 760px) {
+  .subpage-index.is-about { min-width: 44px; min-height: 44px; padding: 10px 12px; border-radius: 999px; background: rgb(10 10 10 / .92); color: #fee9ce; mix-blend-mode: normal; top: max(12px, env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); }
+  .subpage-index.is-about::before { inset: 0; }
 }
 </style>

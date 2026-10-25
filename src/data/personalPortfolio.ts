@@ -19,7 +19,7 @@ interface PersonalPortfolio {
     CHAT: { q: Bi; a: Bi }[]
     WORKS: Work[]
     EXPERIENCE: Experience[]
-    CONTACT: { email: string; gmail: string; resume: string; portfolio: string }
+    CONTACT: { email: string; gmail: string; resume: string; portfolio: string; phones?: string[] }
   }
   portrait: VisualAsset
   portraits?: {
@@ -61,4 +61,5 @@ export const aboutPortrait: VisualAsset = personalPortfolio?.portrait ?? {
 export const aboutHeroPortrait: VisualAsset = personalPortfolio?.portraits?.hero ?? aboutPortrait
 export const aboutQuotePortrait: VisualAsset = personalPortfolio?.portraits?.quote ?? aboutPortrait
 export const aboutCardPortrait: VisualAsset = personalPortfolio?.portraits?.card ?? aboutPortrait
-export const aboutProfilePortrait: VisualAsset = personalPortfolio?.portraits?.profile ?? aboutPortrait
+export const aboutProfilePortrait: VisualAsset =
+  personalPortfolio?.portraits?.profile ?? aboutPortrait

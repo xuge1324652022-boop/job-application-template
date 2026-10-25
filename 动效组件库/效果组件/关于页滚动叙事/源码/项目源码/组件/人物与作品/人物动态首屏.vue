@@ -7,7 +7,7 @@
     aria-labelledby="about-title"
   >
     <!-- 右侧全出血人物图铺底，姓名巨字压在照片上，参照原站开场的图文重叠。 -->
-    <figure class="about-hero__photo" aria-hidden="true">
+    <figure class="about-hero__photo">
       <div ref="photoMask" class="about-hero__photo-mask">
         <img
           ref="photo"
@@ -26,10 +26,10 @@
           isPersonalPortfolio
             ? lang === 'zh'
               ? hasScenePortrait
-                ? 'AI 创作形象'
+                ? 'AI 辅助人物插画 · 非纪实照片'
                 : '个人形象照片'
               : hasScenePortrait
-                ? 'AI-created portrait'
+                ? 'AI-assisted illustration · not a photograph'
                 : 'Personal portrait'
             : lang === 'zh'
               ? '合成图像示例'
@@ -47,7 +47,11 @@
         <span class="about-hero__screen-reader">{{ IDENTITY.nameZh }} · {{ IDENTITY.nameEn }}</span>
       </h1>
       <div ref="meta" class="about-hero__meta">
-        <p class="about-hero__tagline">{{ pick(TAGLINE, lang) }}</p>
+        <p class="about-hero__tagline">
+          <span v-for="line in taglineLines" :key="line" class="about-hero__tagline-line">{{
+            line
+          }}</span>
+        </p>
       </div>
       <a href="#voice" class="about-hero__scroll">
         <span>{{ lang === 'zh' ? '滚动认识我' : 'SCROLL TO DISCOVER' }}</span>
@@ -58,10 +62,10 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { IDENTITY, TAGLINE, pick, type Lang } from '../../数据/人物资料'
+import { IDENTITY, TAGLINE, type Lang } from '../../数据/人物资料'
 import {
   aboutHeroPortrait,
   isPersonalPortfolio,
@@ -77,6 +81,13 @@ import { useFitText } from '../../组合函数/标题字号拟合'
  * 入场一次性播放；滚动段不固定，巨字与照片以不同速度视差离场。
  */
 const props = defineProps<{ active: boolean; lang: Lang }>()
+const taglineLines = computed(
+  () =>
+    TAGLINE[props.lang]
+      .match(/[^，。.!?]+[，。.!?]?/g)
+      ?.map((line) => line.trim())
+      .filter(Boolean) ?? [],
+)
 const PORTRAIT = aboutHeroPortrait
 const hasScenePortrait = Boolean(personalPortfolio?.portraits?.hero)
 const root = ref<HTMLElement | null>(null)
@@ -230,8 +241,8 @@ onBeforeUnmount(() => {
 .about-hero__title {
   position: relative;
   margin: 0;
-  font-family: 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
-  font-weight: 900;
+  font-family: var(--display-font);
+  font-weight: 700;
   line-height: 0.91;
   padding-bottom: 5vw;
   letter-spacing: -0.065em;
@@ -260,16 +271,20 @@ onBeforeUnmount(() => {
   clip-path: inset(50%);
 }
 .about-hero__meta {
-  width: min(31%, 440px);
+  width: min(48%, 540px);
   margin-top: 3px;
   color: #0a0a0a;
 }
 .about-hero__tagline {
-  font-size: clamp(23px, 2.3vw, 44px);
+  font-size: clamp(20px, 2.3vw, 38px);
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.04em;
   text-wrap: pretty;
+}
+.about-hero__tagline-line {
+  display: block;
+  white-space: nowrap;
 }
 .about-hero__scroll {
   position: absolute;
@@ -300,15 +315,23 @@ a:focus-visible {
     object-position: 62% center;
   }
   .about-hero__meta {
-    width: 63%;
+    width: 100%;
     margin-top: 18px;
   }
   .about-hero__tagline {
+    color: #0a0a0a;
+    background: #fee9ceeb;
+    width: fit-content;
+    padding: 8px 10px;
     font-size: 23px;
   }
   .about-hero__signature {
     font-size: 22px;
     bottom: -0.65em;
+  }
+  .about-hero__tagline-line {
+    display: block;
+    white-space: nowrap;
   }
   .about-hero__scroll {
     right: 18px;

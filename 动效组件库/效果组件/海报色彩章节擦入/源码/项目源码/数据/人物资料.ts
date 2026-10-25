@@ -75,6 +75,12 @@ export const FACTS: readonly FactRow[] = personal?.FACTS ?? [
   },
 ]
 
+export const RECOGNITION: readonly { id: string; title: Bi; note: Bi }[] = personal
+  ? FACTS.filter((fact) => /荣誉|honou?r/i.test(`${fact.k.zh} ${fact.k.en}`)).map(
+      (fact, index) => ({ id: `honour-${index}`, title: fact.k, note: fact.v }),
+    )
+  : []
+
 export const RESUME_SKILLS: readonly { id: string; title: Bi; body: Bi }[] =
   personal?.RESUME_SKILLS ?? [
     {
@@ -570,3 +576,27 @@ export function assertParity(): void {
     throw new Error(`[aboutProfile] 内容自检失败:\n  - ${bad.join('\n  - ')}`)
   }
 }
+
+// Existing project records define these practice contexts; no client logos or claims are inferred.
+export const INDUSTRIES = personal
+  ? [
+      {
+        id: 'overseas',
+        workId: 'overseas-social',
+        name: { zh: '海外社媒', en: 'Overseas social media' },
+      },
+      {
+        id: 'product',
+        workId: 'overseas-social',
+        name: { zh: '产品视觉与展览物料', en: 'Product & exhibition visuals' },
+      },
+      { id: 'aigc', workId: 'aigc-drama', name: { zh: 'AIGC 漫剧', en: 'AIGC storytelling' } },
+      { id: 'tech', workId: 'home-3c', name: { zh: '消费数码', en: 'Consumer technology' } },
+      { id: 'home', workId: 'home-3c', name: { zh: '家居内容', en: 'Home content' } },
+      {
+        id: 'campus',
+        workId: 'campus-media',
+        name: { zh: '校园活动传播', en: 'Campus communications' },
+      },
+    ].filter((item) => WORKS.some((work) => work.id === item.workId))
+  : []

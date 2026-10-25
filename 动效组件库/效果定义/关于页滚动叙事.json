@@ -7,7 +7,7 @@
   },
   "category": "scroll",
   "status": "active",
-  "summary": "关于页深色滚动叙事：开场英文姓名巨字叠人物图，一次入场后以文字、照片和小字三层视差离场；独立hero素材采用满幅照片与单行姓名。TAGLINE主张在同一黑白人像构图前逐行点亮并上移，紧接橙色身份字放大为奶油色局部笔画并保留不透明停留。方向词双向横移衔接倾斜拼贴同图放大与横向故事，WHO I AM纸底阅读后展开个人资料；上下两条作品图带拉开，逐段露出实习与实践摘要，再续读完整履历、HOW I WORK章节与观察轨道。人物图、履历和作品由可选本机内容包提供，缺包仍为公开模板。",
+  "summary": "关于页滚动叙事：姓名巨字与可选人物插画开场，主张逐行点亮，三层身份标题向内裁切后缩小，纵向身份列表末词从实心笔画放大。纸底简介、两条反向倾斜作品图带、完整经历、成果、能力、横向履历、真实实践场景和联系区依次展开。手机合并作品图带并使用原生横滚，减少动态时静态阅读。个人素材和电话均由可选本机内容包提供，缺包保持公开模板回退。",
   "entryFiles": [
     "src/components/about/AboutMotionHero.vue",
     "src/components/about/AboutCollageStage.vue",
@@ -19,7 +19,9 @@
     "src/components/about/AboutIdentityScene.vue",
     "src/components/about/AboutObservationRail.vue",
     "src/components/about/AboutExperienceReveal.vue",
-    "src/components/about/AboutStudioStory.vue"
+    "src/components/about/AboutStudioStory.vue",
+    "src/components/about/AboutIndustries.vue",
+    "src/components/about/AboutStudioContact.vue"
   ],
   "integrationFiles": [
     "src/views/AboutView.vue",
@@ -40,19 +42,18 @@
       "file": "src/components/about/AboutQuoteScene.vue",
       "symbols": [
         "TAGLINE",
-        "aboutQuotePortrait",
         "lines",
         "about-quote-mission",
         "refreshLayout"
       ],
-      "purpose": "按当前语言将TAGLINE按语句拆成大字行，每行只由灰色点亮到奶油色，避免亮暗补间重叠；正文从下方持续上移，最后整段移出画面。人物衬底与紧邻的字形放大共用aboutPortrait.css和aboutQuotePortrait，不再创建红色双行巨字横带。完整PROFILE_LINES继续留在个人资料。"
+      "purpose": "TAGLINE按语言拆为语句，主张逐行提亮并上移离场；深色背景不再反复叠加同一人像，桌面pin为1.6倍视口，窄屏与减少动态自然阅读。"
     },
     {
       "file": "src/components/about/AboutWordMarquee.vue",
       "symbols": [
         "words"
       ],
-      "purpose": "方向词实心与描边双行按实测宽度反向横移；移动、短视口与减少动态时改为完整可换行的静态词条，隐藏重复描边行，英文允许换行且移除常驻will-change。"
+      "purpose": "八个身份词纵向逐行点亮；未点亮文字保持40%不透明度。末词以Canvas实心笔画为焦点放大，pin为1.5倍视口，末段显示简短过渡文案。"
     },
     {
       "file": "src/components/about/AboutSideRail.vue",
@@ -84,12 +85,10 @@
       "symbols": [
         "displayWord",
         "measure",
-        "geometry",
         "focusIndex",
-        "onRefreshInit",
-        "about-dark-portrait"
+        "onRefreshInit"
       ],
-      "purpose": "紧接主张的人物身份字形转场：当前页面传我是谁/WHO I AM，中文聚焦索引1、英文索引6，集成优先级44。起始橙色巨字先完整可读，再按实测字符光学位置独立放大为奶油色局部笔画。背景与主张同构图、保持不动；放大结束后保留不透明字形，随下一节自然滚入交棒。force3D:false避免常驻低分辨率纹理。"
+      "purpose": "三行橙色标题从左右进入，上下文字内移后整层隐藏，中央行缩小；桌面pin为1.2倍舞台高度，反向滚动恢复，静态回退只显示一行。"
     },
     {
       "file": "src/components/about/AboutScrollChapter.vue",

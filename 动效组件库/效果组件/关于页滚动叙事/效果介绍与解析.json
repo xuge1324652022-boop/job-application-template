@@ -8,7 +8,7 @@
   },
   "category": "scroll",
   "status": "active",
-  "summary": "关于页深色滚动叙事：开场英文姓名巨字叠人物图，一次入场后以文字、照片和小字三层视差离场；独立hero素材采用满幅照片与单行姓名。TAGLINE主张在同一黑白人像构图前逐行点亮并上移，紧接橙色身份字放大为奶油色局部笔画并保留不透明停留。方向词双向横移衔接倾斜拼贴同图放大与横向故事，WHO I AM纸底阅读后展开个人资料；上下两条作品图带拉开，逐段露出实习与实践摘要，再续读完整履历、HOW I WORK章节与观察轨道。人物图、履历和作品由可选本机内容包提供，缺包仍为公开模板。",
+  "summary": "关于页滚动叙事：姓名巨字与可选人物插画开场，主张逐行点亮，三层身份标题向内裁切后缩小，纵向身份列表末词从实心笔画放大。纸底简介、两条反向倾斜作品图带、完整经历、成果、能力、横向履历、真实实践场景和联系区依次展开。手机合并作品图带并使用原生横滚，减少动态时静态阅读。个人素材和电话均由可选本机内容包提供，缺包保持公开模板回退。",
   "entryFiles": [
     "src/components/about/AboutMotionHero.vue",
     "src/components/about/AboutCollageStage.vue",
@@ -20,7 +20,9 @@
     "src/components/about/AboutIdentityScene.vue",
     "src/components/about/AboutObservationRail.vue",
     "src/components/about/AboutExperienceReveal.vue",
-    "src/components/about/AboutStudioStory.vue"
+    "src/components/about/AboutStudioStory.vue",
+    "src/components/about/AboutIndustries.vue",
+    "src/components/about/AboutStudioContact.vue"
   ],
   "integrationFiles": [
     "src/views/AboutView.vue",
@@ -41,19 +43,18 @@
       "file": "src/components/about/AboutQuoteScene.vue",
       "symbols": [
         "TAGLINE",
-        "aboutQuotePortrait",
         "lines",
         "about-quote-mission",
         "refreshLayout"
       ],
-      "purpose": "按当前语言将TAGLINE按语句拆成大字行，每行只由灰色点亮到奶油色，避免亮暗补间重叠；正文从下方持续上移，最后整段移出画面。人物衬底与紧邻的字形放大共用aboutPortrait.css和aboutQuotePortrait，不再创建红色双行巨字横带。完整PROFILE_LINES继续留在个人资料。"
+      "purpose": "TAGLINE按语言拆为语句，主张逐行提亮并上移离场；深色背景不再反复叠加同一人像，桌面pin为1.6倍视口，窄屏与减少动态自然阅读。"
     },
     {
       "file": "src/components/about/AboutWordMarquee.vue",
       "symbols": [
         "words"
       ],
-      "purpose": "方向词实心与描边双行按实测宽度反向横移；移动、短视口与减少动态时改为完整可换行的静态词条，隐藏重复描边行，英文允许换行且移除常驻will-change。"
+      "purpose": "八个身份词纵向逐行点亮；未点亮文字保持40%不透明度。末词以Canvas实心笔画为焦点放大，pin为1.5倍视口，末段显示简短过渡文案。"
     },
     {
       "file": "src/components/about/AboutSideRail.vue",
@@ -85,12 +86,10 @@
       "symbols": [
         "displayWord",
         "measure",
-        "geometry",
         "focusIndex",
-        "onRefreshInit",
-        "about-dark-portrait"
+        "onRefreshInit"
       ],
-      "purpose": "紧接主张的人物身份字形转场：当前页面传我是谁/WHO I AM，中文聚焦索引1、英文索引6，集成优先级44。起始橙色巨字先完整可读，再按实测字符光学位置独立放大为奶油色局部笔画。背景与主张同构图、保持不动；放大结束后保留不透明字形，随下一节自然滚入交棒。force3D:false避免常驻低分辨率纹理。"
+      "purpose": "三行橙色标题从左右进入，上下文字内移后整层隐藏，中央行缩小；桌面pin为1.2倍舞台高度，反向滚动恢复，静态回退只显示一行。"
     },
     {
       "file": "src/components/about/AboutScrollChapter.vue",
@@ -477,7 +476,9 @@
       "源码/项目源码/组件/人物与作品/人物身份场景.vue",
       "源码/项目源码/组件/人物与作品/人物观察轨道.vue",
       "源码/项目源码/组件/人物与作品/经历逐段揭示.vue",
-      "源码/项目源码/组件/人物与作品/工作室故事.vue"
+      "源码/项目源码/组件/人物与作品/工作室故事.vue",
+      "源码/项目源码/组件/人物与作品/实践场景.vue",
+      "源码/项目源码/组件/人物与作品/工作室联系.vue"
     ],
     "namingMap": "../../命名映射.json",
     "imports": "源码/ 使用中文目录和文件名，按命名映射改写本地导入并包含传递源码依赖；集成示例/ 仅保留调用上下文，其依赖不保证完整。原始标识符及运行逻辑保持不变。",
@@ -540,13 +541,22 @@
       "bytes": 18057
     },
     {
+      "original": "src/components/about/AboutIndustries.vue",
+      "path": "源码/项目源码/组件/人物与作品/实践场景.vue",
+      "role": "entry",
+      "originalSha256": "9c4e1d7c76da649d513275cc0c8936efc865371dac013402492c58bc41a74164",
+      "originalBytes": 1385,
+      "sha256": "f6f7cfcc0b4a225716a792029e64a3e3d7d23e3a02277b31a5ca30a32e5a1f52",
+      "bytes": 1387
+    },
+    {
       "original": "src/components/about/AboutMotionHero.vue",
       "path": "源码/项目源码/组件/人物与作品/人物动态首屏.vue",
       "role": "entry",
-      "originalSha256": "d1e04f6a21a83396d0258a60f764b9651fdd0c4d162120fe742dc5af4b7330d3",
-      "originalBytes": 8985,
-      "sha256": "bfc8adf3489c1eb450073dc23a5edbfc07d2ca1cfa082e3540181390149cf962",
-      "bytes": 9013
+      "originalSha256": "6831790b829569e33c6e4def4bded2844760abbb090bb184b7534c6ba06dae55",
+      "originalBytes": 9521,
+      "sha256": "d3706d62e939770de4c111b858f7a87acb313cf79bf2d21ed4fddd64652c71ec",
+      "bytes": 9549
     },
     {
       "original": "src/components/about/AboutObservationRail.vue",
@@ -561,10 +571,10 @@
       "original": "src/components/about/AboutQuoteScene.vue",
       "path": "源码/项目源码/组件/人物与作品/人物引言场景.vue",
       "role": "entry",
-      "originalSha256": "c2d41c30edfaf02695770d8bf306db4770828d53a33558bfa1c123e2b17a6941",
-      "originalBytes": 6159,
-      "sha256": "21f000a36ea44c8379469fd37a9a6159fa1ca943fa9f2ad3c7fd00d1f5f3ff92",
-      "bytes": 6183
+      "originalSha256": "2e4e9b44fb8155b1c7874777461e38a394584c306c765013e7477ae00f35f654",
+      "originalBytes": 5616,
+      "sha256": "aecf6f506ede7446bd6cf66af069eb0ec00a7543765fecb2dc84a95c57a81910",
+      "bytes": 5630
     },
     {
       "original": "src/components/about/AboutScrollChapter.vue",
@@ -579,37 +589,55 @@
       "original": "src/components/about/AboutSideRail.vue",
       "path": "源码/项目源码/组件/人物与作品/竖排章节导航.vue",
       "role": "entry",
-      "originalSha256": "b0ef86b79a1e8e78fd74d15e842d35c684553686796f9b56d753bf7337b65230",
-      "originalBytes": 7492,
-      "sha256": "eef33f71b158ca6e0f871558163883d1637e9f47431d9c1a820218b3ebc9d2f3",
-      "bytes": 7501
+      "originalSha256": "ea69e7e2f9841a0a6c2c89a04b180a5606c6afe6b62f9e0e54f81cecd1d6d6f6",
+      "originalBytes": 8636,
+      "sha256": "cefee9f9200672e13cdadda6f3ffd6d7b2b113c5b78784f5d72071ad75e767a5",
+      "bytes": 8645
+    },
+    {
+      "original": "src/components/about/AboutStudioContact.vue",
+      "path": "源码/项目源码/组件/人物与作品/工作室联系.vue",
+      "role": "entry",
+      "originalSha256": "285c90a16c51345fc6c279e364b68ed8f49500acd7e4f491727f368fe5e1ca35",
+      "originalBytes": 6160,
+      "sha256": "f67c5b80254a9884df19acbe9e69bbc8b87bdf99b2e998785a6c8ed753b4dcfb",
+      "bytes": 6162
     },
     {
       "original": "src/components/about/AboutStudioStory.vue",
       "path": "源码/项目源码/组件/人物与作品/工作室故事.vue",
       "role": "entry",
-      "originalSha256": "399256a6b4c8d03c5c45698e8ac307cdb3293ab4c82846785bd869b6541677d8",
-      "originalBytes": 16821,
-      "sha256": "963eac6c55fd07297cc5c64beea236e8fad652f150b03819c20bec70bc5c7ccb",
-      "bytes": 16845
+      "originalSha256": "a28edcb23dec7830b77db65d79263d874eea7be02a5bee80c1d4fd27a4c7a89b",
+      "originalBytes": 20823,
+      "sha256": "2d71f1b5a3ca25624329bf73420c3471d56e5f62d7f21070730e1c49b5483bd3",
+      "bytes": 20847
     },
     {
       "original": "src/components/about/AboutWordMarquee.vue",
       "path": "源码/项目源码/组件/人物与作品/方向词双向跑马灯.vue",
       "role": "entry",
-      "originalSha256": "c257c60935d3bddb7484bc6e7ccf2b5abf323fa639af0e5374342532e9962957",
-      "originalBytes": 3301,
-      "sha256": "53d18810c2717c814af1e836dcdb33f16bbfd9289fec3842216c5c9bdcc54751",
-      "bytes": 3319
+      "originalSha256": "918dd2e4791dd0a500acd5fbecfff25b37d19b4985a949af91f1424085fc0067",
+      "originalBytes": 7444,
+      "sha256": "b570dcf625020b4b34039d568299c6e97045f14dd3cc929a712776703b23b848",
+      "bytes": 7457
     },
     {
       "original": "src/components/about/AboutWordZoom.vue",
       "path": "源码/项目源码/组件/人物与作品/字形越界放大.vue",
       "role": "entry",
-      "originalSha256": "092e983eaedfb14f01567726bc29eaefb1d30f87df9ff3f3b909984f8af7258f",
-      "originalBytes": 9989,
-      "sha256": "f73e86e4b1ca9d0d81fab8065e847f4b545ec93f1c28c355e40d5543781ab39a",
-      "bytes": 10013
+      "originalSha256": "f13fcfd9dec07b6eb6c08acf71dffa50a8af7218c303d12464b407a2ae4e79e9",
+      "originalBytes": 5676,
+      "sha256": "bd4c4589efc1a60a2492176c10f4bbb2391bbdd0dfc69948b8666aeecf19b180",
+      "bytes": 5690
+    },
+    {
+      "original": "src/components/about/aboutTextFocus.ts",
+      "path": "源码/项目源码/组件/人物与作品/字形实心焦点.ts",
+      "role": "dependency",
+      "originalSha256": "b5e54e96b547933934aae17d16833a53bbbd59285d04f499485d3453c58aa6ed",
+      "originalBytes": 1189,
+      "sha256": "b5e54e96b547933934aae17d16833a53bbbd59285d04f499485d3453c58aa6ed",
+      "bytes": 1189
     },
     {
       "original": "src/composables/useFitText.ts",
@@ -624,10 +652,10 @@
       "original": "src/data/aboutProfile.ts",
       "path": "源码/项目源码/数据/人物资料.ts",
       "role": "dependency",
-      "originalSha256": "809793a021b5fecb82640038956bcd9a322f137d89bf6e28726b87d182d08850",
-      "originalBytes": 22419,
-      "sha256": "3766047afc4c6282f7a3ad8cd4ecdd7185f22cce62987918573f5cd0fd1a6c1c",
-      "bytes": 22426
+      "originalSha256": "26ced8c5f52cf4e58773355896d05eeafc016e209d43a2570621362e569020e9",
+      "originalBytes": 23640,
+      "sha256": "d60aa47d0a9936409673fdbb1dc5f7d457f71496f8018c0e52f9b4602cddb01c",
+      "bytes": 23647
     },
     {
       "original": "src/data/aiTools.ts",
@@ -651,10 +679,10 @@
       "original": "src/data/personalPortfolio.ts",
       "path": "源码/项目源码/数据/本机个人内容接口.ts",
       "role": "dependency",
-      "originalSha256": "d27926f94127f844db0693996f94ff557e2ca4720e2d9819df31bf2bfa7ff4e2",
-      "originalBytes": 2365,
-      "sha256": "3d6914a5c09f1b50b0fcaebf77df4e365ffe5dae45271ef2f5983e2190f3e6f4",
-      "bytes": 2368
+      "originalSha256": "1301626da2364aaa92bbc0e46d44bd9b72973be1fd22162fd857d6114393f252",
+      "originalBytes": 2386,
+      "sha256": "4ee6226ac4faa996b517d94ebe2772087f67e6a042d04e59ed84d03aa09510b9",
+      "bytes": 2389
     },
     {
       "original": "src/data/resumeEmphasis.ts",
@@ -687,10 +715,10 @@
       "original": "src/styles/aboutPortrait.css",
       "path": "源码/项目源码/样式/人物肖像衬底.css",
       "role": "dependency",
-      "originalSha256": "7156d934acf03fc8b05ec0bc33fac49202995a6c57f9638f9f9437bdb7d8c7a8",
-      "originalBytes": 934,
-      "sha256": "7156d934acf03fc8b05ec0bc33fac49202995a6c57f9638f9f9437bdb7d8c7a8",
-      "bytes": 934
+      "originalSha256": "c862729ebb711e003d0fef8b46c77bac46bce1bc6ef6ea2105f9de4e6426ae81",
+      "originalBytes": 768,
+      "sha256": "c862729ebb711e003d0fef8b46c77bac46bce1bc6ef6ea2105f9de4e6426ae81",
+      "bytes": 768
     },
     {
       "original": "src/utils/motionLayout.ts",
@@ -714,10 +742,10 @@
       "original": "src/views/AboutView.vue",
       "path": "集成示例/项目源码/页面/人物介绍页.vue",
       "role": "integration-context",
-      "originalSha256": "4e9f4bb49c54719814987880ef2db3a825f7b7c2ef4a6ba5c43aa50240c69222",
-      "originalBytes": 10630,
-      "sha256": "f87764c8dbe294fafacc9121bbe2d440895e734df7bb2def22122c71c03f7b87",
-      "bytes": 10744
+      "originalSha256": "be604fef5a33f0993355da0714c498e76ff7e9780a07e72ae080d135b1a9d4bc",
+      "originalBytes": 10706,
+      "sha256": "1581cf0346a34d2a17dbb408e3d7fb2ee9710ca240e555110cbdb63f931dcf90",
+      "bytes": 10805
     },
     {
       "original": "src/components/LazySection.vue",

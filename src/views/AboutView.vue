@@ -11,11 +11,10 @@
         :label="{ zh: '', en: '' }"
         :focus-index="lang === 'zh' ? 1 : 6"
         :refresh-priority="44"
-        :background-src="aboutQuotePortrait.src"
-        :background-srcset="visualImageSources(aboutQuotePortrait)"
       />
       <AboutWordMarquee :lang="lang" />
       <AboutStudioStory :lang="lang" @open="onOpenVisual" />
+      <AboutIndustries :lang="lang" />
       <LazySection ref="contactSection" min-height="100vh" :eager="eagerAll"
         ><ContactEnd :lang="lang"
       /></LazySection>
@@ -27,7 +26,7 @@
 <script setup lang="ts">
 /**
  * /about 人物专题入口：事实内容来自 data，版式与动效分别封装在 about 子组件中。
- * 本页只协调转场放行、头像与工作流共享的 AI 工具选择，以及统一图片查看器。
+ * 本页协调转场放行、章节锚点、横向履历定位与统一图片查看器。
  * 首屏以下的重区块经 LazySection 提前一屏加载：锚点跳转（含刷新带 hash 进入）
  * 会立即转急载并在挂载后定位，正常浏览仍按需加载。
  */
@@ -46,16 +45,15 @@ import { onBeforeRouteLeave, useRouter, type RouterScrollBehavior } from 'vue-ro
 import { registerRouteScrollPreparation } from '../utils/routeScrollPreparation'
 import { referenceIntroductionGate } from '../components/ReferenceIntroduction'
 import AboutMotionHero from '../components/about/AboutMotionHero.vue'
+import AboutIndustries from '../components/about/AboutIndustries.vue'
 import AboutStudioStory from '../components/about/AboutStudioStory.vue'
 import AboutSideRail from '../components/about/AboutSideRail.vue'
 import AboutQuoteScene from '../components/about/AboutQuoteScene.vue'
 import AboutWordMarquee from '../components/about/AboutWordMarquee.vue'
 import AboutWordZoom from '../components/about/AboutWordZoom.vue'
-import { aboutQuotePortrait } from '../data/personalPortfolio'
-import { visualImageSources } from '../utils/responsiveImage'
 import LazySection from '../components/LazySection.vue'
 // 首屏以下重区块拆成独立 chunk，随 LazySection 按需加载；查看器打开时才加载。
-const ContactEnd = defineAsyncComponent(() => import('../components/about/ContactEnd.vue'))
+const ContactEnd = defineAsyncComponent(() => import('../components/about/AboutStudioContact.vue'))
 const VisualViewer = defineAsyncComponent(() => import('../components/about/VisualViewer.vue'))
 import { WORKS, assertParity } from '../data/aboutProfile'
 import { assertVisuals, type VisualAsset } from '../data/visualPortfolio'
@@ -199,6 +197,24 @@ async function prepareScroll(
     await nextFrame(signal)
     if (disposed || signal.aborted) return false
     ScrollTrigger.refresh()
+    // Horizontal panels have the same document top; map deep links to their scroll progress.
+    if (!saved && validHash) {
+      const target = document.getElementById(decodeURIComponent(hash.slice(1)))
+      const panel = target?.closest<HTMLElement>('.studio-background__panel')
+      const horizontal = ScrollTrigger.getById('about-background-horizontal')
+      if (panel && horizontal) {
+        const track = panel.parentElement!
+        const travel = track.scrollWidth - track.parentElement!.clientWidth
+        const progress = Math.min(1, panel.offsetLeft / Math.max(1, travel))
+        window.scrollTo({
+          top: horizontal.start + (horizontal.end - horizontal.start) * progress,
+          behavior: 'instant',
+        })
+        horizontal.update()
+        horizontal.getTween()?.progress(1)
+        return false
+      }
+    }
     return true
   } catch (error) {
     if (signal.aborted || disposed) return false
@@ -254,6 +270,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .about-page {
+  --display-font: 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --ab-bg: #0a0a0a;
   --ab-ink: #fee9ce;
   --ab-paper: #fee9ce;
@@ -270,6 +287,7 @@ onBeforeUnmount(() => {
 }
 @media (min-width: 981px) and (min-height: 620px) {
   .about-page {
+    --display-font: 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
     padding-left: 48px;
   }
 }
@@ -279,46 +297,5 @@ onBeforeUnmount(() => {
 }
 .about-page :deep(.word-zoom__caption) {
   display: none;
-}
-.about-page :deep(.end) {
-  width: 100%;
-  margin: 0;
-  background: #0a0a0a;
-  --ab-ink: #fee9ce;
-  --ab-soft: #c2b29f;
-  --ab-line: #fee9ce33;
-}
-.about-page :deep(.end__curve) {
-  display: none;
-}
-.about-page :deep(.end__inner) {
-  padding: 10vw 6vw 32px;
-}
-.about-page :deep(.end__head h2) {
-  font-size: clamp(56px, 10vw, 180px);
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.055em;
-}
-.about-page :deep(.end__title-line) {
-  color: #fee9ce;
-}
-.about-page :deep(.end__title-line img) {
-  display: none;
-}
-.about-page :deep(.end__orb) {
-  background: #ffb15f;
-  color: #0a0a0a;
-}
-.about-page :deep(.end__orb-fill) {
-  background: #ef5143;
-}
-.about-page :deep(.end__head small) {
-  color: #fee9ce;
-}
-@media (max-width: 760px) {
-  .about-page :deep(.end__inner) {
-    padding-top: 100px;
-  }
 }
 </style>

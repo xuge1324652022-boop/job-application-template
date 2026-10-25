@@ -1,39 +1,30 @@
-/* Shared crop keeps the same photograph stationary when the two pinned scenes hand over. */
+/* The editorial asset already contains the left-side subject and right-side negative space.
+   Render the whole composition: no oval mask, giant face crop, or halo. */
 .about-dark-portrait {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background: #090909;
+  background: #0a0a0a;
   pointer-events: none;
 }
 .about-dark-portrait img {
   position: absolute;
-  top: -8%;
-  left: -10%;
-  width: 65%;
-  height: 118%;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  object-position: 50% 30%;
-  filter: grayscale(1) brightness(0.4) contrast(1.15);
-  mask-image: radial-gradient(
-    ellipse 49% 74% at 50% 50%,
-    #000 38%,
-    rgb(0 0 0 / 0.92) 54%,
-    transparent 78%
-  );
+  object-position: center;
+  filter: grayscale(1) brightness(0.65);
 }
 .about-dark-portrait::after {
   position: absolute;
   inset: 0;
   content: '';
-  background:
-    linear-gradient(270deg, #090909 2%, rgb(9 9 9 / 0.48) 32%, transparent 68%),
-    linear-gradient(0deg, rgb(9 9 9 / 0.68), transparent 42%);
+  background: linear-gradient(0deg, #0a0a0a 0%, transparent 24%, transparent 88%, #0a0a0a55);
 }
-@media (max-width: 760px), (max-height: 649px) {
+@media (max-width: 760px) {
   .about-dark-portrait img {
-    left: -20%;
-    width: 110%;
-    opacity: 0.75;
+    object-position: 30% center;
+    opacity: 0.65;
   }
 }

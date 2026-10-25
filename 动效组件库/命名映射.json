@@ -190,6 +190,9 @@
     "src/views/NewsView.vue": "项目源码/页面/新闻作品页.vue",
     "src/views/NotFoundView.vue": "项目源码/页面/页面未找到.vue",
     "src/views/PhotoView.vue": "项目源码/页面/摄影作品页.vue",
-    "src/views/PosterView.vue": "项目源码/页面/海报作品页.vue"
+    "src/views/PosterView.vue": "项目源码/页面/海报作品页.vue",
+    "src/components/about/AboutIndustries.vue": "项目源码/组件/人物与作品/实践场景.vue",
+    "src/components/about/AboutStudioContact.vue": "项目源码/组件/人物与作品/工作室联系.vue",
+    "src/components/about/aboutTextFocus.ts": "项目源码/组件/人物与作品/字形实心焦点.ts"
   }
 }
