@@ -1,14 +1,7 @@
 <template>
-  <section
-    id="voice"
-    ref="root"
-    class="quote-scene"
-    :class="{ 'has-scene-portrait': hasScenePortrait }"
-    aria-labelledby="quote-title"
-  >
+  <section id="voice" ref="root" class="quote-scene" aria-labelledby="quote-title">
     <div ref="stage" class="quote-scene__stage">
-      <!-- 暗色人物衬底贯穿：引言段压得更暗，巨字段稍亮，同一张合成图连续。 -->
-      <div class="quote-scene__backdrop" aria-hidden="true">
+      <div class="about-dark-portrait" aria-hidden="true">
         <img
           :src="PORTRAIT.src"
           :srcset="visualImageSources(PORTRAIT)"
@@ -31,12 +24,9 @@
             line
           }}</span>
         </h2>
-        <p class="quote-scene__translation" lang="en">{{ TAGLINE.en }}</p>
-      </div>
-      <!-- 巨字横带：红色 WHO I AM 两行，随滚动自右向左滑出视口（aria 隐藏，语义在上文）。 -->
-      <div ref="giant" class="quote-scene__giant" aria-hidden="true">
-        <span class="quote-scene__giant-row" lang="en">WHO I AM</span>
-        <span class="quote-scene__giant-row quote-scene__giant-row--ghost" lang="en">WHO I AM</span>
+        <p class="quote-scene__translation" :lang="lang === 'zh' ? 'en' : 'zh'">
+          {{ lang === 'zh' ? TAGLINE.en : TAGLINE.zh }}
+        </p>
       </div>
       <span class="quote-scene__cue" aria-hidden="true">↓</span>
     </div>
@@ -44,29 +34,35 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { TAGLINE, type Lang } from '../../data/aboutProfile'
 import { prepareMotionLayout, requestMotionLayoutRefresh } from '../../utils/motionLayout'
 import { visualImageSources } from '../../utils/responsiveImage'
-import { aboutQuotePortrait, personalPortfolio } from '../../data/personalPortfolio'
+import { aboutQuotePortrait } from '../../data/personalPortfolio'
+import '../../styles/aboutPortrait.css'
 
 /**
- * 主张段（参照原站 mission + WHO I AM 巨字）：
- * 人物主张以大字逐行由暗点亮（滚动波浪，先点亮者先退暗），
- * 随后红色 WHO I AM 巨字带自右向左滑出屏幕，交棒方向词跑马灯。
+ * 主张从画面下方向上经过，每行先点亮再离场。
+ * 人像保持固定构图，交给下一幕的橙色身份巨字继续放大。
  */
-defineProps<{ lang: Lang }>()
+const props = defineProps<{ lang: Lang }>()
 const PORTRAIT = aboutQuotePortrait
-const hasScenePortrait = Boolean(personalPortfolio?.portraits?.quote)
-const lines = TAGLINE.zh.match(/[^，。！？;；]+[，。！？;；]?/gu) ?? [TAGLINE.zh]
+const lines = computed(() => {
+  const text = TAGLINE[props.lang]
+  return props.lang === 'zh'
+    ? (text.match(/[^，。！？;；]+[，。！？;；]?/gu) ?? [text])
+    : (text
+        .match(/[^.!?]+[.!?]?/gu)
+        ?.map((line) => line.trim())
+        .filter(Boolean) ?? [text])
+})
 
 const root = ref<HTMLElement | null>(null)
 const stage = ref<HTMLElement | null>(null)
 const content = ref<HTMLElement | null>(null)
 const statement = ref<HTMLElement | null>(null)
-const giant = ref<HTMLElement | null>(null)
 let media: gsap.MatchMedia | undefined
 let cancelPreparation: (() => void) | undefined
 let cancelRefresh: (() => void) | undefined
@@ -82,18 +78,13 @@ function refreshLayout() {
 onMounted(() => {
   if (!root.value) return
   cancelPreparation = prepareMotionLayout(root.value, () => {
-    if (dead || !root.value || !stage.value || !content.value || !statement.value || !giant.value)
-      return
+    if (dead || !root.value || !stage.value || !content.value || !statement.value) return
     media = gsap.matchMedia()
     media.add(
       '(min-width: 761px) and (min-height: 620px) and (prefers-reduced-motion: no-preference)',
       () => {
         const rows = statement.value!.querySelectorAll('.quote-scene__line')
         const stageElement = stage.value!
-        const giantElement = giant.value!
-        // 巨字横移量：字带宽超出视口的部分，再加两端各留 20% 视口的入出场余量。
-        const giantTravel = () =>
-          Math.max(0, giantElement.scrollWidth - stageElement.clientWidth) + innerWidth * 0.4
         gsap
           .timeline({
             defaults: { ease: 'none' },
@@ -102,42 +93,36 @@ onMounted(() => {
               trigger: stageElement,
               refreshPriority: 45,
               start: 'top top',
-              end: () => `+=${Math.round(innerHeight * 3.6)}`,
+              end: () => `+=${Math.round(innerHeight * 2.8)}`,
               pin: true,
               pinSpacing: true,
               anticipatePin: 1,
-              scrub: true,
+              scrub: 0.35,
               invalidateOnRefresh: true,
             },
           })
-          // ① 主张逐行点亮：行点亮后随进度轻微上移并退暗，形成滚动波浪。
+          // 只给每行一段亮色 tween，避免上一段尚未完成就被退暗覆盖。
           .fromTo(
             rows,
-            { color: '#574e42', y: 0 },
-            { color: 'var(--ab-ink)', y: -14, stagger: 0.34, duration: 1 },
+            { color: '#4b4b49' },
+            { color: '#ffe8ce', stagger: 0.48, duration: 0.45 },
+            0.12,
+          )
+          .fromTo(
+            content.value!,
+            { y: () => stageElement.clientHeight * 0.32 },
+            { y: () => -stageElement.clientHeight * 0.18, duration: 1.8 },
             0,
           )
-          .to(rows, { color: '#574e42', stagger: 0.22, duration: 0.7 }, 0.9)
-          // ② 主张整体上移离场，为巨字让屏。
+          .to({}, { duration: 0.4 })
           .to(
             content.value!,
             {
-              y: () => -(content.value!.offsetHeight + stageElement.clientHeight * 0.18),
-              autoAlpha: 0,
-              duration: 0.8,
-              ease: 'power2.in',
+              y: () => -(content.value!.offsetTop + content.value!.offsetHeight + 40),
+              duration: 0.9,
             },
-            2.05,
-          )
-          // ③ WHO I AM 红色巨字带自右向左滑过并出屏，第二行描边幽灵作层次。
-          .fromTo(
-            giantElement,
-            { x: () => innerWidth * 0.22, autoAlpha: 0 },
-            { autoAlpha: 1, duration: 0.3 },
             2.2,
           )
-          .to(giantElement, { x: () => -giantTravel(), duration: 2.1 }, 2.35)
-          .to({}, { duration: 0.25 })
       },
       root.value,
     )
@@ -148,6 +133,14 @@ onMounted(() => {
     })
   })
 })
+watch(
+  () => props.lang,
+  async () => {
+    await nextTick()
+    // 同一组语句保持节点数量，刷新读数以适应语言换行后的正文高度。
+    refreshLayout()
+  },
+)
 onBeforeUnmount(() => {
   dead = true
   cancelPreparation?.()
@@ -159,45 +152,21 @@ onBeforeUnmount(() => {
 <style scoped>
 .quote-scene {
   position: relative;
-  background: var(--ab-bg);
+  background: #090909;
 }
 .quote-scene__stage {
   position: relative;
-  min-height: 100vh;
-  min-height: 100svh;
+  height: 100svh;
+  min-height: 620px;
   overflow: clip;
   display: grid;
   align-items: center;
 }
-.quote-scene__backdrop {
-  position: absolute;
-  inset: 0;
-}
-.quote-scene__backdrop img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.18;
-  filter: saturate(0.7);
-}
-.quote-scene__backdrop::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, rgb(5 5 5 / 0.55), rgb(5 5 5 / 0.85));
-}
-.has-scene-portrait .quote-scene__backdrop img {
-  opacity: 0.72;
-  filter: saturate(0.8);
-}
-.has-scene-portrait .quote-scene__backdrop::after {
-  background: linear-gradient(90deg, rgb(5 5 5 / 0.6), rgb(5 5 5 / 0.42) 50%, rgb(5 5 5 / 0.08));
-}
 .quote-scene__content {
   position: relative;
-  width: min(1180px, 88%);
-  margin: 0 auto;
-  padding: clamp(90px, 14vh, 170px) 0;
+  width: calc(100% - clamp(104px, 11vw, 180px));
+  margin-left: clamp(78px, 7vw, 112px);
+  padding: 0;
 }
 .quote-scene__kicker {
   margin: 0 0 clamp(28px, 5vh, 56px);
@@ -213,11 +182,12 @@ onBeforeUnmount(() => {
 }
 .quote-scene__statement {
   margin: 0;
-  font-size: clamp(30px, 5vw, 84px);
-  font-weight: 700;
+  max-width: 12em;
+  font-size: clamp(48px, 7.8vw, 120px);
+  font-weight: 900;
   letter-spacing: -0.04em;
-  line-height: 1.06;
-  color: var(--ab-ink);
+  line-height: 1.12;
+  color: #ffe8ce;
 }
 .quote-scene__line {
   display: block;
@@ -229,30 +199,6 @@ onBeforeUnmount(() => {
   line-height: 1.7;
   color: var(--ab-soft);
 }
-.quote-scene__giant {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  width: max-content;
-  transform: translateY(-50%);
-  font-family: 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
-  font-size: min(19vw, 30svh);
-  font-weight: 900;
-  line-height: 0.8;
-  letter-spacing: -0.04em;
-  white-space: nowrap;
-  pointer-events: none;
-  visibility: hidden;
-  opacity: 0;
-}
-.quote-scene__giant-row {
-  display: block;
-  color: var(--ab-accent);
-}
-.quote-scene__giant-row--ghost {
-  color: transparent;
-  -webkit-text-stroke: 2px rgb(239 75 64 / 0.4);
-}
 .quote-scene__cue {
   position: absolute;
   left: 50%;
@@ -262,21 +208,16 @@ onBeforeUnmount(() => {
 }
 @media (max-width: 760px), (max-height: 619px), (prefers-reduced-motion: reduce) {
   .quote-scene__stage {
+    height: auto;
     min-height: 0;
     padding: 96px 22px 80px;
   }
+  .quote-scene__content {
+    width: 100%;
+    margin: 0;
+  }
   .quote-scene__statement {
     font-size: clamp(24px, 6.4vw, 40px);
-  }
-  .quote-scene__giant {
-    position: relative;
-    left: auto;
-    top: auto;
-    margin-top: 70px;
-    transform: none;
-    font-size: 16.5vw;
-    visibility: visible;
-    opacity: 1;
   }
   .quote-scene__cue {
     display: none;

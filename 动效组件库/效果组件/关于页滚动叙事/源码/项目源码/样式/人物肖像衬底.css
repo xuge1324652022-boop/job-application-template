@@ -1,0 +1,39 @@
+/* Shared crop keeps the same photograph stationary when the two pinned scenes hand over. */
+.about-dark-portrait {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #090909;
+  pointer-events: none;
+}
+.about-dark-portrait img {
+  position: absolute;
+  top: -8%;
+  right: -4%;
+  width: 78%;
+  height: 118%;
+  object-fit: cover;
+  object-position: 50% 30%;
+  filter: grayscale(1) brightness(0.48) contrast(1.15);
+  mask-image: radial-gradient(
+    ellipse 49% 74% at 50% 50%,
+    #000 38%,
+    rgb(0 0 0 / 0.92) 54%,
+    transparent 78%
+  );
+}
+.about-dark-portrait::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background:
+    linear-gradient(90deg, #090909 2%, rgb(9 9 9 / 0.48) 32%, transparent 68%),
+    linear-gradient(0deg, rgb(9 9 9 / 0.68), transparent 42%);
+}
+@media (max-width: 760px), (max-height: 649px) {
+  .about-dark-portrait img {
+    right: -20%;
+    width: 110%;
+    opacity: 0.75;
+  }
+}

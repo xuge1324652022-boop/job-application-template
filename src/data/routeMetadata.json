@@ -112,8 +112,8 @@
         "en": "Particle Morph Demo · Example Candidate"
       },
       "description": {
-        "zh": "虚构求职模板演示：散布粒子随滚动汇聚成大字母的交互动效演示页，含巨字开场与双列合成图网格。",
-        "en": "Fictional portfolio template demo. A scroll-driven particle morph demonstration with a bold-type opening and a two-column synthetic image grid."
+        "zh": "虚构求职模板演示：参考视频的完整复刻演示页——巨字开场、滚动粒子汇聚成字母与双列合成仪表盘界面网格。",
+        "en": "Fictional portfolio template demo. A complete replica of the reference video: bold-type opening, scroll-driven particle morph into a letter, and a two-column synthetic dashboard grid."
       },
       "entry": "src/views/MorphView.vue"
     }

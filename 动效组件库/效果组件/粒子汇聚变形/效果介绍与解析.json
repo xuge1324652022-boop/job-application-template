@@ -8,7 +8,7 @@
   },
   "category": "scroll",
   "status": "active",
-  "summary": "按参考视频整页复刻的三段式演示路由 /morph：深底巨字开场 TRANSFORMING IDEAS INTO DIGITAL REALITIES（末行珊瑚红强调，幕布揭开后错峰上移入场）；固定段落内，散布的奶油/珊瑚色粒子随滚动进度汇聚成示例求职者姓名首字母 E（离屏画布对字母像素采样得到目标点集，每粒子独立延迟与缓动，倒滚沿原路散开）；末段为双列圆角合成图网格，进入视口逐张浮现。文案保留视频原句作为效果演示，图片全部来自仓库合成素材，不包含任何真实人物或项目。",
+  "summary": "按用户提供的参考视频完整复刻的三段式演示路由 /morph：深底 hero 右上角小 logo，三行奶白巨字 TRANSFORMING IDEAS INTO DIGITAL REALITIES 从下升起入场；固定段落上半为 WE TAKE SAMPLES / AND MORPH IT INTO THE TYPE / OF SHAPE WE WANT 三行大写标题，下半全宽粒子画布内散布的奶油/珊瑚粒子随滚动汇聚成大字母 R（离屏画布像素采样目标点，每粒子独立延迟与缓动，倒滚沿原路散开）；末段 SELECTED WORKS 双列圆角网格，深色仪表盘风格界面卡（柱状图/折线/环形/表格/对话/看板六种）全部由 CSS 与内联 SVG 合成，方竖比例混合、无图注。文案保留视频原句作为效果演示。",
   "entryFiles": [
     "src/views/MorphView.vue",
     "src/components/morph/MorphParticleField.vue"
@@ -53,7 +53,7 @@
       },
       {
         "name": "particle-converge",
-        "description": "带边框的深色画布内，粒子从随机散布位置飞向字母 E 的采样点；延迟映射让前 40% 进度先启动部分粒子，后段全体到位，停留阶段保持正弦呼吸；倒滚按同一映射对称散开。",
+        "description": "全宽深色画布内，粒子从随机散布位置飞向字母 R 的采样点；延迟映射让前段先启动部分粒子，后段全体到位，停留阶段正弦呼吸；倒滚按同一映射对称散开。",
         "properties": [
           "particle.x/y（插值）",
           "particle.globalAlpha",
@@ -63,7 +63,7 @@
       },
       {
         "name": "grid-reveal",
-        "description": "双列圆角网格（四个作品封面、合成人物图与调色预览）进入视口时自下 46px 逐张浮现，悬停轻微放大；页脚附合成素材声明与返回首页链接。",
+        "description": "SELECTED WORKS 小标签下双列圆角网格：八张深色仪表盘界面卡（bars/line/donut/rows/chat/kanban）由 CSS 变量着色的合成元素构成，方竖比例交替，进入视口自下浮现，悬停轻微放大；页脚注明界面卡均为合成。",
         "properties": [
           "cell.y/autoAlpha",
           "cell img transform(scale)"
@@ -129,8 +129,8 @@
     ]
   },
   "agentNotes": [
-    "汇聚字母取 IDENTITY.initials 首字母（模板示例为 E），刻意不使用参考视频原作者的首字母 R，模板不得引入他人身份标识。",
-    "视频原句文案仅作效果演示保留；如需公开复用请替换为自己的口号。",
+    "本页为用户明确要求的参考视频完整复刻演示：汇聚字母使用视频中的 R，页面页脚与路由描述均声明为演示复刻，不关联任何真实个人。",
+    "视频原句文案仅作效果演示保留；公开复用请替换为自己的口号。",
     "效果登记于本文件；新增源文件后需在命名映射注册中文路径并重跑 build:motion。"
   ],
   "relatedEffects": [
@@ -266,10 +266,10 @@
       "original": "src/views/MorphView.vue",
       "path": "源码/项目源码/页面/粒子变形演示页.vue",
       "role": "entry",
-      "originalSha256": "aaeb1f4521fb2449dd03349ba7691c9f8ec5445ddaa821abb43c366a662e63df",
-      "originalBytes": 10619,
-      "sha256": "36bbd06717f3cb1af1f0459941c9eaa15227ad1df814acb991cd763e3f9e537a",
-      "bytes": 10642
+      "originalSha256": "59c97637cccea6d7e48e5a1ed956b8cc1fe38121feb25953c76283c5d079d058",
+      "originalBytes": 15588,
+      "sha256": "9f9aec001ef4a3cac41af9650025341791220cb3e1d013c6b97da7a398c5681c",
+      "bytes": 15600
     }
   ]
 }

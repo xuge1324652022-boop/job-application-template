@@ -3,17 +3,20 @@
   <div class="about-page" @click="onAnchorClick">
     <AboutSideRail :lang="lang" />
     <AboutMotionHero :active="heroActive" :lang="lang" />
-    <!-- 开场连续叙事：人物主张大字 + WHO I AM 巨字出屏 → 方向词双向跑马灯 → 拼贴横向叙事。 -->
+    <!-- 同一黑白人物构图：主张向上经过 → 橙色身份巨字放大成奶油色笔画。 -->
     <AboutQuoteScene :lang="lang" />
-    <AboutWordMarquee :lang="lang" />
-    <AboutCollageStage :lang="lang" @open="onOpenVisual" />
     <AboutWordZoom
+      id="identity-zoom"
       :lang="lang"
-      :word="{ zh: '表达', en: 'CREATE' }"
+      :word="{ zh: '我是谁', en: 'WHO I AM' }"
       :label="{ zh: '把想法变成看得见的表达', en: 'Turning ideas into something you can see' }"
+      :focus-index="lang === 'zh' ? 1 : 6"
+      :refresh-priority="44"
       :background-src="aboutQuotePortrait.src"
       :background-srcset="visualImageSources(aboutQuotePortrait)"
     />
+    <AboutWordMarquee :lang="lang" />
+    <AboutCollageStage :lang="lang" @open="onOpenVisual" />
     <AboutScrollChapter
       name="identity"
       heading="WHO I AM"
@@ -35,6 +38,7 @@
     />
     <main class="about-body">
       <AboutIdentityScene v-model:active-tool="activeTool" :lang="lang" :active="heroActive" />
+      <AboutExperienceReveal :lang="lang" />
       <div class="about-reading">
         <p class="about-section-word" lang="en">IN PRACTICE.</p>
         <LazySection ref="experienceSection" min-height="190vh" :eager="eagerAll"
@@ -105,6 +109,7 @@ import { aboutQuotePortrait } from '../数据/本机个人内容接口'
 import { visualImageSources } from '../工具/响应式图片'
 import AboutScrollChapter from '../组件/人物与作品/人物滚动章节.vue'
 import AboutIdentityScene from '../组件/人物与作品/人物身份场景.vue'
+import AboutExperienceReveal from '../组件/人物与作品/经历逐段揭示.vue'
 import LazySection from '../组件/延迟挂载区块.vue'
 // 首屏以下重区块拆成独立 chunk，随 LazySection 按需加载；查看器打开时才加载。
 const ExperienceTimeline = defineAsyncComponent(
@@ -158,7 +163,7 @@ provide(referenceIntroductionGate, heroActive)
 const activeTool = ref('kimi')
 // 过程章标签跑马灯词条：技能组标题加作品标签去重，全部来自现有示例资料。
 const seenTags = new Set<string>()
-const processTags: Bi[] = [...RESUME_SKILLS.map(skill => skill.title)]
+const processTags: Bi[] = [...RESUME_SKILLS.map((skill) => skill.title)]
 for (const work of WORKS) {
   for (const tag of work.tags) {
     if (seenTags.has(tag.zh)) continue

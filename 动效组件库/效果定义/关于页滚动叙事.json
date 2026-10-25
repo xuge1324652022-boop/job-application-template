@@ -17,7 +17,8 @@
     "src/components/about/AboutWordZoom.vue",
     "src/components/about/AboutScrollChapter.vue",
     "src/components/about/AboutIdentityScene.vue",
-    "src/components/about/AboutObservationRail.vue"
+    "src/components/about/AboutObservationRail.vue",
+    "src/components/about/AboutExperienceReveal.vue"
   ],
   "integrationFiles": [
     "src/views/AboutView.vue",
@@ -43,12 +44,11 @@
       "file": "src/components/about/AboutQuoteScene.vue",
       "symbols": [
         "TAGLINE",
-        "aboutQuotePortrait",
-        "giantTravel",
         "about-quote-mission",
-        "refreshLayout"
+        "refreshLayout",
+        "about-dark-portrait"
       ],
-      "purpose": "TAGLINE主张按标点拆成大字行，逐行提亮后退暗形成滚动波浪；人物衬底使用quote素材；红色WHO I AM实心与描边双行巨字随后横移出屏。完整PROFILE_LINES仍留个人资料章节。"
+      "purpose": "主张段：共享暗色人物衬底上的双语大字主张逐行点亮成波浪后上移离场（现行版本随阅读语言切换中英文本）。"
     },
     {
       "file": "src/components/about/AboutWordMarquee.vue",
@@ -154,6 +154,15 @@
         "personal-portfolio"
       ],
       "purpose": "仅定义DOM JSON类型、读取入口与分场景素材解析：hero/quote/card/profile可选覆盖，逐项缺失时回退原portrait，再回退公开合成人像。源码没有本机个人JSON或AI PNG；个人素材只经宿主显式注入。"
+    },
+    {
+      "file": "src/components/about/AboutExperienceReveal.vue",
+      "symbols": [
+        "about-experience-reveal",
+        "timeline",
+        "scrollTrigger"
+      ],
+      "purpose": "经历逐段揭示：随滚动逐段展开与提亮的双语经历段落。"
     }
   ],
   "mechanism": {
@@ -194,12 +203,11 @@
         "timing": "top top，scrub:true；storyDuration=max(1,横向行程/H)，end=H×(2.85+storyDuration+0.2)。takeover放大0.55、回缩从+0.62开始、+0.76落位、story从+1.2开始；横向段ease:none。桌面内resize防抖重建，构建通过mediaContext.ignore隔离独立context；disposeScene先revert，再只清除本场景拥有的transform/opacity/visibility等属性并失效变换缓存，保留模板静态比例，防止跨断点重放旧隐藏起点。"
       },
       {
-        "name": "quote-mission-giant",
-        "description": "人物主张取 TAGLINE 按标点拆行，全部行自暗色起逐行点亮为奶油色，点亮后随进度退暗上移形成滚动波浪；英文译文随行展示。主张整体离场后，红色 WHO I AM 巨字带（一行实心、一行描边）自右侧进入并横移出左缘，行程为带宽超出视口部分加两端余量。 完整个人自述PROFILE_LINES只在个人资料阅读区保留，主张背景由aboutQuotePortrait解析。",
+        "name": "quote-mission",
+        "description": "共享暗色人物衬底上，主张大字按当前阅读语言取 TAGLINE 并拆行，全部行自暗色起逐行点亮，点亮后随进度退暗上移形成滚动波浪；主张整体按实际高度上移离场，交棒后续场景。",
         "properties": [
           "line.color/y",
-          "content.y/autoAlpha",
-          "giant.x/autoAlpha"
+          "content.y/autoAlpha"
         ],
         "timing": "top top，固定距离3.6H，scrub:true；行点亮0–1.9、退暗0.9–2.3、主张离场2.05–2.85、巨字2.2–4.45。"
       },

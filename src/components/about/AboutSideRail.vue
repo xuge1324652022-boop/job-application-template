@@ -94,7 +94,14 @@ onMounted(() => {
         id: `about-rail-${chapter.id}`,
         trigger: target,
         start: 'top 55%',
-        end: 'bottom 45%',
+        // 章节高亮覆盖直到下一章节，包含两段锚点之间的图带和完整履历。
+        end: () => {
+          const nextId = chapters[index + 1]?.id
+          const next = nextId ? page.querySelector<HTMLElement>(`#${nextId}`) : null
+          return next
+            ? window.scrollY + next.getBoundingClientRect().top - innerHeight * 0.55
+            : ScrollTrigger.maxScroll(window)
+        },
         onToggle: (self) => {
           if (self.isActive) activeIndex.value = index
         },

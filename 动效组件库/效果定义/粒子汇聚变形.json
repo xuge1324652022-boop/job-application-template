@@ -7,7 +7,7 @@
   },
   "category": "scroll",
   "status": "active",
-  "summary": "按参考视频整页复刻的三段式演示路由 /morph：深底巨字开场 TRANSFORMING IDEAS INTO DIGITAL REALITIES（末行珊瑚红强调，幕布揭开后错峰上移入场）；固定段落内，散布的奶油/珊瑚色粒子随滚动进度汇聚成示例求职者姓名首字母 E（离屏画布对字母像素采样得到目标点集，每粒子独立延迟与缓动，倒滚沿原路散开）；末段为双列圆角合成图网格，进入视口逐张浮现。文案保留视频原句作为效果演示，图片全部来自仓库合成素材，不包含任何真实人物或项目。",
+  "summary": "按用户提供的参考视频完整复刻的三段式演示路由 /morph：深底 hero 右上角小 logo，三行奶白巨字 TRANSFORMING IDEAS INTO DIGITAL REALITIES 从下升起入场；固定段落上半为 WE TAKE SAMPLES / AND MORPH IT INTO THE TYPE / OF SHAPE WE WANT 三行大写标题，下半全宽粒子画布内散布的奶油/珊瑚粒子随滚动汇聚成大字母 R（离屏画布像素采样目标点，每粒子独立延迟与缓动，倒滚沿原路散开）；末段 SELECTED WORKS 双列圆角网格，深色仪表盘风格界面卡（柱状图/折线/环形/表格/对话/看板六种）全部由 CSS 与内联 SVG 合成，方竖比例混合、无图注。文案保留视频原句作为效果演示。",
   "entryFiles": [
     "src/views/MorphView.vue",
     "src/components/morph/MorphParticleField.vue"
@@ -16,12 +16,24 @@
   "sourceSections": [
     {
       "file": "src/views/MorphView.vue",
-      "symbols": ["initial", "gridItems", "morph-field-converge", "routeCurtainBlocked", "setProgress"],
+      "symbols": [
+        "initial",
+        "gridItems",
+        "morph-field-converge",
+        "routeCurtainBlocked",
+        "setProgress"
+      ],
       "purpose": "页面编排：巨字开场（等幕布揭开错峰入场）、粒子段固定并以 ScrollTrigger scrub 写入 0–1 汇聚进度、网格逐张浮现；窄屏与减弱动效分支直接呈现已成形字母。"
     },
     {
       "file": "src/components/morph/MorphParticleField.vue",
-      "symbols": ["sampleTargets", "setProgress", "PALETTE", "rebuild", "easeInOut"],
+      "symbols": [
+        "sampleTargets",
+        "setProgress",
+        "PALETTE",
+        "rebuild",
+        "easeInOut"
+      ],
       "purpose": "粒子引擎：devicePixelRatio 自适应画布，把目标字母画入离屏画布并采样不透明像素为目标点；每粒子带随机延迟、尺寸与暖色板颜色，setProgress 由滚动回调写入，rAF 循环按缓动插值绘制并叠加呼吸微抖。"
     }
   ],
@@ -31,19 +43,30 @@
       {
         "name": "hero-entry",
         "description": "三行大写巨字（末行强调色）自下方错峰升入，小标签与滚动提示随后渐显；播放前等待路由幕布揭开。",
-        "properties": ["line.yPercent/autoAlpha", "kicker.autoAlpha", "scroll-cue.autoAlpha"],
+        "properties": [
+          "line.yPercent/autoAlpha",
+          "kicker.autoAlpha",
+          "scroll-cue.autoAlpha"
+        ],
         "timing": "一次性入场约 1.2s（stagger 0.09）；无滚动联动。"
       },
       {
         "name": "particle-converge",
-        "description": "带边框的深色画布内，粒子从随机散布位置飞向字母 E 的采样点；延迟映射让前 40% 进度先启动部分粒子，后段全体到位，停留阶段保持正弦呼吸；倒滚按同一映射对称散开。",
-        "properties": ["particle.x/y（插值）", "particle.globalAlpha", "canvas.clearRect 重绘"],
+        "description": "全宽深色画布内，粒子从随机散布位置飞向字母 R 的采样点；延迟映射让前段先启动部分粒子，后段全体到位，停留阶段正弦呼吸；倒滚按同一映射对称散开。",
+        "properties": [
+          "particle.x/y（插值）",
+          "particle.globalAlpha",
+          "canvas.clearRect 重绘"
+        ],
         "timing": "top top，固定距离 2.6H，scrub:true；每粒子 local=(progress-delay)/0.6 经三次缓动。"
       },
       {
         "name": "grid-reveal",
-        "description": "双列圆角网格（四个作品封面、合成人物图与调色预览）进入视口时自下 46px 逐张浮现，悬停轻微放大；页脚附合成素材声明与返回首页链接。",
-        "properties": ["cell.y/autoAlpha", "cell img transform(scale)"],
+        "description": "SELECTED WORKS 小标签下双列圆角网格：八张深色仪表盘界面卡（bars/line/donut/rows/chat/kanban）由 CSS 变量着色的合成元素构成，方竖比例交替，进入视口自下浮现，悬停轻微放大；页脚注明界面卡均为合成。",
+        "properties": [
+          "cell.y/autoAlpha",
+          "cell img transform(scale)"
+        ],
         "timing": "一次性，stagger 0.12；起点为网格顶部到达视口 78% 高度。"
       }
     ],
@@ -66,10 +89,24 @@
       "开场入场在路由幕布揭开后播放",
       "继续滚动驱动粒子汇聚与网格浮现"
     ],
-    "inputs": ["src/data/aboutProfile.ts 的 WORKS 与 IDENTITY.initials", "personalPortrait 合成人物图", "/color-previews 合成调色图"],
-    "outputs": ["/morph 页面", "逐路由 head（routeMetadata.json 已注册标题与描述）"],
-    "dependencies": ["gsap ScrollTrigger", "vue-router 懒加载路由"],
-    "assets": ["/about/work-01..04.webp（合成封面）", "/about/portrait-*.webp（合成人物）", "/color-previews/clip-1.jpg（合成预览）"]
+    "inputs": [
+      "src/data/aboutProfile.ts 的 WORKS 与 IDENTITY.initials",
+      "personalPortrait 合成人物图",
+      "/color-previews 合成调色图"
+    ],
+    "outputs": [
+      "/morph 页面",
+      "逐路由 head（routeMetadata.json 已注册标题与描述）"
+    ],
+    "dependencies": [
+      "gsap ScrollTrigger",
+      "vue-router 懒加载路由"
+    ],
+    "assets": [
+      "/about/work-01..04.webp（合成封面）",
+      "/about/portrait-*.webp（合成人物）",
+      "/color-previews/clip-1.jpg（合成预览）"
+    ]
   },
   "accessibility": {
     "reducedMotion": "减弱动效偏好或窄屏/矮视口下不固定、不滚动驱动：粒子直接以成形字母呈现，网格自然滚动，入场动画跳过。",
@@ -77,23 +114,45 @@
     "keyboard": "滚动提示为锚点链接；网格无交互焦点需求，页面无键盘陷阱；返回首页为标准路由链接。"
   },
   "lifecycle": {
-    "setup": ["prepareMotionLayout 等共享布局队列就绪后建 matchMedia 分支", "fonts.ready 后重建字母采样，避免字体替换导致目标点漂移"],
-    "cleanup": ["组件卸载取消 rAF 与 resize 监听", "matchMedia.revert 撤销固定与全部时间线，粒子场复位 progress=0"],
-    "knownLimitations": ["粒子数量按画布面积上限 3400，超宽画布密度略降", "字母字形依赖本机 Arial Black 栈，回退字体的采样轮廓会略有差异"]
+    "setup": [
+      "prepareMotionLayout 等共享布局队列就绪后建 matchMedia 分支",
+      "fonts.ready 后重建字母采样，避免字体替换导致目标点漂移"
+    ],
+    "cleanup": [
+      "组件卸载取消 rAF 与 resize 监听",
+      "matchMedia.revert 撤销固定与全部时间线，粒子场复位 progress=0"
+    ],
+    "knownLimitations": [
+      "粒子数量按画布面积上限 3400，超宽画布密度略降",
+      "字母字形依赖本机 Arial Black 栈，回退字体的采样轮廓会略有差异"
+    ]
   },
   "agentNotes": [
-    "汇聚字母取 IDENTITY.initials 首字母（模板示例为 E），刻意不使用参考视频原作者的首字母 R，模板不得引入他人身份标识。",
-    "视频原句文案仅作效果演示保留；如需公开复用请替换为自己的口号。",
+    "本页为用户明确要求的参考视频完整复刻演示：汇聚字母使用视频中的 R，页面页脚与路由描述均声明为演示复刻，不关联任何真实个人。",
+    "视频原句文案仅作效果演示保留；公开复用请替换为自己的口号。",
     "效果登记于本文件；新增源文件后需在命名映射注册中文路径并重跑 build:motion。"
   ],
-  "relatedEffects": ["about-scroll-narrative"],
+  "relatedEffects": [
+    "about-scroll-narrative"
+  ],
   "verification": {
-    "commands": ["npm run typecheck", "npm run lint", "npm run build", "npm run check:motion"],
+    "commands": [
+      "npm run typecheck",
+      "npm run lint",
+      "npm run build",
+      "npm run check:motion"
+    ],
     "manualChecks": [
       "preview 打开 /morph：开场三行巨字入场",
       "滚动中段粒子散布→汇聚成 E，倒滚散开",
       "网格双列浮现；390px 宽度下成形字母静态可见"
     ]
   },
-  "tags": ["粒子", "canvas", "滚动叙事", "演示页", "scrub"]
+  "tags": [
+    "粒子",
+    "canvas",
+    "滚动叙事",
+    "演示页",
+    "scrub"
+  ]
 }

@@ -1,7 +1,7 @@
 <template>
   <section ref="root" class="word-zoom" :aria-labelledby="headingId">
     <div ref="stage" class="word-zoom__stage">
-      <div class="word-zoom__backdrop" aria-hidden="true">
+      <div class="about-dark-portrait" aria-hidden="true">
         <img
           :src="backgroundSource"
           :srcset="backgroundSources"
@@ -46,6 +46,7 @@ import { pick, type Bi, type Lang } from '../../数据/人物资料'
 import { prepareMotionLayout, requestMotionLayoutRefresh } from '../../工具/动效布局调度'
 import { visualImageSources } from '../../工具/响应式图片'
 import { aboutQuotePortrait } from '../../数据/本机个人内容接口'
+import '../../样式/人物肖像衬底.css'
 
 const props = withDefaults(
   defineProps<{
@@ -111,7 +112,7 @@ onMounted(() => {
           const heightPerPixel = Math.max(1, wordNode.offsetHeight) / currentSize
           const fittedSize = Math.min(
             (stageNode.clientWidth * 0.84) / widthPerPixel,
-            (stageNode.clientHeight * 0.28) / heightPerPixel,
+            (stageNode.clientHeight * 0.56) / heightPerPixel,
           )
           rootNode.style.setProperty('--word-zoom-size', `${Math.max(1, fittedSize)}px`)
 
@@ -139,7 +140,7 @@ onMounted(() => {
             Math.max(
               stageNode.clientWidth / Math.max(1, focus?.offsetWidth ?? wordWidth),
               stageNode.clientHeight / Math.max(1, focus?.offsetHeight ?? wordHeight),
-            ) * 2.8
+            ) * 1.65
         }
 
         measure()
@@ -154,16 +155,15 @@ onMounted(() => {
               trigger: rootNode,
               pin: stageNode,
               start: 'top top',
-              end: () =>
-                `+=${Math.round(stageNode.clientHeight * 2.2 + stageNode.clientWidth * 0.25)}`,
+              end: () => `+=${Math.round(stageNode.clientHeight * 4.2)}`,
               refreshPriority: props.refreshPriority,
-              scrub: true,
+              scrub: 0.35,
               anticipatePin: 1,
               invalidateOnRefresh: true,
               onRefreshInit: measure,
             },
           })
-          .to({}, { duration: 0.2 })
+          .to({}, { duration: 0.6 })
           .fromTo(
             wordNode,
             { x: 0, y: 0, scale: 1, autoAlpha: 1 },
@@ -171,14 +171,15 @@ onMounted(() => {
               x: () => geometry.x,
               y: () => geometry.y,
               scale: () => geometry.scale,
-              duration: 0.72,
+              duration: 2.2,
+              ease: 'power2.inOut',
             },
-            0.2,
+            0.6,
           )
-          .to(captionNode, { autoAlpha: 0, duration: 0.12 }, 0.2)
-          .to({}, { duration: 0.12 })
-          .to(wordNode, { autoAlpha: 0, duration: 0.18 }, 1.04)
-          .to({}, { duration: 0.12 })
+          .fromTo(wordNode, { color: '#ffb15f' }, { color: '#ffe8ce', duration: 0.6 }, 1.1)
+          .to(captionNode, { autoAlpha: 0, duration: 0.3 }, 0.6)
+          // Preserve opaque strokes through the end; the following section scrolls over them.
+          .to({}, { duration: 0.85 })
 
         scheduleRefresh()
         return () => {
@@ -221,31 +222,13 @@ onBeforeUnmount(() => {
 <style scoped>
 .word-zoom {
   position: relative;
-  background: var(--ab-bg, #050505);
-  color: #ffe8ce;
+  background: #090909;
+  color: #ffb15f;
   scroll-margin-top: 72px;
 }
 .word-zoom__stage {
   position: relative;
   padding: clamp(64px, 8vw, 112px) clamp(22px, 5vw, 88px);
-}
-.word-zoom__backdrop {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-.word-zoom__backdrop img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.23;
-}
-.word-zoom__backdrop::after {
-  position: absolute;
-  inset: 0;
-  content: '';
-  background: linear-gradient(180deg, rgb(5 5 5 / 0.35), rgb(5 5 5 / 0.78));
 }
 .word-zoom__caption {
   position: relative;
