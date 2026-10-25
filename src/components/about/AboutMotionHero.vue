@@ -13,7 +13,7 @@
           ref="photo"
           :src="PORTRAIT.src"
           :srcset="visualImageSources(PORTRAIT)"
-          :sizes="hasScenePortrait ? '100vw' : '(max-width: 760px) 100vw, 48vw'"
+          :sizes="'100vw'"
           :width="PORTRAIT.width"
           :height="PORTRAIT.height"
           alt=""
@@ -40,25 +40,16 @@
     <div class="about-hero__stage">
       <!-- 英文姓名巨字铺满可用宽度。 -->
       <h1 id="about-title" ref="title" class="about-hero__title">
-        <span v-if="hasScenePortrait" ref="sceneName" class="about-hero__line" lang="en">{{
+        <span ref="sceneName" class="about-hero__line" lang="en">{{
           IDENTITY.nameEn.toUpperCase()
         }}</span>
-        <template v-else>
-          <span v-for="word in nameWords" :key="word" class="about-hero__line" lang="en">{{
-            word
-          }}</span>
-        </template>
+        <span class="about-hero__signature" aria-hidden="true">{{ IDENTITY.nameZh }}</span>
         <span class="about-hero__screen-reader">{{ IDENTITY.nameZh }} · {{ IDENTITY.nameEn }}</span>
       </h1>
       <div ref="meta" class="about-hero__meta">
-        <p class="about-hero__role">
-          <span v-for="(part, i) in roleParts" :key="i">{{ part }}</span>
-        </p>
-        <p class="about-hero__tagline">
-          {{ pick(TAGLINE, 'zh') }}<span lang="en">{{ pick(TAGLINE, 'en') }}</span>
-        </p>
+        <p class="about-hero__tagline">{{ pick(TAGLINE, lang) }}</p>
       </div>
-      <a href="#stories" class="about-hero__scroll">
+      <a href="#voice" class="about-hero__scroll">
         <span>{{ lang === 'zh' ? '滚动认识我' : 'SCROLL TO DISCOVER' }}</span>
         <span class="about-hero__scroll-arrow" aria-hidden="true">↓</span>
       </a>
@@ -67,10 +58,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { IDENTITY, ROLE_LINE, TAGLINE, pick, type Lang } from '../../data/aboutProfile'
+import { IDENTITY, TAGLINE, pick, type Lang } from '../../data/aboutProfile'
 import {
   aboutHeroPortrait,
   isPersonalPortfolio,
@@ -88,18 +79,10 @@ import { useFitText } from '../../composables/useFitText'
 const props = defineProps<{ active: boolean; lang: Lang }>()
 const PORTRAIT = aboutHeroPortrait
 const hasScenePortrait = Boolean(personalPortfolio?.portraits?.hero)
-const nameWords = IDENTITY.nameEn.toUpperCase().split(/\s+/u)
-const roleParts = computed(() =>
-  pick(ROLE_LINE, props.lang)
-    .split('·')
-    .map((part) => part.trim())
-    .filter(Boolean),
-)
-
 const root = ref<HTMLElement | null>(null)
 const title = ref<HTMLElement | null>(null)
 const sceneName = ref<HTMLElement | null>(null)
-useFitText(sceneName, { min: 20, max: 180 })
+useFitText(sceneName, { min: 20, max: 440 })
 const meta = ref<HTMLElement | null>(null)
 const photo = ref<HTMLElement | null>(null)
 const photoMask = ref<HTMLElement | null>(null)
@@ -121,14 +104,7 @@ function play(): void {
 onMounted(() => {
   if (!root.value) return
   cancelPreparation = prepareMotionLayout(root.value, () => {
-    if (
-      dead ||
-      !root.value ||
-      !title.value ||
-      !meta.value ||
-      !photo.value ||
-      !photoMask.value
-    )
+    if (dead || !root.value || !title.value || !meta.value || !photo.value || !photoMask.value)
       return
     media = gsap.matchMedia()
     media.add(
@@ -146,7 +122,7 @@ onMounted(() => {
             .timeline({ paused: true })
             .fromTo(
               photoMask.value!,
-              { clipPath: 'inset(0% 0% 0% 100%)' },
+              { clipPath: 'inset(100% 0% 0% 0%)' },
               { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.1, ease: 'power3.inOut' },
             )
             .fromTo(
@@ -218,210 +194,125 @@ onBeforeUnmount(() => {
 <style scoped>
 .about-hero {
   position: relative;
-  min-height: 100vh;
-  min-height: 100svh;
+  height: 100svh;
+  min-height: 540px;
   overflow: clip;
-  background: var(--ab-bg, #050505);
-  color: var(--ab-ink, #ffe8ce);
+  background: #bfc0bd;
+  color: var(--ab-ink);
 }
-.about-hero__photo {
-  position: absolute;
-  z-index: 1;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 48vw;
-  margin: 0;
-}
+.about-hero__photo,
 .about-hero__photo-mask {
   position: absolute;
   inset: 0;
+  margin: 0;
   overflow: clip;
-  background: #221c15;
 }
 .about-hero__photo-mask img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 24%;
+  object-position: 66% center;
 }
 .about-hero__photo figcaption {
   position: absolute;
-  right: 18px;
-  bottom: 16px;
-  z-index: 2;
-  padding: 6px 12px;
-  background: rgb(5 5 5 / 0.62);
-  border-radius: 999px;
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  color: var(--ab-soft, #b9ab97);
+  bottom: 14px;
+  left: 18px;
+  font-size: 10px;
+  color: #222;
+  background: #fee9cebb;
+  padding: 2px 6px;
 }
 .about-hero__stage {
   position: relative;
-  z-index: 2;
-  min-height: 100vh;
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: clamp(76px, 13svh, 150px) clamp(24px, 5vw, 96px) clamp(44px, 7svh, 88px)
-    clamp(88px, 7vw, 128px);
+  height: 100%;
+  padding: 8px 14px 0;
 }
 .about-hero__title {
   position: relative;
   margin: 0;
   font-family: 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
-  font-size: min(16vw, 25svh);
   font-weight: 900;
-  line-height: 0.84;
-  letter-spacing: -0.04em;
-  text-transform: uppercase;
+  line-height: 0.91;
+  padding-bottom: 5vw;
+  letter-spacing: -0.065em;
 }
 .about-hero__line {
   display: block;
+  width: 100%;
   white-space: nowrap;
+  transform: scaleY(1.55);
+  transform-origin: center top;
 }
-.has-scene-portrait .about-hero__line {
-  letter-spacing: -0.055em;
+.about-hero__signature {
+  position: absolute;
+  right: 7%;
+  bottom: -0.12em;
+  color: var(--ab-accent);
+  font: italic 28px/1.1 cursive;
+  transform: rotate(-13deg);
+  letter-spacing: -0.08em;
 }
 .about-hero__screen-reader {
   position: absolute;
   width: 1px;
   height: 1px;
-  margin: -1px;
   overflow: hidden;
   clip-path: inset(50%);
-  white-space: nowrap;
 }
 .about-hero__meta {
-  max-width: 480px;
-}
-.about-hero__role {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 14px;
-  margin: 0 0 18px;
-  font-size: 14px;
-  letter-spacing: 0.04em;
-  color: var(--ab-soft, #b9ab97);
-}
-.about-hero__role span + span::before {
-  content: '·';
-  margin-right: 14px;
-  color: var(--ab-dim, #8a7d6c);
+  width: min(31%, 440px);
+  margin-top: 3px;
+  color: #0a0a0a;
 }
 .about-hero__tagline {
-  margin: 0;
-  font-size: clamp(20px, 2.1vw, 30px);
-  font-weight: 600;
-  line-height: 1.35;
-  letter-spacing: -0.02em;
-}
-.about-hero__tagline span {
-  display: block;
-  margin-top: 8px;
-  font-size: 13px;
-  font-weight: 400;
-  letter-spacing: 0.02em;
-  color: var(--ab-soft, #b9ab97);
+  font-size: clamp(23px, 2.3vw, 44px);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.04em;
+  text-wrap: pretty;
 }
 .about-hero__scroll {
   position: absolute;
-  left: clamp(88px, 7vw, 128px);
-  bottom: clamp(44px, 7svh, 88px);
-  display: inline-flex;
-  align-items: center;
-  gap: 14px;
-  color: var(--ab-soft, #b9ab97);
-  font-size: 11px;
-  letter-spacing: 0.3em;
+  bottom: 17px;
+  right: 32px;
+  display: flex;
+  gap: 9px;
+  color: #0a0a0a;
+  font-size: 10px;
+  font-weight: 700;
   text-decoration: none;
-  text-transform: uppercase;
-}
-.about-hero__scroll:hover {
-  color: var(--ab-ink, #ffe8ce);
 }
 .about-hero__scroll-arrow {
-  font-size: 16px;
-  animation: about-hero-dip 1.8s ease-in-out infinite;
-}
-@keyframes about-hero-dip {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(6px);
-  }
+  display: none;
 }
 a:focus-visible {
-  outline: 2px solid var(--ab-accent, #ef4b40);
-  outline-offset: 8px;
+  outline: 2px solid var(--ab-accent);
+  outline-offset: 5px;
 }
-@media (min-width: 761px) and (min-height: 620px) and (prefers-reduced-motion: no-preference) {
-  .has-scene-portrait .about-hero__photo {
-    width: 100%;
-  }
-  .has-scene-portrait .about-hero__photo-mask img {
-    object-position: 66% center;
-  }
-  .has-scene-portrait .about-hero__stage {
-    justify-content: flex-start;
-    padding-top: 28px;
-    padding-inline: clamp(76px, 6vw, 100px) 30px;
-  }
-  .has-scene-portrait .about-hero__title {
-    font-size: min(11.6vw, 22svh);
-    letter-spacing: -0.055em;
-  }
-  .has-scene-portrait .about-hero__meta {
-    max-width: 36%;
-    margin-top: 36px;
-    color: #171717;
-  }
-  .has-scene-portrait .about-hero__role,
-  .has-scene-portrait .about-hero__tagline span,
-  .has-scene-portrait .about-hero__scroll {
-    color: #33312e;
-  }
-}
-@media (max-width: 760px), (max-height: 619px), (prefers-reduced-motion: reduce) {
-  .about-hero__photo {
-    position: relative;
-    width: auto;
-    height: 44svh;
+@media (max-width: 760px) {
+  .about-hero {
+    min-height: 560px;
   }
   .about-hero__stage {
-    min-height: 0;
-    justify-content: flex-start;
-    padding: 26px 22px 44px;
+    padding: 72px 16px 0;
   }
-  .about-hero__title {
-    font-size: 14.5vw;
-  }
-  .has-scene-portrait .about-hero__title {
-    font-size: 9.5vw;
-  }
-  .has-scene-portrait .about-hero__photo-mask img {
-    object-position: 66% 38%;
+  .about-hero__photo-mask img {
+    object-position: 62% center;
   }
   .about-hero__meta {
-    max-width: none;
-    margin-top: 34px;
-  }
-  .about-hero__role {
-    font-size: 13px;
+    width: 63%;
+    margin-top: 18px;
   }
   .about-hero__tagline {
-    font-size: 19px;
+    font-size: 23px;
+  }
+  .about-hero__signature {
+    font-size: 22px;
+    bottom: -0.65em;
   }
   .about-hero__scroll {
-    position: static;
-    margin-top: 30px;
-  }
-  .about-hero__scroll-arrow {
-    animation: none;
+    right: 18px;
+    bottom: 24px;
   }
 }
 </style>

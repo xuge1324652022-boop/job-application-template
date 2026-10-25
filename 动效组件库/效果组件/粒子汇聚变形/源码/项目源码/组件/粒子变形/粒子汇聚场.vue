@@ -42,7 +42,8 @@ interface Particle {
 }
 let particles: Particle[] = []
 
-const PALETTE = ['#ffe8ce', '#ffe8ce', '#ffe8ce', '#ffe8ce', '#ef4b40', '#ff8a5e']
+/** 视频同款：纯白微尘，少量亮灰做层次，不带彩色。 */
+const PALETTE = ['#ffffff', '#ffffff', '#ffffff', '#ffffff', '#ffffff', '#e6e6e6']
 const easeInOut = (t: number): number => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
 
 /** 把字母画进离屏画布并采样不透明像素，得到粒子目标点集。 */
@@ -82,7 +83,7 @@ function rebuild(): void {
   height = Math.max(1, Math.round(rect.height * dpr))
   canvas.value.width = width
   canvas.value.height = height
-  const count = Math.round(Math.min(3400, (width * height) / 190))
+  const count = Math.round(Math.min(5600, (width * height) / 120))
   const targets = sampleTargets(count)
   particles = Array.from({ length: targets.length }, (_, i) => ({
     x0: Math.random() * width,
@@ -90,7 +91,7 @@ function rebuild(): void {
     x1: targets[i]!.x,
     y1: targets[i]!.y,
     delay: Math.random() * 0.4,
-    size: (0.9 + Math.random() * 1.7) * dpr,
+    size: (0.65 + Math.random() * 0.9) * dpr,
     color: PALETTE[(Math.random() * PALETTE.length) | 0]!,
     phase: Math.random() * Math.PI * 2,
   }))
@@ -110,7 +111,7 @@ function draw(now: number): void {
     const x = p.x0 + (p.x1 - p.x0) * e + wx
     const y = p.y0 + (p.y1 - p.y0) * e + wy
     ctx.fillStyle = p.color
-    ctx.globalAlpha = 0.55 + e * 0.45
+    ctx.globalAlpha = 0.68 + e * 0.32
     ctx.fillRect(x, y, p.size, p.size)
   }
   ctx.globalAlpha = 1

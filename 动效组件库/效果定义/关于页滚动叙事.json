@@ -7,7 +7,7 @@
   },
   "category": "scroll",
   "status": "active",
-  "summary": "关于页深色滚动叙事：开场英文姓名巨字叠人物图，一次入场后以文字、照片和小字三层视差自然离场；启用独立hero人物素材时采用满幅照片与单行姓名，缺少分场景素材时保留兼容构图。TAGLINE主张逐行点亮退暗，红色WHO I AM实心/描边巨字横向出屏，方向词双向跑马灯衔接奶油拼贴同图放大和横向故事；独立字形越界放大后，WHO I AM奶油纸底阅读与HOW I WORK贴底巨字及标签收束。分场景AI人物图、履历和作品只由可选本机内容包提供，缺包仍为公开模板。",
+  "summary": "关于页深色滚动叙事：开场英文姓名巨字叠人物图，一次入场后以文字、照片和小字三层视差离场；独立hero素材采用满幅照片与单行姓名。TAGLINE主张在同一黑白人像构图前逐行点亮并上移，紧接橙色身份字放大为奶油色局部笔画并保留不透明停留。方向词双向横移衔接倾斜拼贴同图放大与横向故事，WHO I AM纸底阅读后展开个人资料；上下两条作品图带拉开，逐段露出实习与实践摘要，再续读完整履历、HOW I WORK章节与观察轨道。人物图、履历和作品由可选本机内容包提供，缺包仍为公开模板。",
   "entryFiles": [
     "src/components/about/AboutMotionHero.vue",
     "src/components/about/AboutCollageStage.vue",
@@ -18,7 +18,8 @@
     "src/components/about/AboutScrollChapter.vue",
     "src/components/about/AboutIdentityScene.vue",
     "src/components/about/AboutObservationRail.vue",
-    "src/components/about/AboutExperienceReveal.vue"
+    "src/components/about/AboutExperienceReveal.vue",
+    "src/components/about/AboutStudioStory.vue"
   ],
   "integrationFiles": [
     "src/views/AboutView.vue",
@@ -29,14 +30,9 @@
     {
       "file": "src/components/about/AboutMotionHero.vue",
       "symbols": [
-        "nameWords",
-        "roleParts",
-        "aboutHeroPortrait",
-        "hasScenePortrait",
         "about-hero-parallax",
         "photoMask",
-        "sceneName",
-        "useFitText"
+        "parallax"
       ],
       "purpose": "姓名与人物图叠加：独立hero素材启用时满幅照片配单行英文姓名，否则按空格分行并使用兼容右侧照片；方向与主张小字构成辅助层。入场只播一次，滚动视差不固定。 新图分支使用独立sceneName单行节点与useFitText(min:20,max:180)适配长英文姓名；旧分行fallback保留原逻辑。"
     },
@@ -44,18 +40,17 @@
       "file": "src/components/about/AboutQuoteScene.vue",
       "symbols": [
         "TAGLINE",
+        "aboutQuotePortrait",
+        "lines",
         "about-quote-mission",
-        "refreshLayout",
-        "about-dark-portrait"
+        "refreshLayout"
       ],
-      "purpose": "主张段：共享暗色人物衬底上的双语大字主张逐行点亮成波浪后上移离场（现行版本随阅读语言切换中英文本）。"
+      "purpose": "按当前语言将TAGLINE按语句拆成大字行，每行只由灰色点亮到奶油色，避免亮暗补间重叠；正文从下方持续上移，最后整段移出画面。人物衬底与紧邻的字形放大共用aboutPortrait.css和aboutQuotePortrait，不再创建红色双行巨字横带。完整PROFILE_LINES继续留在个人资料。"
     },
     {
       "file": "src/components/about/AboutWordMarquee.vue",
       "symbols": [
-        "words",
-        "travel",
-        "about-words-marquee"
+        "words"
       ],
       "purpose": "方向词实心与描边双行按实测宽度反向横移；移动、短视口与减少动态时改为完整可换行的静态词条，隐藏重复描边行，英文允许换行且移除常驻will-change。"
     },
@@ -68,7 +63,7 @@
         "reconcile",
         "about-rail"
       ],
-      "purpose": "竖排罗马数字章节导航；用锚点元素身份登记ScrollTrigger，MutationObserver只在相关章节增删后合并补建，延迟联系区出现后可高亮。锚点跳转复用页面准备流程，卸载逐项kill并断开观察器。"
+      "purpose": "竖排罗马数字章节导航；按锚点元素身份登记ScrollTrigger，MutationObserver仅在相关节点增删后合并补建，延迟联系区出现后可高亮。每段高亮从本锚点top 55%持续至下一锚点top 55%，末段到maxScroll，覆盖图带与完整履历等锚点间隙；锚点跳转仍复用页面准备流程，卸载逐项kill并断开观察器。"
     },
     {
       "file": "src/components/about/AboutCollageStage.vue",
@@ -91,9 +86,10 @@
         "measure",
         "geometry",
         "focusIndex",
-        "onRefreshInit"
+        "onRefreshInit",
+        "about-dark-portrait"
       ],
-      "purpose": "独立奶油色字形转场：完整词语先可读，再根据实测字体与字符位置围绕聚焦字形放大至局部笔画越界；背景人物不缩放，最后字层淡出衔接折叠章节。 不常驻will-change，并以force3D:false避免字形被长期纹理化后放大模糊。"
+      "purpose": "紧接主张的人物身份字形转场：当前页面传我是谁/WHO I AM，中文聚焦索引1、英文索引6，集成优先级44。起始橙色巨字先完整可读，再按实测字符光学位置独立放大为奶油色局部笔画。背景与主张同构图、保持不动；放大结束后保留不透明字形，随下一节自然滚入交棒。force3D:false避免常驻低分辨率纹理。"
     },
     {
       "file": "src/components/about/AboutScrollChapter.vue",
@@ -153,7 +149,7 @@
         "aboutProfilePortrait",
         "personal-portfolio"
       ],
-      "purpose": "仅定义DOM JSON类型、读取入口与分场景素材解析：hero/quote/card/profile可选覆盖，逐项缺失时回退原portrait，再回退公开合成人像。源码没有本机个人JSON或AI PNG；个人素材只经宿主显式注入。"
+      "purpose": "仅定义DOM JSON类型、读取入口与分场景素材解析：hero/quote/card/profile可选覆盖，逐项缺失时回退原portrait，再回退公开合成人像。宿主可提供真实人物照片或AI场景图，源码不含本机个人JSON、简历或图片字节。"
     },
     {
       "file": "src/components/about/AboutExperienceReveal.vue",
@@ -163,10 +159,26 @@
         "scrollTrigger"
       ],
       "purpose": "经历逐段揭示：随滚动逐段展开与提亮的双语经历段落。"
+    },
+    {
+      "file": "src/styles/aboutPortrait.css",
+      "symbols": [
+        "about-dark-portrait",
+        "filter",
+        "mask"
+      ],
+      "purpose": "主张和身份字形两幕共用固定照片构图：CSS完成黑白、亮度与对比处理，椭圆羽化遮罩与横向/底部渐变融入暗底。只处理网页显示，不改变原件、不生成侧脸或新姿态；文字层独立于照片缩放。"
+    },
+    {
+      "file": "src/components/about/AboutStudioStory.vue",
+      "symbols": [
+        "about-background-horizontal"
+      ],
+      "purpose": "工作室背景横向段：随滚动横向推进的工作室背景叙事条。"
     }
   ],
   "mechanism": {
-    "trigger": "各场景读取浏览器文档滚动：主张、方向词带、拼贴、字形与折叠章节各自固定外壳并 scrub；开场不固定，巨字/照片/小字以三条不同速度视差离场；左侧导航用 ScrollTrigger 观察锚点亮当前章节；工作之外使用固定横向轨道。版式准备和刷新统一调度，倒滚按相同时间线恢复。",
+    "trigger": "全部场景使用原生文档滚动：主张、紧邻身份字形、方向词带、拼贴、折叠章节、实习揭示与观察轨道各自固定外壳并scrub；首屏不固定，以文字/照片/小字分速视差离场。左侧导航在相邻锚点之间持续高亮，含没有独立导航项的图带与完整履历。布局准备和刷新统一调度，倒滚按同一时间线恢复。",
     "stages": [
       {
         "name": "hero-name-parallax",
@@ -178,6 +190,38 @@
           "title/photoMask/meta.y"
         ],
         "timing": "active放行后仅一次入场：照片遮罩1.1，姓名从0.2起持续1.05并错峰0.09，小字从1.05起0.6；视差top top→bottom top、scrub:true。断点重建清除旧隐藏起点，已播放则直接可见。"
+      },
+      {
+        "name": "quote-mission-rise",
+        "description": "TAGLINE按当前语言拆成句行，行色由灰色依次点亮到奶油色。正文整体从舞台下部向上经过，点亮后保持亮色，最后上移到屏幕外。人物照片通过共享CSS变为黑白、压暗并羽化，原始照片及构图不随文字运动。",
+        "properties": [
+          "line.color:#4b4b49→#ffe8ce",
+          "content.y:0.32H→−0.18H→出屏",
+          "shared portrait.filter/mask-image"
+        ],
+        "timing": "至少761×620且允许动态时top top固定2.8H，refreshPriority:45，scrub:0.35；每行自0.12起点亮0.45、错峰0.48，正文0–1.8向上经过，1.8–2.2停留，2.2–3.1上移离场。"
+      },
+      {
+        "name": "independent-word-zoom",
+        "description": "紧接主张，继续同一黑白人物构图。页面传我是谁/WHO I AM，聚焦字符分别为索引1/6。先显示橙色完整巨字，按舞台84%宽、56%高适配字号；围绕实测聚焦字符放大至局部笔画越界，并过渡为奶油色。字腔和笔画间隙真实保留，照片不缩放；尾部保持不透明以供观察，下一节自然滚入，不提前淡成空黑屏。",
+        "properties": [
+          "--word-zoom-size",
+          "word.transformOrigin",
+          "word.x/y/scale/autoAlpha:1",
+          "word.color:#ffb15f→#ffe8ce",
+          "caption.autoAlpha",
+          "word.force3D:false"
+        ],
+        "timing": "至少981×650且允许动态时固定4.2H，页面集成refreshPriority:44，scrub:0.35；0–0.6可读，0.6–2.8以power2.inOut放大，1.1–1.7颜色过渡，2.8–3.65不透明停留。scale=max(W/聚焦字宽,H/聚焦字高)×1.65；onRefreshInit重测。组件默认优先级35可由宿主覆盖。"
+      },
+      {
+        "name": "practice-word-marquee",
+        "description": "工作方向词采用上行实心奶油、下行描边两行巨字，上下行反向横移穿过视口；词条来自既有工作方向与技能标签。小屏、短屏和减少动态分支应完整显示静态词条。",
+        "properties": [
+          "rowA.x/autoAlpha/yPercent",
+          "rowB.x/autoAlpha/yPercent"
+        ],
+        "timing": "top top固定1.9H，refreshPriority:42，scrub:true；两行0–0.24显现，并在0–1.75反向横移，尾部停留0.2；travel按实际带宽和视口余量计算。"
       },
       {
         "name": "collage-ribbon",
@@ -201,36 +245,6 @@
           "counter"
         ],
         "timing": "top top，scrub:true；storyDuration=max(1,横向行程/H)，end=H×(2.85+storyDuration+0.2)。takeover放大0.55、回缩从+0.62开始、+0.76落位、story从+1.2开始；横向段ease:none。桌面内resize防抖重建，构建通过mediaContext.ignore隔离独立context；disposeScene先revert，再只清除本场景拥有的transform/opacity/visibility等属性并失效变换缓存，保留模板静态比例，防止跨断点重放旧隐藏起点。"
-      },
-      {
-        "name": "quote-mission",
-        "description": "共享暗色人物衬底上，主张大字按当前阅读语言取 TAGLINE 并拆行，全部行自暗色起逐行点亮，点亮后随进度退暗上移形成滚动波浪；主张整体按实际高度上移离场，交棒后续场景。",
-        "properties": [
-          "line.color/y",
-          "content.y/autoAlpha"
-        ],
-        "timing": "top top，固定距离3.6H，scrub:true；行点亮0–1.9、退暗0.9–2.3、主张离场2.05–2.85、巨字2.2–4.45。"
-      },
-      {
-        "name": "practice-word-marquee",
-        "description": "工作方向词采用上行实心奶油、下行描边两行巨字，上下行反向横移穿过视口；词条来自既有工作方向与技能标签。小屏、短屏和减少动态分支应完整显示静态词条。",
-        "properties": [
-          "rowA.x/autoAlpha/yPercent",
-          "rowB.x/autoAlpha/yPercent"
-        ],
-        "timing": "top top固定1.9H，refreshPriority:42，scrub:true；两行0–0.24显现，并在0–1.75反向横移，尾部停留0.2；travel按实际带宽和视口余量计算。"
-      },
-      {
-        "name": "independent-word-zoom",
-        "description": "完整词语和双语标注先可读；按词与舞台实测尺寸适配字号，默认聚焦最靠近词中心的非空字符，也可通过focusIndex指定。字形保持真实轮廓、字腔和间隙，围绕聚焦点放大至只见局部笔画，人物衬底保持独立。此段向外放大，不改后续WHO I AM的折叠缩小。 字形不常驻will-change，transform使用force3D:false，保持放大过程中的文字边缘清晰；仍需按实际字体与DPR检查视觉结果。",
-        "properties": [
-          "--word-zoom-size",
-          "word.transformOrigin",
-          "word.x/y/scale/autoAlpha",
-          "caption.autoAlpha",
-          "word.force3D:false"
-        ],
-        "timing": "宽度>=981px且高度>=650px并允许动态时固定，优先级35；end=2.2H+0.25W，scrub:true。0–0.2可读停留，0.2–0.92放大，1.04–1.22字层淡出，末尾停留0.12；onRefreshInit重测。"
       },
       {
         "name": "chapter-fold",
@@ -258,6 +272,20 @@
         "timing": "章节导语行错峰0.3，正文行错峰0.2，ease:none；个人介绍词错峰0.035，段落 scrub:0.4，图像 scrub:0.6。"
       },
       {
+        "name": "experience-ribbons-reveal",
+        "description": "个人资料后以奶油纸底呈现实习与实践。上下两条已有作品图带保持−5°倾斜，分别向上和向下拉开，同时反向水平漂移；中间逐段显示EXPERIENCE公司、期间、岗位与首条详情摘要，链接继续到完整履历。标题top:20%，正文inset:30%..17%，避免上方图带遮挡。图带纯装饰并隐藏于语义树，摘要保持可访问。",
+        "properties": [
+          "band.y:0→±0.36H",
+          "upperTrack.x:0→−travel",
+          "lowerTrack.x:−travel→0",
+          "heading.opacity/y",
+          "entry.opacity/y",
+          "current",
+          "motionReady"
+        ],
+        "timing": "至少981×720且允许动态时top top固定H×(1.05+经历数×0.9)，refreshPriority:25，scrub:0.35；图带0–1.25拉开，水平行程取超出轨道宽度的55%；首卡从1.1开始，每卡间隔1.65，入场0.45、非末卡于+1.25起退出0.4。键盘focusin按该卡可读时间换算滚动位置，末卡保留。"
+      },
+      {
         "name": "observation-rail",
         "description": "纵向原生滚动将三幅图像与观察文字的轨道移向左侧；第一幅从完整可见状态开始，后两幅在进入视口时展开遮罩。",
         "properties": [
@@ -270,7 +298,7 @@
     ],
     "state": [
       "hero.played/entrance/parallax/hasScenePortrait",
-      "quote.lines/giant",
+      "quote.lines/content/media",
       "marquee.rowA/rowB/media",
       "sideRail.activeIndex/triggers",
       "collage.context/animation/storyDuration/current",
@@ -280,36 +308,39 @@
       "observationRail.current/scrollScene/media",
       "personalPortfolio.portraits.hero/quote/card/profile",
       "LazySection.loaded/resolved/readiness",
-      "布局准备与刷新取消句柄"
+      "布局准备与刷新取消句柄",
+      "experienceReveal.summaries/current/motionReady/media"
     ],
     "propertyOwnership": [
       "首屏入场写姓名子行、照片遮罩与小字的入场属性；滚动视差写外层title/photoMask/meta的y，首屏不固定。",
       "拼贴带、浮动主图、故事轨道和底纸分层；主图按钮整体拥有x/y/scale/rotation，点击盒及焦点环与画面保持一致。",
-      "主张场景拥有TAGLINE波浪提亮与WHO I AM巨字带横移，AboutWordZoom独立拥有字形缩放和透明度；quote背景只作为衬底，不随独立字形放大。",
+      "主张场景只拥有TAGLINE逐行颜色和正文上移；AboutWordZoom独立拥有身份字形的颜色、位置和缩放，两幕共用固定照片CSS。人物底图不随字形放大，字形末尾不主动淡出。",
       "章节标题行负责x/yPercent/clipPath，外层标题负责scale/y，正文负责透明度与颜色；独立字形放大不能替换scale:0.065的折叠收束。",
       "个人介绍图像容器只写clipPath，装饰词段只写颜色；事实、技能和工具保持自然文档流。",
       "工作之外固定stage不参与平移，track拥有横向x，内部image-mask拥有clipPath；固定标题栏避让全局索引。",
       "查看器与页面滚动锁由AboutView及既有覆盖层管理；组件不新增滚轮控制器。",
-      "拼贴场景通过mediaContext.ignore避免同一动画被父子context重复恢复；disposeScene显式revert当前context并清理仅由本场景拥有的动画属性，保留--image-width、aspect-ratio等静态模板样式。"
+      "拼贴场景通过mediaContext.ignore避免同一动画被父子context重复恢复；disposeScene显式revert当前context并清理仅由本场景拥有的动画属性，保留--image-width、aspect-ratio等静态模板样式。",
+      "实习揭示的外层band拥有上下y、内层track拥有反向x，二者不覆盖CSS倾角；各摘要卡仅写opacity/y，原完整ExperienceTimeline继续自然阅读。"
     ],
     "interruption": [
       "gsap.matchMedia按断点和减少动态偏好撤销补间与固定区域，回到完整可读的自然文档流。",
-      "固定区域按主张45、方向词跑马灯42、拼贴40、独立字形35、身份章节30、过程章节20、观察轨道10的refreshPriority依次测量；首屏只作自然视差，不占固定行程。字体、图像与延迟区块落位后通过可取消共享队列刷新。",
+      "固定区域按主张45、身份字形44、方向词42、拼贴40、身份章节30、实习揭示25、过程章节20、观察轨道10依次测量；首屏只作自然视差。字体、图像与延迟区块落位后通过可取消共享队列刷新。",
       "工作之外键盘焦点进入完全离屏图像按钮时，根据panel位置计算主ScrollTrigger进度并用window.scrollTo定位；按钮与轨道存在超过12px水平交集且轨道在视口内时不定位，保留查看器关闭前的任意滚动位置。",
       "工具选择只在active为真时发出；查看器关闭后的焦点和滚动恢复继续由页面已有逻辑处理。"
     ]
   },
   "integration": {
     "steps": [
-      "按常驻SideRail、首屏、TAGLINE主张与WHO I AM巨字横移、方向词双向跑马灯、倾斜拼贴与横向故事、独立字形放大、WHO I AM纸底章节、个人资料、经历、HOW I WORK贴底章节、工作流、观察轨道和联系组合。",
-      "AboutWordZoom传入lang、双语word与label；可选backgroundSrc/backgroundSrcset、focusIndex和refreshPriority。引言中不再重复创建字形放大层，下一章节保留自身折叠缩小。",
+      "按SideRail、首屏、TAGLINE主张上移、同照片前的身份字形放大、方向词双向横移、倾斜拼贴与横向故事、WHO I AM纸底章节、个人资料、双层作品图带揭示实习摘要、完整经历、HOW I WORK、工作流、观察轨道和联系组合。",
+      "AboutWordZoom紧接AboutQuoteScene，传入lang、双语word与label；本页word为我是谁/WHO I AM，focusIndex为1/6，refreshPriority为44。两幕共用aboutPortrait.css和aboutQuotePortrait，背景Src/Srcset仍可由宿主覆盖；独立字形放大后，后续章节仍保留折叠缩小。",
       "首屏以下的重区块（经历、工作流、观察轨道、联系）用LazySection包裹并配minHeight占位：提前一屏加载异步chunk，Suspense解析并经过nextTick确认挂载后才移除占位、解除aria-busy并完成ensureReady()；ResizeObserver申请共享布局刷新，已加载内容不卸载。",
       "锚点与历史滚动恢复通过页面注册的prepareScroll等待四个LazySection.ensureReady()、字体和routeCurtainBlocked解除，再最终测量并交还原有路由scrollBehavior一次定位。门闩在幕布开始揭开时解除，定位不再等到幕布完全退出，避免输入解锁后出现可见的锚点跳动；新请求或卸载时取消旧请求。",
       "将路由揭幕与覆盖层状态派生为active，传给首屏及个人介绍；以v-model:active-tool把个人介绍工具和原有工作流同步。",
       "向AboutScrollChapter提供稳定name、英文heading、双语label与双语lines；需要导语先读再进入标题时传lead，保留互补标题行和独立正文节点。",
       "监听AboutObservationRail的open(item,trigger)事件，接入页面既有VisualViewer；保留from查询参数的摄影与海报续读链接。",
       "保留深色--ab-*主题变量和各组件的自然流回退样式；固定舞台必须以浏览器原生文档滚动为基准。",
-      "本机个人内容包由宿主Vite插件可选注入document中的#personal-portfolio JSON；personalPortfolio.ts只读取类型化内容。包提供个人资料、人像、作品、故事与响应式尺寸；没有启用包时所有入口继续显示公开模板。复制动效源码不会自动携带本机内容包或其素材。 可选portraits.hero/quote/card/profile分别用于满幅首屏、主张衬底、人物小卡与个人资料；旧包无该字段时逐项回退原portrait，源码包不携带本机PNG。"
+      "本机个人内容包由宿主Vite插件可选注入document中的#personal-portfolio JSON；personalPortfolio.ts只读取类型化内容。包提供个人资料、人像、作品、故事与响应式尺寸；没有启用包时所有入口继续显示公开模板。复制动效源码不会自动携带本机内容包或其素材。 可选portraits.hero/quote/card/profile分别用于满幅首屏、主张衬底、人物小卡与个人资料；旧包无该字段时逐项回退原portrait，源码包不携带本机PNG。",
+      "AboutExperienceReveal放在个人资料之后、完整ExperienceTimeline之前，传lang；读取既有EXPERIENCE、WORKS与可选selectedWorks，不另写一份履历或把摘要当全部正文。图带使用现有作品，链接进入原#work-*段落。"
     ],
     "inputs": [
       "AboutMotionHero.active/lang",
@@ -341,19 +372,20 @@
       "src/data/aiTools.ts",
       "src/data/resumeEmphasis.ts",
       "src/data/visualPortfolio.ts",
-      "src/data/personalPortfolio.ts"
+      "src/data/personalPortfolio.ts",
+      "src/styles/aboutPortrait.css"
     ],
     "assets": [
       "默认公开人像/about/portrait-{400,900,1448}.webp及visualPortfolio登记的合成素材",
-      "本机内容包可选hero/quote/card/profile分场景AI人物图、旧portrait、已选作品与简历；由宿主显式提供，任何本机PNG/私JSON都不进入源码组件库。",
+      "本机内容包可选hero/quote/card/profile人物素材（真实照片或AI场景）、旧portrait、已选作品与简历；由宿主显式提供，原始证件照、生成PNG和私JSON都不进入源码组件库。黑白与暗色遮罩由CSS完成。",
       "AI_TOOLS登记的工具图标",
       "AboutView提供的黑底、奶油正文、红色巨字与--ab-*主题变量"
     ]
   },
   "accessibility": {
-    "reducedMotion": "减少动态、小屏和短视口保留完整自然阅读：姓名与主张可读；方向词改为换行静态列表、隐藏重复描边行，英文不被裁切；拼贴图片与故事直接显示，独立字形不放大，章节不固定或隐藏正文，个人资料与观察轨道完整可读。足够宽高的SideRail在减少动态时仍为普通锚点导航。",
-    "touch": "保留原生纵向手势；首屏视差、主张与词带要求至少761×620，章节至少761×650，拼贴与独立字形至少981×650且允许动态。未满足时显示自然流；侧栏仅在至少981×620时显示。",
-    "keyboard": "装饰字形与拆分词层aria-hidden，提供完整语义标题与原句；拼贴浮动主图按钮随画面一起移动，完全离屏的图片聚焦时定位相应阶段；查看器关闭恢复原焦点和位置，部分可见触发按钮不强制对齐。 拼贴focus-within作品选择区覆盖全部已登记作品（当前个人版七幅）；退出桌面断点时恢复到自然网格中的同一作品，经历链接应完整滚入视口。"
+    "reducedMotion": "减少动态、小屏和短视口保留完整自然阅读：姓名与主张可读；方向词改为换行静态列表、隐藏重复描边行，英文不被裁切；拼贴图片与故事直接显示，独立字形不放大，章节不固定或隐藏正文，个人资料与观察轨道完整可读。足够宽高的SideRail在减少动态时仍为普通锚点导航。 实习揭示在非动画分支保留上下静态装饰图带及全部摘要，取消固定、堆叠隐藏和动态位移；完整履历继续可读。",
+    "touch": "保留原生纵向手势；首屏视差、主张与词带要求至少761×620，章节至少761×650，拼贴与独立字形至少981×650且允许动态。未满足时显示自然流；侧栏仅在至少981×620时显示。 新实习揭示要求至少981×720且允许动态，否则为自然流。",
+    "keyboard": "装饰字形与拆分词层aria-hidden，提供完整语义标题与原句；拼贴浮动主图按钮随画面一起移动，完全离屏的图片聚焦时定位相应阶段；查看器关闭恢复原焦点和位置，部分可见触发按钮不强制对齐。 拼贴focus-within作品选择区覆盖全部已登记作品（当前个人版七幅）；退出桌面断点时恢复到自然网格中的同一作品，经历链接应完整滚入视口。 实习揭示的循环图带aria-hidden；摘要链接聚焦时按对应时间定位可读卡，链接本身保持原完整经历锚点。"
   },
   "lifecycle": {
     "setup": [
@@ -365,7 +397,8 @@
       "卸载时设置dead或mounted状态以拒绝迟到回调，取消布局准备和共享刷新请求，再执行media.revert。",
       "轨道媒体分支退出时清除is-pinned类、ScrollTrigger引用和当前计数，恢复纵向排版与完整图像；LazySection断开IntersectionObserver与ResizeObserver并完成未决readiness。",
       "拼贴独立场景由disposeScene统一销毁，避免初始与resize重建场景重复归属于matchMedia；清除动画属性与变换缓存后再返回自然流，断点切换和卸载不能留下旧隐藏状态。",
-      "SideRail卸载时断开MutationObserver、取消待reconcile帧和共享刷新请求，kill Map中所有导航触发器。"
+      "SideRail卸载时断开MutationObserver、取消待reconcile帧和共享刷新请求，kill Map中所有导航触发器。",
+      "实习揭示退出媒体分支时移除focusin、is-pinned并重置当前索引，撤销自身band/track/card/heading动画属性；不清除图像尺寸或修改全局滚动控制器。"
     ],
     "knownLimitations": [
       "字形放大效果与所选字形轮廓和字体有关；focusIndex按Unicode字符索引指定，不保证每个字腔呈现相同构图。",
@@ -400,7 +433,7 @@
       "桌面正向与反向滚动检查导语先提亮离场，三行标题再从底部进入、汇合、折叠、缩小和上移，最后正文进入；宽屏标题也不得超出视口。",
       "首屏检查姓名、照片与主张图文叠加：独立hero素材使用满幅照片+单行姓名，普通包保留兼容姓名分行；入场后自然视差离场。检查320/390px和减少动态时文字完整可读。",
       "拼贴应先看见多幅图片在同一倾斜带中横移，同一浮动主图归正覆盖、回到第一格并随轨移动；点击盒和焦点环跟随主图，resize后再跨断点或离开页面无残留pin。",
-      "人物引言读完退出后，独立奶油字形先完整可读，再放大至局部笔画越界，背景不随字形放大；倒滚逐阶段恢复，随后WHO I AM仍按原逻辑折叠缩小。",
+      "主张灰字逐行点亮并连续向上移出后，身份巨字先为橙色完整文字，再放大成奶油色局部笔画；照片位置与尺度在两幕保持一致、在字缝里可辨。尾部停留时字形不透明，倒滚按原路恢复；后续WHO I AM仍按原逻辑折叠缩小。",
       "在观察轨道0、0.5、1进度查看三幅完整比例图像，反向滚动确认遮罩恢复且第一幅始终可见。",
       "使用Tab聚焦完全离屏图像按钮，确认画面滚入视口；在0.38等非对齐进度点击部分可见图片并按Esc关闭，精确恢复原滚动位置和触发按钮焦点。",
       "延迟异步chunk后点击联系/流程锚点或带hash刷新，确认等待Suspense就绪和共享布局测量后仍定位正确。",
@@ -408,10 +441,12 @@
       "分别检查启用本机个人内容包与缺包模式；生成的源码副本中不得出现实际个人JSON、简历内容或私有素材，公开模板依然可运行。",
       "整带横移结束时主图仍在约45%视口宽的位置并可见，再开始归正覆盖；个人版全部七幅作品能由Tab进入选择区并打开，跨断点后焦点回到同一作品。",
       "分别在桌面内resize、桌面转移动、减少动态切换及路由卸载后检查拼贴context清理：自然流图像不得残留opacity:0、visibility:hidden或旧transform。",
-      "主张只显示TAGLINE，完整PROFILE_LINES仍在个人资料；字形放大在常用DPR下边缘清晰，无常驻will-change产生的低分辨率纹理。",
+      "主张只显示TAGLINE，完整PROFILE_LINES在个人资料；检查灰转亮不被过早退暗补间覆盖。字形放大在常用DPR下边缘清晰，无常驻will-change产生的低分辨率纹理。",
       "有portraits.hero时检查满幅AI人物图与单行英文姓名；无分场景字段及完全缺包时检查兼容回退。process标题只做−3.5%H基线修正，不得重复沉到底部或超出底缘。",
-      "在320/390px、短屏及减少动态模式逐项读取全部方向词与英文，确保静态布局可换行且无横向裁切；延迟联系区挂载后，SideRail联系链接仍可定位并正确高亮。",
-      "新图首屏用长英文姓名检查单行尾部完整显示，改变窗口宽度及字体完成后useFitText重测；无新图时旧v-for分行姓名行为保持。"
+      "在320/390px、短屏及减少动态模式逐项读取全部方向词、英文与实习摘要，确保静态布局换行且无横向裁切；延迟联系区挂载后SideRail可定位并高亮，在实习图带与完整履历之间仍维持同一章节高亮直到下一锚点。",
+      "新图首屏用长英文姓名检查单行尾部完整显示，改变窗口宽度及字体完成后useFitText重测；无新图时旧v-for分行姓名行为保持。",
+      "桌面检查实习上下图带先合拢、再拉开并反向横移，中间逐段出现现有经历；标题不被上带遮挡，正文在30%至83%舞台高度内可读。逐一聚焦查看完整经历链接，确认滚动到相应摘要后原锚点可达，非动画时全部摘要按自然流显示。",
+      "核对生成来源清单仅含静态src/index上下文：不得包含本机证件照、AI PNG、私有content.json、个人注入payload或简历文件字节；共享肖像CSS可包含，实际照片仍由宿主外部提供。"
     ]
   },
   "tags": [

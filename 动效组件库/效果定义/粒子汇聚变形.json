@@ -7,7 +7,7 @@
   },
   "category": "scroll",
   "status": "active",
-  "summary": "按用户提供的参考视频完整复刻的三段式演示路由 /morph：深底 hero 右上角小 logo，三行奶白巨字 TRANSFORMING IDEAS INTO DIGITAL REALITIES 从下升起入场；固定段落上半为 WE TAKE SAMPLES / AND MORPH IT INTO THE TYPE / OF SHAPE WE WANT 三行大写标题，下半全宽粒子画布内散布的奶油/珊瑚粒子随滚动汇聚成大字母 R（离屏画布像素采样目标点，每粒子独立延迟与缓动，倒滚沿原路散开）；末段 SELECTED WORKS 双列圆角网格，深色仪表盘风格界面卡（柱状图/折线/环形/表格/对话/看板六种）全部由 CSS 与内联 SVG 合成，方竖比例混合、无图注。文案保留视频原句作为效果演示。",
+  "summary": "按参考视频完整复刻的三段式演示路由 /morph（纯黑底、纯白字）：深底 hero 右下角小 logo「R.」，三行白色巨字 TRANSFORMING IDEAS INTO DIGITAL REALITIES 从下升起；固定段落上方为句子式小标题 We take samples and morph it into the type of shape we want，下方全宽画布内纯白微尘粒子（上限 5600、约 0.65–1.55px）随滚动汇聚成大字母 R（离屏画布像素采样、每粒子独立延迟、倒滚散开）；末段 SELECTED WORKS 双列圆角网格，八张亮色网页截图风界面卡（落地页/登录卡/定价卡/文章/数据/图集/个人卡/表单）全部由 CSS 与内联样式合成，方竖比例混合、无图注。文案保留视频原句作为效果演示。",
   "entryFiles": [
     "src/views/MorphView.vue",
     "src/components/morph/MorphParticleField.vue"
@@ -52,7 +52,7 @@
       },
       {
         "name": "particle-converge",
-        "description": "全宽深色画布内，粒子从随机散布位置飞向字母 R 的采样点；延迟映射让前段先启动部分粒子，后段全体到位，停留阶段正弦呼吸；倒滚按同一映射对称散开。",
+        "description": "全宽纯黑画布内，白色微尘粒子从随机散布位置飞向字母 R 的采样点；延迟映射让前段先启动部分粒子，后段全体到位，停留阶段正弦呼吸；倒滚按同一映射对称散开。",
         "properties": [
           "particle.x/y（插值）",
           "particle.globalAlpha",
@@ -62,7 +62,7 @@
       },
       {
         "name": "grid-reveal",
-        "description": "SELECTED WORKS 小标签下双列圆角网格：八张深色仪表盘界面卡（bars/line/donut/rows/chat/kanban）由 CSS 变量着色的合成元素构成，方竖比例交替，进入视口自下浮现，悬停轻微放大；页脚注明界面卡均为合成。",
+        "description": "SELECTED WORKS 小标签下双列圆角网格：八张亮色网页截图风界面卡（landing/login/pricing/article/stats/gallery/profile/form）由 CSS 变量着色的浅底白卡元素构成，方竖比例交替，进入视口自下浮现，悬停轻微放大；页脚注明界面卡均为合成。",
         "properties": [
           "cell.y/autoAlpha",
           "cell img transform(scale)"

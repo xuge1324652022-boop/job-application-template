@@ -416,7 +416,7 @@ onBeforeUnmount(() => {
 }
 .is-pinned .experience-reveal__heading {
   position: absolute;
-  top: 38px;
+  top: 20%;
   left: clamp(72px, 7vw, 120px);
   width: auto;
   right: 72px;
@@ -437,7 +437,7 @@ onBeforeUnmount(() => {
 }
 .is-pinned .experience-reveal__reading {
   position: absolute;
-  inset: 21% clamp(72px, 10vw, 170px) 17%;
+  inset: 30% clamp(72px, 10vw, 170px) 17%;
   display: grid;
   align-items: center;
   width: auto;

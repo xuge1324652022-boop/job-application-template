@@ -52,17 +52,17 @@ import { requestMotionLayoutRefresh } from '../../utils/motionLayout'
  */
 const chapters = [
   { numeral: 'I.', id: 'about-intro', zh: '开场', en: 'INTRO' },
-  { numeral: 'II.', id: 'voice', zh: '主张', en: 'VOICE' },
-  { numeral: 'III.', id: 'identity-words', zh: '方向', en: 'WORDS' },
-  { numeral: 'IV.', id: 'stories', zh: '叙事', en: 'STORIES' },
-  { numeral: 'V.', id: 'identity', zh: '实践', en: 'IN PRACTICE' },
-  { numeral: 'VI.', id: 'process', zh: '方式', en: 'PROCESS' },
-  { numeral: 'VII.', id: 'contact', zh: '联系', en: 'CONTACT' },
+  { numeral: 'II.', id: 'voice', zh: '关于我', en: 'WHO I AM' },
+  { numeral: 'III.', id: 'experience-reveal', zh: '经历', en: 'EXPERIENCE' },
+  { numeral: 'IV.', id: 'achievements', zh: '作品成果', en: 'ACHIEVEMENTS' },
+  { numeral: 'V.', id: 'process', zh: '创作方向', en: 'PRACTICE' },
+  { numeral: 'VI.', id: 'recognition', zh: '个人履历', en: 'BACKGROUND' },
+  { numeral: 'VII.', id: 'contact', zh: '联系', en: 'GET IN TOUCH' },
 ] as const
 
 defineProps<{ lang: Lang }>()
 const rail = ref<HTMLElement | null>(null)
-const activeIndex = ref(-1)
+const activeIndex = ref(0)
 type ChapterId = (typeof chapters)[number]['id']
 const triggers = new Map<ChapterId, { target: HTMLElement; trigger: ScrollTrigger }>()
 const chapterSelector = chapters.map((chapter) => `#${chapter.id}`).join(',')
@@ -143,20 +143,16 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-/* 仅在足够宽的桌面视口显示；与动效无关，减弱动效偏好下仍可用作纯导航。 */
 .about-rail {
   position: fixed;
   z-index: 40;
-  left: 0;
-  top: 0;
-  bottom: 0;
+  inset: 0 auto 0 0;
   display: none;
-  width: 56px;
+  width: 48px;
+  background: #0a0a0a;
+  color: #fee9ce;
+  border-right: 1px solid #fee9ce18;
   flex-direction: column;
-  align-items: stretch;
-  justify-content: space-between;
-  background: var(--ab-bg);
-  border-right: 1px solid var(--ab-line);
 }
 @media (min-width: 981px) and (min-height: 620px) {
   .about-rail {
@@ -164,92 +160,94 @@ onBeforeUnmount(() => {
   }
 }
 .about-rail__home {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  padding: 18px 0 14px;
-  color: var(--ab-ink);
-  text-decoration: none;
+  height: 48px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-bottom: 1px solid #fee9ce18;
+  color: inherit;
 }
 .about-rail__burger {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
   width: 18px;
+  display: grid;
+  gap: 5px;
 }
 .about-rail__burger i {
-  height: 2px;
-  background: currentcolor;
+  height: 1px;
+  background: currentColor;
 }
+.about-rail__burger i:nth-child(2) {
+  width: 12px;
+}
+.about-rail__burger i:last-child,
 .about-rail__initials {
-  writing-mode: vertical-rl;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.24em;
+  display: none;
 }
 .about-rail__chapters {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin: 10px 0;
-  padding: 0;
   list-style: none;
+  padding: 0;
+  margin: 0;
 }
 .about-rail__chapter {
+  position: relative;
+  height: 55px;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 3px;
-  padding: 8px 0;
-  color: var(--ab-dim);
+  justify-content: center;
+  color: #fee9ce55;
+  border-bottom: 1px solid #fee9ce18;
   text-decoration: none;
-  transition: color 0.25s ease;
-}
-.about-rail__chapter:hover,
-.about-rail__chapter.is-active {
-  color: var(--ab-accent);
+  font-size: 10px;
+  font-weight: 700;
+  writing-mode: vertical-rl;
+  transition:
+    height 0.3s,
+    color 0.3s;
 }
 .about-rail__numeral {
   font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
 }
 .about-rail__word {
-  writing-mode: vertical-rl;
-  font-size: 9px;
-  letter-spacing: 0.22em;
+  display: none;
+}
+.about-rail__chapter.is-active,
+.about-rail__chapter:hover {
+  color: #fee9ce;
+  border-left: 2px solid #ef5143;
+}
+.about-rail__chapter.is-active {
+  height: 88px;
 }
 .about-rail__chapter.is-active .about-rail__word {
-  padding: 6px 2px;
-  background: var(--ab-accent);
-  color: var(--ab-bg);
-  border-radius: 999px;
+  display: inline;
+}
+.about-rail__chapter.is-active .about-rail__numeral {
+  display: none;
 }
 .about-rail__connect {
+  margin-top: auto;
+  min-height: 120px;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 12px;
-  margin: 14px;
-  padding: 16px 0;
-  background: var(--ab-ink);
-  color: var(--ab-bg);
+  justify-content: center;
+  gap: 5px;
+  background: #ffb15f;
+  color: #0a0a0a;
   text-decoration: none;
-  border-radius: 999px;
-}
-.about-rail__connect:hover {
-  background: var(--ab-accent);
-  color: var(--ab-ink);
-}
-.about-rail__connect-text {
   writing-mode: vertical-rl;
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.26em;
 }
-.about-rail__connect-arrow {
-  font-size: 12px;
+.about-rail__connect:hover {
+  background: #fee9ce;
+}
+a:focus-visible {
+  outline: 2px solid #ef5143;
+  outline-offset: -3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .about-rail__chapter {
+    transition: none;
+  }
 }
 </style>

@@ -91,6 +91,7 @@
     "src/components/about/AboutScrollChapter.vue": "项目源码/组件/人物与作品/人物滚动章节.vue",
     "src/components/about/AboutSection.vue": "项目源码/组件/人物与作品/作品章节容器.vue",
     "src/components/about/AboutSideRail.vue": "项目源码/组件/人物与作品/竖排章节导航.vue",
+    "src/components/about/AboutStudioStory.vue": "项目源码/组件/人物与作品/工作室故事.vue",
     "src/components/about/AboutWordMarquee.vue": "项目源码/组件/人物与作品/方向词双向跑马灯.vue",
     "src/components/about/AboutWordZoom.vue": "项目源码/组件/人物与作品/字形越界放大.vue",
     "src/components/about/AiWorkflow.vue": "项目源码/组件/人物与作品/智能创作流程.vue",

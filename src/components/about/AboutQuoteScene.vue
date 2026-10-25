@@ -15,18 +15,11 @@
         />
       </div>
       <div ref="content" class="quote-scene__content">
-        <p class="quote-scene__kicker">
-          {{ lang === 'zh' ? '我的主张' : 'MY MISSION'
-          }}<span>{{ lang === 'zh' ? 'MY MISSION' : '我的主张' }}</span>
-        </p>
         <h2 id="quote-title" ref="statement" class="quote-scene__statement">
           <span v-for="(line, index) in lines" :key="index" class="quote-scene__line">{{
             line
           }}</span>
         </h2>
-        <p class="quote-scene__translation" :lang="lang === 'zh' ? 'en' : 'zh'">
-          {{ lang === 'zh' ? TAGLINE.en : TAGLINE.zh }}
-        </p>
       </div>
       <span class="quote-scene__cue" aria-hidden="true">↓</span>
     </div>
@@ -182,9 +175,11 @@ onBeforeUnmount(() => {
 }
 .quote-scene__statement {
   margin: 0;
-  max-width: 12em;
-  font-size: clamp(48px, 7.8vw, 120px);
-  font-weight: 900;
+  max-width: 15em;
+  margin-inline: auto;
+  text-align: center;
+  font-size: clamp(48px, 5.625vw, 108px);
+  font-weight: 700;
   letter-spacing: -0.04em;
   line-height: 1.12;
   color: #ffe8ce;

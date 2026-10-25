@@ -1,76 +1,22 @@
 <template>
-  <!-- 滚动叙事与完整履历共用原有资料；各场景独立清理动画。首屏以下区块延迟挂载。 -->
   <div class="about-page" @click="onAnchorClick">
     <AboutSideRail :lang="lang" />
     <AboutMotionHero :active="heroActive" :lang="lang" />
-    <!-- 同一黑白人物构图：主张向上经过 → 橙色身份巨字放大成奶油色笔画。 -->
-    <AboutQuoteScene :lang="lang" />
-    <AboutWordZoom
-      id="identity-zoom"
-      :lang="lang"
-      :word="{ zh: '我是谁', en: 'WHO I AM' }"
-      :label="{ zh: '把想法变成看得见的表达', en: 'Turning ideas into something you can see' }"
-      :focus-index="lang === 'zh' ? 1 : 6"
-      :refresh-priority="44"
-      :background-src="aboutQuotePortrait.src"
-      :background-srcset="visualImageSources(aboutQuotePortrait)"
-    />
-    <AboutWordMarquee :lang="lang" />
-    <AboutCollageStage :lang="lang" @open="onOpenVisual" />
-    <AboutScrollChapter
-      name="identity"
-      heading="WHO I AM"
-      paper
-      :lang="lang"
-      :label="{ zh: '关于我', en: 'A little about me' }"
-      :lines="{
-        zh: [
-          '把想法整理成清晰的表达',
-          '在版面与色彩之间做取舍',
-          '让工具参与过程，判断留在自己手里',
-        ],
-        en: [
-          'Shape ideas into clear communication.',
-          'Weigh layout against colour.',
-          'Let tools support the process and keep judgment with me.',
-        ],
-      }"
-    />
-    <main class="about-body">
-      <AboutIdentityScene v-model:active-tool="activeTool" :lang="lang" :active="heroActive" />
-      <AboutExperienceReveal :lang="lang" />
-      <div class="about-reading">
-        <p class="about-section-word" lang="en">IN PRACTICE.</p>
-        <LazySection ref="experienceSection" min-height="190vh" :eager="eagerAll"
-          ><ExperienceTimeline :lang="lang"
-        /></LazySection>
-      </div>
-      <AboutScrollChapter
-        name="process"
-        heading="HOW I WORK"
-        size="12.2vw"
-        bleed
+    <main>
+      <AboutQuoteScene :lang="lang" />
+      <AboutWordZoom
+        id="identity-zoom"
         :lang="lang"
-        :marquee="processTags"
-        :label="ABOUT_DIVIDERS.process.label"
-        :lead="{
-          zh: ['工具参与过程', '判断留在自己手里'],
-          en: ['Tools support the process.', 'Judgment stays with me.'],
-        }"
-        :lines="{
-          zh: ['从需求与脚本', '到分镜、画面与交付'],
-          en: ['From brief and script', 'to storyboard, image and delivery.'],
-        }"
+        :word="{ zh: '我是谁', en: 'WHO I AM' }"
+        :label="{ zh: '', en: '' }"
+        :focus-index="lang === 'zh' ? 1 : 6"
+        :refresh-priority="44"
+        :background-src="aboutQuotePortrait.src"
+        :background-srcset="visualImageSources(aboutQuotePortrait)"
       />
-      <div class="about-reading about-process">
-        <LazySection ref="workflowSection" min-height="150vh" :eager="eagerAll"
-          ><AiWorkflow v-model:active-tool="activeTool" :lang="lang"
-        /></LazySection>
-      </div>
-      <LazySection ref="observationSection" min-height="110vh" :eager="eagerAll"
-        ><AboutObservationRail :lang="lang" @open="onOpenVisual"
-      /></LazySection>
-      <LazySection ref="contactSection" min-height="95vh" :eager="eagerAll"
+      <AboutWordMarquee :lang="lang" />
+      <AboutStudioStory :lang="lang" @open="onOpenVisual" />
+      <LazySection ref="contactSection" min-height="100vh" :eager="eagerAll"
         ><ContactEnd :lang="lang"
       /></LazySection>
     </main>
@@ -100,29 +46,18 @@ import { onBeforeRouteLeave, useRouter, type RouterScrollBehavior } from 'vue-ro
 import { registerRouteScrollPreparation } from '../utils/routeScrollPreparation'
 import { referenceIntroductionGate } from '../components/ReferenceIntroduction'
 import AboutMotionHero from '../components/about/AboutMotionHero.vue'
+import AboutStudioStory from '../components/about/AboutStudioStory.vue'
 import AboutSideRail from '../components/about/AboutSideRail.vue'
-import AboutCollageStage from '../components/about/AboutCollageStage.vue'
 import AboutQuoteScene from '../components/about/AboutQuoteScene.vue'
 import AboutWordMarquee from '../components/about/AboutWordMarquee.vue'
 import AboutWordZoom from '../components/about/AboutWordZoom.vue'
 import { aboutQuotePortrait } from '../data/personalPortfolio'
 import { visualImageSources } from '../utils/responsiveImage'
-import AboutScrollChapter from '../components/about/AboutScrollChapter.vue'
-import AboutIdentityScene from '../components/about/AboutIdentityScene.vue'
-import AboutExperienceReveal from '../components/about/AboutExperienceReveal.vue'
 import LazySection from '../components/LazySection.vue'
 // 首屏以下重区块拆成独立 chunk，随 LazySection 按需加载；查看器打开时才加载。
-const ExperienceTimeline = defineAsyncComponent(
-  () => import('../components/about/ExperienceTimeline.vue'),
-)
-const AiWorkflow = defineAsyncComponent(() => import('../components/about/AiWorkflow.vue'))
-const AboutObservationRail = defineAsyncComponent(
-  () => import('../components/about/AboutObservationRail.vue'),
-)
 const ContactEnd = defineAsyncComponent(() => import('../components/about/ContactEnd.vue'))
 const VisualViewer = defineAsyncComponent(() => import('../components/about/VisualViewer.vue'))
-import { RESUME_SKILLS, WORKS, assertParity, type Bi } from '../data/aboutProfile'
-import { ABOUT_DIVIDERS } from '../data/aboutDividers'
+import { WORKS, assertParity } from '../data/aboutProfile'
 import { assertVisuals, type VisualAsset } from '../data/visualPortfolio'
 import { subpageLanguage as lang } from '../composables/useSubpageLanguage'
 import { useVisualViewer } from '../composables/useVisualViewer'
@@ -160,25 +95,11 @@ const heroActive = computed(
     !isTransitioning.value,
 )
 provide(referenceIntroductionGate, heroActive)
-const activeTool = ref('kimi')
-// 过程章标签跑马灯词条：技能组标题加作品标签去重，全部来自现有示例资料。
-const seenTags = new Set<string>()
-const processTags: Bi[] = [...RESUME_SKILLS.map((skill) => skill.title)]
-for (const work of WORKS) {
-  for (const tag of work.tags) {
-    if (seenTags.has(tag.zh)) continue
-    seenTags.add(tag.zh)
-    processTags.push(tag)
-  }
-}
 const aboutRouter = useRouter()
 
 // 正常阅读继续按需加载。锚点和历史恢复等待真实组件、字体及固定舞台落位，
 // 再把坐标交还原有 scrollBehavior；每次等待都有唯一所有者与取消信号。
 const eagerAll = ref(false)
-const experienceSection = ref<InstanceType<typeof LazySection> | null>(null)
-const workflowSection = ref<InstanceType<typeof LazySection> | null>(null)
-const observationSection = ref<InstanceType<typeof LazySection> | null>(null)
 const contactSection = ref<InstanceType<typeof LazySection> | null>(null)
 let scrollRequest: AbortController | undefined
 let disposed = false
@@ -266,11 +187,7 @@ async function prepareScroll(
     eagerAll.value = true
     await nextTick()
     await abortable(
-      Promise.all(
-        [experienceSection, workflowSection, observationSection, contactSection].map((section) =>
-          section.value?.ensureReady(),
-        ),
-      ),
+      Promise.all([contactSection].map((section) => section.value?.ensureReady())),
       signal,
     )
     await abortable(document.fonts.ready, signal)
@@ -337,76 +254,71 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .about-page {
-  --ab-bg: #050505;
-  --ab-ink: #ffe8ce;
-  --ab-paper: #ffe8ce;
-  --ab-soft: #b9ab97;
-  --ab-dim: #8a7d6c;
-  --ab-line: #2e2a24;
-  --ab-accent: #ef4b40;
+  --ab-bg: #0a0a0a;
+  --ab-ink: #fee9ce;
+  --ab-paper: #fee9ce;
+  --ab-soft: #c2b29f;
+  --ab-dim: #766d60;
+  --ab-line: #fee9ce22;
+  --ab-accent: #ef5143;
   position: relative;
   min-height: 100vh;
+  overflow-x: clip;
   background: var(--ab-bg);
   color: var(--ab-ink);
-  font-family: inherit;
-  overflow-x: clip;
+  font-family: 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
-.about-body {
-  width: 100%;
+@media (min-width: 981px) and (min-height: 620px) {
+  .about-page {
+    padding-left: 48px;
+  }
 }
-.about-page :deep(.identity-scene) {
-  width: min(1312px, 90%);
+.about-page :deep(.quote-scene__content) {
+  width: min(84%, 1200px);
   margin-inline: auto;
 }
-.about-reading {
-  width: min(1312px, 90%);
-  margin: 0 auto;
-  padding: 90px 0 140px;
-}
-.about-section-word {
-  margin: 0 0 80px;
-  font-family: 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
-  font-size: clamp(48px, 9.7vw, 150px);
-  font-weight: 900;
-  line-height: 0.9;
-  letter-spacing: -0.075em;
-  color: var(--ab-accent);
-}
-.about-process {
-  padding-top: 10px;
-  padding-bottom: 160px;
-}
-.about-page :deep(.exp-section__head),
-.about-page :deep(.aiw__header) {
-  border-top: 1px solid var(--ab-line);
-  padding-top: 32px;
-}
-.about-page :deep(.exp-node__company) {
-  font-weight: 600;
-}
-.about-page :deep(.aiw__workspace) {
-  background: #17191e;
-}
-.about-page :deep(.aiw__tools .is-light-logo) {
-  filter: none;
+.about-page :deep(.word-zoom__caption) {
+  display: none;
 }
 .about-page :deep(.end) {
-  margin-top: 0;
+  width: 100%;
+  margin: 0;
+  background: #0a0a0a;
+  --ab-ink: #fee9ce;
+  --ab-soft: #c2b29f;
+  --ab-line: #fee9ce33;
+}
+.about-page :deep(.end__curve) {
+  display: none;
+}
+.about-page :deep(.end__inner) {
+  padding: 10vw 6vw 32px;
+}
+.about-page :deep(.end__head h2) {
+  font-size: clamp(56px, 10vw, 180px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.055em;
+}
+.about-page :deep(.end__title-line) {
+  color: #fee9ce;
+}
+.about-page :deep(.end__title-line img) {
+  display: none;
+}
+.about-page :deep(.end__orb) {
+  background: #ffb15f;
+  color: #0a0a0a;
+}
+.about-page :deep(.end__orb-fill) {
+  background: #ef5143;
+}
+.about-page :deep(.end__head small) {
+  color: #fee9ce;
 }
 @media (max-width: 760px) {
-  .about-reading {
-    width: calc(100% - 44px);
-    padding: 64px 0 80px;
-  }
-  .about-page :deep(.identity-scene) {
-    width: calc(100% - 44px);
-  }
-  .about-section-word {
-    margin-bottom: 48px;
-    font-size: 10.5vw;
-  }
-  .about-process {
-    padding-top: 10px;
+  .about-page :deep(.end__inner) {
+    padding-top: 100px;
   }
 }
 </style>

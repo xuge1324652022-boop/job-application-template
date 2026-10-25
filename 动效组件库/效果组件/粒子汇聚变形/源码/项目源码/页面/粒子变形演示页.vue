@@ -1,27 +1,26 @@
 <template>
   <!--
-    /morph：按用户提供的参考视频完整复刻的独立演示页。
-    版块与视频一一对应：① 深底巨字 hero（右上角小 logo，三行奶白标题从下升起）
-    ② 固定的粒子段（标题上半，下半全宽粒子画布：散布 → 汇聚成大字母 R，随滚动可逆）
-    ③ SELECTED WORKS 双列圆角网格（深色仪表盘风格界面卡，方/竖比例混合，无图注）。
-    仪表盘界面全部由 CSS 合成，不含任何真实项目截图。
+    /morph：按参考视频完整复刻的独立演示页（纯黑底、纯白字版本）。
+    ① hero：三行白色巨字从下升起，右下角小 logo「R.」；
+    ② 固定粒子段：句子式小标题在上，全宽画布内白色微尘随滚动汇聚成大字母 R；
+    ③ SELECTED WORKS：双列圆角网格，卡片为 CSS 合成的亮色网页截图
+      （落地页/登录卡/定价卡等八种版式），无图注。
+    全部界面元素由 CSS/SVG 合成，不含任何真实项目截图。
   -->
   <div ref="root" class="morph-page">
     <section class="morph-hero" aria-labelledby="morph-title">
-      <span class="morph-hero__logo" lang="en">R.</span>
       <h1 id="morph-title" ref="heroTitle" class="morph-hero__title">
         <span class="morph-hero__line">Transforming</span>
         <span class="morph-hero__line">Ideas into</span>
         <span class="morph-hero__line">Digital Realities</span>
       </h1>
+      <span class="morph-hero__logo" lang="en">R.</span>
     </section>
 
     <section id="morph-field" ref="stage" class="morph-stage" aria-labelledby="morph-heading">
       <div class="morph-stage__inner">
         <h2 id="morph-heading" ref="heading" class="morph-stage__heading">
-          <span>We Take Samples</span>
-          <span>And Morph It Into The Type</span>
-          <span>Of Shape We Want</span>
+          We take samples and morph it into the type of shape we want
         </h2>
         <div ref="fieldBox" class="morph-stage__box">
           <MorphParticleField ref="field" :letter="initial" />
@@ -31,7 +30,7 @@
 
     <section class="morph-grid" aria-labelledby="morph-grid-title">
       <p class="morph-grid__label">Selected Works</p>
-      <h2 id="morph-grid-title" ref="gridTitle" class="morph-grid__title">Selected Works</h2>
+      <h2 id="morph-grid-title" ref="gridTitle" class="morph-grid__sr-title">Selected Works</h2>
       <div ref="grid" class="morph-grid__cells">
         <div
           v-for="(card, index) in gridItems"
@@ -39,58 +38,91 @@
           class="morph-grid__cell"
           :style="{ '--ui-accent': card.accent, aspectRatio: card.ratio }"
         >
-          <div class="fake-ui">
-            <div class="fake-ui__chrome">
-              <i></i><i></i><i></i>
-              <span class="fake-ui__crumb" :style="{ width: card.crumb + '%' }"></span>
+          <div class="shot" :class="`shot--${card.type}`">
+            <!-- 通用顶部导航条 -->
+            <div class="shot__nav">
+              <b class="shot__brand"></b>
+              <span class="shot__links"><i v-for="n in 3" :key="n"></i></span>
+              <b class="shot__cta" :style="{ background: card.accent }"></b>
             </div>
-            <div class="fake-ui__body">
-              <div class="fake-ui__side">
-                <b v-for="n in 5" :key="n" :style="{ width: n === 1 ? '80%' : '55%' }"></b>
+            <template v-if="card.type === 'landing'">
+              <div class="shot__landing">
+                <b class="shot__h1" :style="{ width: '72%' }"></b>
+                <b class="shot__h1 shot__h1--dim" :style="{ width: '52%' }"></b>
+                <span class="shot__p"><i v-for="n in 2" :key="n"></i></span>
+                <div class="shot__btns">
+                  <b :style="{ background: card.accent }"></b>
+                  <b class="shot__btn-ghost"></b>
+                </div>
+                <div class="shot__media" :style="{ background: card.accent + '22' }"></div>
               </div>
-              <div class="fake-ui__main">
-                <template v-if="card.type === 'bars'">
-                  <div class="fake-bars">
-                    <i
-                      v-for="(h, i) in card.values"
-                      :key="i"
-                      :style="{ height: h + '%' }"
-                    ></i>
-                  </div>
-                </template>
-                <template v-else-if="card.type === 'line'">
-                  <svg class="fake-line" viewBox="0 0 100 48" preserveAspectRatio="none">
-                    <polyline :points="card.points" fill="none" stroke-width="2.4" />
-                  </svg>
-                </template>
-                <template v-else-if="card.type === 'donut'">
-                  <div class="fake-donut">
-                    <span class="fake-donut__ring"></span>
-                    <span class="fake-donut__num">{{ card.value }}</span>
-                  </div>
-                  <div class="fake-legend">
-                    <b v-for="n in 3" :key="n"></b>
-                  </div>
-                </template>
-                <template v-else-if="card.type === 'rows'">
-                  <div class="fake-rows">
-                    <b v-for="n in 4" :key="n" :style="{ width: 72 + ((n * 7) % 24) + '%' }"></b>
-                  </div>
-                </template>
-                <template v-else-if="card.type === 'chat'">
-                  <div class="fake-chat">
-                    <span v-for="n in 3" :key="n" :class="{ 'is-me': n === 2 }"></span>
-                  </div>
-                </template>
-                <template v-else>
-                  <div class="fake-kanban">
-                    <div v-for="col in 3" :key="col">
-                      <b v-for="n in col" :key="n"></b>
-                    </div>
-                  </div>
-                </template>
+            </template>
+            <template v-else-if="card.type === 'login'">
+              <div class="shot__center">
+                <div class="shot__card">
+                  <b class="shot__h1" style="width: 46%"></b>
+                  <span class="shot__input"></span>
+                  <span class="shot__input"></span>
+                  <b class="shot__full-btn" :style="{ background: card.accent }"></b>
+                  <span class="shot__p"><i style="width: 60%"></i></span>
+                </div>
               </div>
-            </div>
+            </template>
+            <template v-else-if="card.type === 'pricing'">
+              <div class="shot__pricing">
+                <div v-for="n in 3" :key="n" class="shot__price">
+                  <b class="shot__h1" style="width: 60%"></b>
+                  <b class="shot__big" :style="{ width: '40%', background: n === 2 ? card.accent : '#1f2937' }"></b>
+                  <span class="shot__p"><i v-for="m in 2" :key="m"></i></span>
+                  <b class="shot__full-btn" :style="n === 2 ? { background: card.accent } : {}"></b>
+                </div>
+              </div>
+            </template>
+            <template v-else-if="card.type === 'article'">
+              <div class="shot__article">
+                <b class="shot__h1" style="width: 64%"></b>
+                <span class="shot__p"><i v-for="n in 4" :key="n"></i></span>
+                <div class="shot__media" :style="{ height: '34%', background: card.accent + '26' }"></div>
+                <span class="shot__p"><i v-for="n in 2" :key="n"></i></span>
+              </div>
+            </template>
+            <template v-else-if="card.type === 'stats'">
+              <div class="shot__stats">
+                <div class="shot__stat">
+                  <b class="shot__big" :style="{ color: card.accent, background: 'none' }">48%</b>
+                  <span class="shot__p"><i style="width: 80%"></i></span>
+                </div>
+                <div class="shot__bars">
+                  <i v-for="(h, i) in card.values" :key="i" :style="{ height: h + '%', background: i === 3 ? card.accent : '#d7dbe2' }"></i>
+                </div>
+              </div>
+            </template>
+            <template v-else-if="card.type === 'gallery'">
+              <div class="shot__gallery">
+                <div class="shot__tile" :style="{ background: card.accent + '33' }"></div>
+                <div class="shot__tile" style="background: #e3e7ee"></div>
+                <div class="shot__tile" style="background: #eef1f6"></div>
+                <div class="shot__tile" :style="{ background: card.accent + '1f' }"></div>
+              </div>
+            </template>
+            <template v-else-if="card.type === 'profile'">
+              <div class="shot__profile">
+                <span class="shot__avatar" :style="{ background: card.accent + '44', border: card.accent }"></span>
+                <b class="shot__h1" style="width: 54%"></b>
+                <span class="shot__p"><i v-for="n in 2" :key="n"></i></span>
+                <div class="shot__btns">
+                  <b :style="{ background: card.accent }"></b>
+                  <b class="shot__btn-ghost"></b>
+                </div>
+              </div>
+            </template>
+            <template v-else>
+              <div class="shot__form">
+                <b class="shot__h1" style="width: 44%"></b>
+                <span class="shot__input" v-for="n in 3" :key="n"></span>
+                <b class="shot__full-btn" :style="{ background: card.accent }"></b>
+              </div>
+            </template>
           </div>
         </div>
       </div>
@@ -116,26 +148,24 @@ gsap.registerPlugin(ScrollTrigger)
 /** 复刻演示的汇聚字母（与参考视频一致，页面明示为演示复刻）。 */
 const initial = 'R'
 
-interface DashCard {
-  type: 'bars' | 'line' | 'donut' | 'rows' | 'chat' | 'kanban'
+type ShotType = 'landing' | 'login' | 'pricing' | 'article' | 'stats' | 'gallery' | 'profile' | 'form'
+interface ShotCard {
+  type: ShotType
   accent: string
   ratio: string
-  crumb: number
   values?: number[]
-  points?: string
-  value?: string
 }
 
-/** 网格里的“仪表盘截图”全部由 CSS/SVG 合成：深色界面 + 蓝紫青琥珀强调。 */
-const gridItems: DashCard[] = [
-  { type: 'bars', accent: '#4f8cff', ratio: '3 / 4', crumb: 34, values: [42, 68, 30, 86, 54, 72] },
-  { type: 'line', accent: '#22d3ee', ratio: '1 / 1', crumb: 52, points: '2,40 18,30 34,36 50,18 66,26 82,10 98,16' },
-  { type: 'donut', accent: '#8b5cf6', ratio: '1 / 1', crumb: 40, value: '74%' },
-  { type: 'rows', accent: '#4f8cff', ratio: '4 / 5', crumb: 62 },
-  { type: 'chat', accent: '#22d3ee', ratio: '3 / 4', crumb: 30 },
-  { type: 'kanban', accent: '#f59e0b', ratio: '1 / 1', crumb: 48 },
-  { type: 'line', accent: '#8b5cf6', ratio: '1 / 1', crumb: 36, points: '2,30 20,38 36,22 52,30 68,14 84,22 98,8' },
-  { type: 'bars', accent: '#f59e0b', ratio: '4 / 5', crumb: 58, values: [60, 34, 78, 44, 66, 50] },
+/** 网格里的“网页截图”全部由 CSS 合成：亮底白卡、少量单色强调。 */
+const gridItems: ShotCard[] = [
+  { type: 'landing', accent: '#3b82f6', ratio: '3 / 4', },
+  { type: 'stats', accent: '#111827', ratio: '1 / 1', values: [38, 62, 46, 84, 55, 70] },
+  { type: 'login', accent: '#111827', ratio: '1 / 1' },
+  { type: 'article', accent: '#0ea5e9', ratio: '4 / 5' },
+  { type: 'pricing', accent: '#3b82f6', ratio: '1 / 1' },
+  { type: 'gallery', accent: '#8b5cf6', ratio: '3 / 4' },
+  { type: 'profile', accent: '#10b981', ratio: '1 / 1' },
+  { type: 'form', accent: '#f43f5e', ratio: '4 / 5' },
 ]
 
 const heroTitle = ref<HTMLElement | null>(null)
@@ -178,8 +208,8 @@ onMounted(() => {
           )
           .fromTo(
             root.value!.querySelectorAll('.morph-hero__logo'),
-            { autoAlpha: 0, y: -12 },
-            { autoAlpha: 1, y: 0, duration: 0.5, ease: 'power2.out' },
+            { autoAlpha: 0 },
+            { autoAlpha: 1, duration: 0.5, ease: 'none' },
             0.5,
           )
         let stopCurtainWatch: (() => void) | undefined
@@ -253,12 +283,11 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .morph-page {
-  --mp-bg: #050505;
-  --mp-ink: #ffe8ce;
-  --mp-soft: #b9ab97;
-  --mp-dim: #8a7d6c;
-  --mp-line: #2e2a24;
-  --mp-accent: #ef4b40;
+  --mp-bg: #000000;
+  --mp-ink: #ffffff;
+  --mp-soft: #9a9a9a;
+  --mp-dim: #6e6e6e;
+  --mp-line: #202020;
   position: relative;
   min-height: 100vh;
   background: var(--mp-bg);
@@ -272,29 +301,34 @@ onBeforeUnmount(() => {
   min-height: 100svh;
   display: flex;
   align-items: center;
-  padding: 64px clamp(22px, 7vw, 120px);
+  padding: 64px clamp(22px, 7vw, 120px) clamp(96px, 14svh, 160px);
 }
 .morph-hero__logo {
   position: absolute;
-  top: clamp(20px, 4svh, 40px);
   right: clamp(22px, 7vw, 120px);
+  bottom: clamp(28px, 5svh, 56px);
   font-family: 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 900;
-  letter-spacing: 0.02em;
 }
 .morph-hero__title {
   margin: 0;
   font-family: 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
-  font-size: min(12.5vw, 11svh);
+  /* 最长行 DIGITAL REALITIES（≈9.76em）约占视口可用宽 95%，与视频一致。 */
+  font-size: min(10.2vw, 15svh);
   font-weight: 900;
-  line-height: 0.9;
-  letter-spacing: -0.04em;
+  line-height: 0.92;
+  letter-spacing: -0.045em;
   text-transform: uppercase;
   overflow: clip;
 }
 .morph-hero__line {
   display: block;
+}
+@media (max-width: 760px) {
+  .morph-hero__title {
+    font-size: min(8.6vw, 11svh);
+  }
 }
 
 .morph-stage {
@@ -312,20 +346,16 @@ onBeforeUnmount(() => {
 .morph-stage__heading {
   margin: 0 0 clamp(20px, 4vh, 40px);
   padding: 0 clamp(22px, 7vw, 120px);
-  font-family: 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
-  font-size: clamp(22px, 3.4vw, 44px);
-  font-weight: 900;
-  line-height: 1.06;
-  letter-spacing: -0.03em;
-  text-transform: uppercase;
-}
-.morph-stage__heading span {
-  display: block;
+  max-width: 26em;
+  font-size: clamp(15px, 1.7vw, 22px);
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
 }
 .morph-stage__box {
   position: relative;
-  height: clamp(280px, 56svh, 620px);
-  background: #070707;
+  height: clamp(280px, 58svh, 660px);
+  background: var(--mp-bg);
 }
 
 .morph-grid {
@@ -333,13 +363,13 @@ onBeforeUnmount(() => {
   background: var(--mp-bg);
 }
 .morph-grid__label {
-  margin: 0 0 8px;
+  margin: 0 0 clamp(20px, 4vh, 40px);
   font-size: 11px;
   letter-spacing: 0.32em;
   text-transform: uppercase;
   color: var(--mp-soft);
 }
-.morph-grid__title {
+.morph-grid__sr-title {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -356,176 +386,231 @@ onBeforeUnmount(() => {
 .morph-grid__cell {
   overflow: hidden;
   border-radius: 12px;
-  background: #0e1420;
-}
-.morph-grid__cell:hover .fake-ui {
-  transform: scale(1.03);
+  background: #f4f5f7;
 }
 
-/* —— CSS 合成的深色仪表盘“截图” —— */
-.fake-ui {
+/* —— CSS 合成的亮色网页“截图” —— */
+.shot {
   display: flex;
   flex-direction: column;
   width: 100%;
   height: 100%;
-  background:
-    radial-gradient(120% 90% at 20% 0%, rgb(79 140 255 / 0.08), transparent 60%),
-    #0b101b;
+  background: #f4f5f7;
   transition: transform 0.45s ease;
 }
-.fake-ui__chrome {
+.morph-grid__cell:hover .shot {
+  transform: scale(1.03);
+}
+.shot__nav {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 8px 10px;
-  border-bottom: 1px solid rgb(148 163 184 / 0.12);
+  gap: 10px;
+  padding: 12px 14px;
+  background: #fff;
+  border-bottom: 1px solid #e5e8ee;
 }
-.fake-ui__chrome i {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: rgb(148 163 184 / 0.35);
+.shot__brand {
+  width: 34px;
+  height: 10px;
+  border-radius: 5px;
+  background: #1f2937;
 }
-.fake-ui__crumb {
-  height: 6px;
-  margin-left: 8px;
-  border-radius: 4px;
-  background: rgb(148 163 184 / 0.18);
-}
-.fake-ui__body {
-  flex: 1;
+.shot__links {
   display: flex;
-  min-height: 0;
+  flex: 1;
+  gap: 8px;
+  justify-content: flex-end;
 }
-.fake-ui__side {
+.shot__links i {
+  width: 22px;
+  height: 6px;
+  border-radius: 3px;
+  background: #d3d8e0;
+}
+.shot__cta {
+  width: 40px;
+  height: 14px;
+  border-radius: 7px;
+}
+.shot__h1 {
+  display: block;
+  height: 14px;
+  border-radius: 7px;
+  background: #1f2937;
+}
+.shot__h1--dim {
+  background: #9aa3b2;
+}
+.shot__p {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  width: 20%;
-  padding: 10px 8px;
-  border-right: 1px solid rgb(148 163 184 / 0.1);
 }
-.fake-ui__side b {
-  height: 6px;
-  border-radius: 3px;
-  background: rgb(148 163 184 / 0.22);
+.shot__p i {
+  display: block;
+  height: 7px;
+  border-radius: 4px;
+  background: #ccd2dc;
 }
-.fake-ui__side b:first-child {
-  background: var(--ui-accent);
+.shot__p i:last-child {
+  width: 64%;
 }
-.fake-ui__main {
+.shot__btns {
+  display: flex;
+  gap: 8px;
+}
+.shot__btns b {
+  width: 34%;
+  height: 18px;
+  border-radius: 9px;
+}
+.shot__btn-ghost {
+  background: #fff;
+  border: 1.5px solid #d3d8e0;
+}
+.shot__full-btn {
+  display: block;
+  width: 100%;
+  height: 20px;
+  border-radius: 10px;
+}
+.shot__input {
+  display: block;
+  height: 18px;
+  border: 1.5px solid #d9dee6;
+  border-radius: 9px;
+  background: #fff;
+}
+.shot__media {
+  border-radius: 10px;
+}
+.shot__big {
+  display: block;
+  height: 26px;
+  border-radius: 6px;
+  background: #1f2937;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 26px;
+}
+.shot__center {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: 8%;
+}
+.shot__card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  padding: 9%;
+  background: #fff;
+  border: 1px solid #e5e8ee;
+  border-radius: 12px;
+  box-shadow: 0 10px 26px rgb(15 23 42 / 0.08);
+}
+.shot__landing,
+.shot__article,
+.shot__form {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 10px;
-  padding: 12px;
-  min-width: 0;
+  gap: 12px;
+  padding: 8%;
 }
-.fake-bars {
+.shot__landing .shot__media,
+.shot__article .shot__media {
+  flex: 1;
+  min-height: 30%;
+}
+.shot__pricing {
+  flex: 1;
+  display: flex;
+  gap: 8px;
+  padding: 8%;
+  align-items: stretch;
+}
+.shot__price {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid #e5e8ee;
+  border-radius: 10px;
+}
+.shot__price .shot__full-btn {
+  height: 14px;
+  margin-top: auto;
+  background: #1f2937;
+}
+.shot__price:nth-child(2) {
+  border-color: var(--ui-accent);
+}
+.shot__stats {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 8%;
+}
+.shot__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.shot__bars {
   flex: 1;
   display: flex;
   align-items: flex-end;
   gap: 8px;
+  min-height: 40%;
 }
-.fake-bars i {
+.shot__bars i {
   flex: 1;
   border-radius: 4px 4px 0 0;
-  background: linear-gradient(to top, var(--ui-accent), rgb(255 255 255 / 0.25));
-  opacity: 0.85;
 }
-.fake-line {
-  width: 100%;
-  height: auto;
+.shot__gallery {
   flex: 1;
-}
-.fake-line polyline {
-  stroke: var(--ui-accent);
-}
-.fake-donut {
-  position: relative;
-  width: 56%;
-  margin: 0 auto;
-  aspect-ratio: 1;
-}
-.fake-donut__ring {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: conic-gradient(var(--ui-accent) 0 74%, rgb(148 163 184 / 0.15) 74% 100%);
-  -webkit-mask: radial-gradient(circle, transparent 52%, #000 54%);
-  mask: radial-gradient(circle, transparent 52%, #000 54%);
-}
-.fake-donut__num {
-  position: absolute;
-  inset: 0;
   display: grid;
-  place-items: center;
-  font-size: 15px;
-  font-weight: 700;
-  color: #e2e8f0;
-}
-.fake-legend {
-  display: flex;
-  gap: 6px;
-  justify-content: center;
-}
-.fake-legend b {
-  width: 26%;
-  height: 6px;
-  border-radius: 3px;
-  background: rgb(148 163 184 / 0.2);
-}
-.fake-rows {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-}
-.fake-rows b {
-  height: 10px;
-  border-radius: 5px;
-  background: rgb(148 163 184 / 0.18);
-}
-.fake-rows b:nth-child(2n) {
-  background: rgb(148 163 184 / 0.28);
-}
-.fake-chat {
-  display: flex;
-  flex-direction: column;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
+  padding: 8%;
 }
-.fake-chat span {
-  width: 70%;
-  height: 16px;
-  border-radius: 9px 9px 9px 3px;
-  background: rgb(148 163 184 / 0.2);
+.shot__tile {
+  border-radius: 8px;
 }
-.fake-chat span.is-me {
-  align-self: flex-end;
-  width: 55%;
-  border-radius: 9px 9px 3px 9px;
-  background: var(--ui-accent);
-  opacity: 0.75;
-}
-.fake-kanban {
-  display: flex;
-  gap: 8px;
-}
-.fake-kanban > div {
+.shot__profile {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 9%;
+  text-align: center;
 }
-.fake-kanban b {
-  height: 16%;
-  min-height: 12px;
-  border-radius: 6px;
-  background: rgb(148 163 184 / 0.18);
+.shot__avatar {
+  width: 26%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 3px solid;
 }
-.fake-kanban > div:nth-child(2) b:first-child {
-  background: var(--ui-accent);
-  opacity: 0.7;
+.shot__profile .shot__h1 {
+  margin-inline: auto;
+}
+.shot__profile .shot__p {
+  width: 100%;
+}
+.shot__profile .shot__p i {
+  margin-inline: auto;
+  width: 72% !important;
+}
+.shot__profile .shot__btns {
+  width: 100%;
+  justify-content: center;
 }
 
 .morph-grid__foot {
@@ -544,6 +629,6 @@ onBeforeUnmount(() => {
   text-decoration: none;
 }
 .morph-grid__foot a:hover {
-  color: var(--mp-accent);
+  color: var(--mp-soft);
 }
 </style>
