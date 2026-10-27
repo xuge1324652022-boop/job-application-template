@@ -561,10 +561,10 @@
       "original": "src/components/about/AboutInternshipCards.vue",
       "path": "源码/项目源码/组件/人物与作品/实习叙事卡片.vue",
       "role": "dependency",
-      "originalSha256": "6673c4a8e0953099cd92c80a699ba7c4f1abe73044f265d03a9d79fb7020a228",
-      "originalBytes": 25883,
-      "sha256": "036e924fda0bf9e2db0dce37f45e6242e832df672d97919f95e169ccd1e8e140",
-      "bytes": 25905
+      "originalSha256": "3cdda4acb8a44ffe5a4c4a3c802231e07b291000d159abeae38649c735a15618",
+      "originalBytes": 27705,
+      "sha256": "bebca3e5396d4705fe5e1dff926240ef4c4bae27025e488fb6c951a3f377895d",
+      "bytes": 27727
     },
     {
       "original": "src/components/about/AboutInternshipCover.vue",
@@ -597,10 +597,10 @@
       "original": "src/components/about/AboutQuoteScene.vue",
       "path": "源码/项目源码/组件/人物与作品/人物引言场景.vue",
       "role": "entry",
-      "originalSha256": "d99dc4e88def2fc5728cf02faa117744089f74e08c4e72e57d87372f4cdf6dd2",
-      "originalBytes": 5640,
-      "sha256": "4493676143380b1055c56ade9a515b07e7788b34b2a1a980164a6944910f150f",
-      "bytes": 5654
+      "originalSha256": "452a2cb85fface6d7b2dc6e720b65f506b8f250ea6be082d5ffacf556faac108",
+      "originalBytes": 5573,
+      "sha256": "7e5144eebcfb62f89b07ea0b11a0f4330763e26f0e7b6397506d60a93b50dd2c",
+      "bytes": 5587
     },
     {
       "original": "src/components/about/AboutScrollChapter.vue",
@@ -633,28 +633,28 @@
       "original": "src/components/about/AboutStudioStory.vue",
       "path": "源码/项目源码/组件/人物与作品/工作室故事.vue",
       "role": "entry",
-      "originalSha256": "81d119a59b12de33ca2c1632ebc47121db046ae8eee0c819eec5296fbc847efc",
-      "originalBytes": 15947,
-      "sha256": "a0bc9388191d40f36f85050f1a62406498501decd0482f741e33d337fd3142f6",
-      "bytes": 15969
+      "originalSha256": "80ff632f7a1c3d6d775cba7ab59351883c7392f1994d3ce0f15b12c2c43766cc",
+      "originalBytes": 15731,
+      "sha256": "a124bb76bfd2d6fda1e06086c8d46ef768bc56ffcc961c86cef3b772bba0ec6b",
+      "bytes": 15753
     },
     {
       "original": "src/components/about/AboutWordMarquee.vue",
       "path": "源码/项目源码/组件/人物与作品/方向词双向跑马灯.vue",
       "role": "entry",
-      "originalSha256": "8ab2a2a9d274d314c0d3d2ac112e3f1c6e2d1d8f6e1ec5f984024476d64d32fd",
-      "originalBytes": 7906,
-      "sha256": "d1c987db624caef79bfc0b615fc1785fc9fede9c047b73460c741dd8b9b448b5",
-      "bytes": 7919
+      "originalSha256": "54502fe4bb626556d65cbf42eaabb421941aa344c9aed82e7d05ee8a06578842",
+      "originalBytes": 7819,
+      "sha256": "2971da93b7ae38c417bf3688b4302147f1afde01e32c18ceed8c058ddb3a9d7d",
+      "bytes": 7832
     },
     {
       "original": "src/components/about/AboutWordZoom.vue",
       "path": "源码/项目源码/组件/人物与作品/字形越界放大.vue",
       "role": "entry",
-      "originalSha256": "d4ed4f25f72c89bbd37652f2034e3f254b25a058831737109878ef1c2fd1afed",
-      "originalBytes": 5701,
-      "sha256": "e128f5deae5fdd1fd8066b552c654df06731956f70ed38e469c3042781cd5357",
-      "bytes": 5715
+      "originalSha256": "396eb3ff3c806441bfe76e1cbfd1397440ef03123d5781d10c803dac85965694",
+      "originalBytes": 5705,
+      "sha256": "8b7776d8c97166fe49da2d33ae60f7f08f3edca53d17428716d96a503648c2dc",
+      "bytes": 5719
     },
     {
       "original": "src/components/about/aboutTextFocus.ts",

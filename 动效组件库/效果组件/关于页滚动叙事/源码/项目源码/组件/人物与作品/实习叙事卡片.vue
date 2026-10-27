@@ -37,6 +37,12 @@
             </button>
           </div>
         </div>
+        <div id="identity" class="internship-story__intro">
+          <p>{{ pick(PROFILE_LINES[0]!, lang) }}</p>
+          <aside>
+            <p v-for="(line, i) in PROFILE_LINES.slice(1)" :key="i">{{ pick(line, lang) }}</p>
+          </aside>
+        </div>
         <div class="studio-ribbon studio-ribbon--second">
           <p class="studio-ribbon__label">
             {{ lang === 'zh' ? '实习经历 · 向下滚动展开' : 'Internships · Scroll to unfold' }}
@@ -193,7 +199,13 @@ import AboutInternshipCover from './实习原创封面.vue'
 import { nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { EXPERIENCE, pick, type Experience, type Lang } from '../../数据/人物资料'
+import {
+  EXPERIENCE,
+  PROFILE_LINES,
+  pick,
+  type Experience,
+  type Lang,
+} from '../../数据/人物资料'
 import { personalPortfolio } from '../../数据/本机个人内容接口'
 import type { VisualAsset } from '../../数据/视觉作品资料'
 import { visualImageSources } from '../../工具/响应式图片'
@@ -280,12 +292,20 @@ onMounted(() => {
         const geometry = () => {
           // The source remains in its original ribbon. Measure unscaled layout, independent of scroll progress.
           const s = source.getBoundingClientRect()
+          const ribbonY = Number(gsap.getProperty(ribbons.value!, 'y')) || 0
           const b = scene.getBoundingClientRect()
+          const angle = (-3 * Math.PI) / 180
           return {
             x: s.left - b.left,
-            y: s.top - b.top,
-            scaleX: s.width / scene.clientWidth,
-            scaleY: s.height / scene.clientHeight,
+            // A rotated bounding box starts at the top-right corner; recover the actual top-left.
+            y:
+              s.top -
+              b.top -
+              Math.sin(angle) * source.offsetWidth -
+              ribbonY -
+              scene.clientHeight * 0.65,
+            scaleX: source.offsetWidth / scene.clientWidth,
+            scaleY: source.offsetHeight / scene.clientHeight,
           }
         }
         let box = geometry()
@@ -300,7 +320,7 @@ onMounted(() => {
         timeline = gsap.timeline({
           defaults: { ease: 'none' },
           onUpdate(this: gsap.core.Timeline) {
-            darkActive.value = this.time() >= 1.6 && Boolean(this.scrollTrigger?.isActive)
+            darkActive.value = this.time() >= 3.4 && Boolean(this.scrollTrigger?.isActive)
             const x = Math.abs(Number(gsap.getProperty(strip, 'x')))
             current.value = Math.min(
               panels.length - 1,
@@ -312,7 +332,7 @@ onMounted(() => {
             trigger: host,
             pin: scene,
             start: 'top top',
-            end: () => `+=${Math.round(scene.clientHeight * (1.4 + experiences.length * 1.15))}`,
+            end: () => `+=${Math.round(scene.clientHeight * (3 + experiences.length * 1.15))}`,
             scrub: 0.35,
             anticipatePin: 1,
             invalidateOnRefresh: true,
@@ -322,37 +342,51 @@ onMounted(() => {
             },
             onRefresh: updateAnchors,
             onToggle: (self) => {
-              darkActive.value = self.isActive && (timeline?.time() ?? 0) >= 1.6
+              darkActive.value = self.isActive && (timeline?.time() ?? 0) >= 3.4
             },
           },
         })
         timeline
           .set(surface, { autoAlpha: 0, transformOrigin: '0 0' }, 0)
           .fromTo(
-            surface,
-            { x: () => box.x, y: () => box.y, scaleX: () => box.scaleX, scaleY: () => box.scaleY },
-            {
-              x: 0,
-              y: 0,
-              scaleX: 1,
-              scaleY: 1,
-              duration: 1.2,
-              ease: 'power2.inOut',
-              immediateRender: true,
-            },
-            0.45,
+            ribbons.value,
+            { y: 0 },
+            { y: () => -scene.clientHeight * 0.65, duration: 1.7 },
+            0,
           )
-          .set(surface, { autoAlpha: 1 }, 0.45)
-          .set(source, { opacity: 0 }, 0.45)
-          .fromTo(cover.value, { autoAlpha: 1 }, { autoAlpha: 0, duration: 0.3 }, 1.65)
-          .to(ribbons.value, { opacity: 0, duration: 0.35 }, 1.1)
           .fromTo(
             upperTrack.value,
             { x: 0 },
-            { x: () => -scene.clientWidth * 0.12, duration: 1.3 },
+            { x: () => -scene.clientWidth * 0.18, duration: 1.7 },
             0,
           )
-        let cursor = 1.65
+          .fromTo(
+            surface,
+            {
+              x: () => box.x,
+              y: () => box.y,
+              scaleX: () => box.scaleX,
+              scaleY: () => box.scaleY,
+              rotation: -3,
+            },
+            {
+              x: () => scene.clientWidth * 0.25,
+              y: () => scene.clientHeight * 0.28,
+              scaleX: 0.5,
+              scaleY: 0.44,
+              rotation: 0,
+              duration: 0.7,
+              ease: 'power1.inOut',
+              immediateRender: true,
+            },
+            1.7,
+          )
+          .set(surface, { autoAlpha: 1 }, 1.7)
+          .set(source, { opacity: 0 }, 1.7)
+          .to(surface, { x: 0, y: 0, scaleX: 1, scaleY: 1, duration: 1, ease: 'power1.inOut' }, 2.4)
+          .to(ribbons.value, { opacity: 0, duration: 0.7 }, 2.4)
+          .fromTo(cover.value, { xPercent: 0 }, { xPercent: -100, duration: 0.35 }, 3.55)
+        let cursor = 3.55
         readingTimes.length = 0
         readingTimes.push(cursor + 0.15)
         timeline.to({}, { duration: 0.35 }, cursor)
@@ -372,7 +406,7 @@ onMounted(() => {
               : null
           if (!target) return
           const index = Number(target.dataset.slide)
-          if (current.value !== index || timeline!.time() < 1.65) seek(index)
+          if (current.value !== index || timeline!.time() < 3.55) seek(index)
         }
         strip.addEventListener('focusin', focus)
         refresh()
@@ -386,6 +420,7 @@ onMounted(() => {
           host.classList.remove('is-animated')
           markers.forEach((marker) => marker.style.removeProperty('top'))
           animated.value = false
+          darkActive.value = false
           current.value = 0
           timeline = undefined
         }
@@ -518,6 +553,29 @@ onBeforeUnmount(() => {
   inset: 0;
   z-index: 4;
   pointer-events: none;
+}
+.internship-story__intro {
+  display: grid;
+  grid-template-columns: 2.5fr 1fr;
+  align-items: start;
+  gap: 6vw;
+  padding: 7svh 9vw;
+}
+.internship-story__intro > p {
+  margin: 0;
+  font-size: clamp(24px, 3vw, 48px);
+  font-weight: 700;
+  line-height: 1.35;
+}
+.internship-story__intro aside {
+  border-top: 2px solid var(--about-accent-on-paper);
+  color: var(--about-accent-on-paper);
+  font-size: clamp(14px, 1.2vw, 20px);
+  line-height: 1.45;
+}
+.studio-ribbon--second .studio-ribbon__track {
+  rotate: -3deg;
+  transform-origin: left center;
 }
 .internship-story__frame {
   background: var(--about-night);
@@ -739,11 +797,11 @@ summary:focus-visible {
 }
 .is-animated .internship-story__ribbons {
   position: absolute;
-  inset: 0;
-  padding: 4svh 0;
+  inset: 0 0 auto;
+  padding: 10svh 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 3svh;
 }
 .is-animated .studio-ribbon {
@@ -792,6 +850,11 @@ summary:focus-visible {
   padding-bottom: 84px;
 }
 @media (max-width: 980px), (max-height: 649px), (prefers-reduced-motion: reduce) {
+  .internship-story__intro {
+    grid-template-columns: 1fr;
+    padding: 36px 6vw;
+    gap: 20px;
+  }
   .studio-ribbon {
     overflow-x: auto;
     scroll-padding-inline: 5vw;

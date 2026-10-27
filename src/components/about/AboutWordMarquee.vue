@@ -133,9 +133,7 @@ function initialize() {
             word,
             {
               backgroundImage: 'none',
-              color: getComputedStyle(root.value!)
-                .getPropertyValue('--about-accent-on-night')
-                .trim(),
+              color: getComputedStyle(root.value!).getPropertyValue('--about-paper').trim(),
               force3D: false,
             },
             0,
@@ -146,8 +144,7 @@ function initialize() {
             0.2,
           )
           .to(lines.slice(0, -1), { y: () => -window.innerHeight, duration: 3 }, 0.2)
-          .fromTo(zoomNote.value!, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.3 }, 2.6)
-          .to({}, { duration: 0.1 })
+          .to(rootNode, { backgroundColor: 'var(--about-paper)', duration: 0.2 }, 3)
       }
       return () => {
         word.style.removeProperty('transform-origin')

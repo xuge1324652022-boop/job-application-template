@@ -63,8 +63,8 @@ function initialize() {
         rootNode.style.setProperty('--fold-size', '100px')
         const width = Math.max(1, texts[1]!.scrollWidth)
         const size = Math.min(
-          ((stageNode.clientWidth * 0.98) / width) * 100,
-          stageNode.clientHeight * 0.24,
+          ((stageNode.clientWidth * 1.35) / width) * 100,
+          stageNode.clientHeight * 0.34,
         )
         rootNode.style.setProperty('--fold-size', `${size}px`)
       }
@@ -84,9 +84,9 @@ function initialize() {
             onRefreshInit: measure,
           },
         })
-        .fromTo(slices[0]!, { xPercent: 8 }, { xPercent: 0, duration: 0.8 }, 0)
-        .fromTo(slices[1]!, { xPercent: 0 }, { xPercent: 0, duration: 0.8 }, 0)
-        .fromTo(slices[2]!, { xPercent: 8 }, { xPercent: 0, duration: 0.8 }, 0)
+        .fromTo(slices[0]!, { xPercent: 65 }, { xPercent: 0, duration: 0.8 }, 0)
+        .fromTo(slices[1]!, { xPercent: -65 }, { xPercent: 0, duration: 0.8 }, 0)
+        .fromTo(slices[2]!, { xPercent: 65 }, { xPercent: 0, duration: 0.8 }, 0)
         .to(texts[0]!, { yPercent: 110, duration: 0.65 }, 0.95)
         .to(texts[2]!, { yPercent: -110, duration: 0.65 }, 0.95)
         // Moving an inline glyph out of its line box alone can leave ink from the

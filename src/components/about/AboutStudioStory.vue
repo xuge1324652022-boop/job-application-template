@@ -1,11 +1,6 @@
 <template>
   <div ref="root" class="studio-story">
     <section id="experience-reveal" class="studio-experience">
-      <div id="identity" class="studio-experience__intro">
-        <p v-for="(line, i) in PROFILE_LINES" :key="i" class="studio-statement">
-          {{ pick(line, lang) }}
-        </p>
-      </div>
       <AboutInternshipCards
         :lang="lang"
         :images="images"
@@ -120,7 +115,6 @@ import { onMounted, onBeforeUnmount, nextTick, ref, watch } from 'vue'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import {
-  PROFILE_LINES,
   WORKS,
   CAPABILITIES,
   FACTS,

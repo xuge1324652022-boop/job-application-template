@@ -8,7 +8,6 @@
           }}</span>
         </h2>
       </div>
-      <span class="quote-scene__cue" aria-hidden="true">↓</span>
     </div>
   </section>
 </template>
