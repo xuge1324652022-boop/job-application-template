@@ -48,7 +48,7 @@ assert.deepEqual(observe(0), ['visible', 'hidden', 'hidden'])
 
 // 不模拟浏览器命中测试：模板只负责当前键盘入口，浏览器由clip-path命中可见像素。
 assert.doesNotMatch(photo.template.content, /class="ps__(?:chapter|slot)"[^>]*:inert=/)
-assert.match(photo.template.content, /:tabindex="staticMode \|\| \(group === active/)
+assert.match(photo.template.content, /:tabindex="\s*staticMode\s*\|\|\s*\(group === active/)
 
 // 执行实际setup的能力与生命周期分支；无CSS API也必须保留原图，且不安装空间时间线。
 const depth = component('src/components/about/InternshipDepthComposition.vue')
@@ -89,6 +89,6 @@ for (const capability of [undefined, false, true]) {
   assert.equal(reverted, 1)
 }
 assert.match(depth.template.content, /v-if="!i && supportsContainerUnits"/)
-assert.match(depth.template.content, /class="idc__main-image" :src="item.src"/)
+assert.match(depth.template.content, /class="idc__main-image"\s+:src="item.src"/)
 assert.match(depth.template.content, /:revealed="!supportsContainerUnits \|\| introduced.has\(item.id\)"/)
 console.log('PASS: actual photo wipe visibility/reverse restoration and legacy cqw original-image fallback/lifecycle; browser touch hit testing remains a separate check')

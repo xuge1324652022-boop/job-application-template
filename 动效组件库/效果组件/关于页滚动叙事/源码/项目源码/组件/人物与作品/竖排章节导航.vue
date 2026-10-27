@@ -7,7 +7,7 @@
   <nav
     ref="rail"
     class="about-rail"
-    :class="{ 'is-paper': activeIndex === 2 || activeIndex === 5, 'is-coral': activeIndex === 4 }"
+    :class="{ 'is-paper': activeIndex >= 2 && chapters[activeIndex]?.id !== 'contact' }"
     :aria-label="lang === 'zh' ? '关于页章节导航' : 'About sections'"
   >
     <RouterLink
@@ -58,7 +58,7 @@ const chapters = [
   { numeral: 'III.', id: 'experience-reveal', zh: '经历', en: 'WORK' },
   { numeral: 'IV.', id: 'achievements', zh: '作品成果', en: 'PROJECTS' },
   { numeral: 'V.', id: 'process', zh: '创作方向', en: 'PRACTICE' },
-  { numeral: 'VI.', id: 'recognition', zh: '个人履历', en: 'PROFILE' },
+  { numeral: 'VI.', id: 'recognition', zh: '个人背景', en: 'PROFILE' },
   ...(INDUSTRIES.length
     ? [{ numeral: 'VII.', id: 'industries', zh: '实践场景', en: 'FIELDS' }]
     : []),
@@ -163,9 +163,10 @@ onBeforeUnmount(() => {
   inset: 0 auto 0 0;
   display: none;
   width: 48px;
-  --rail-ink: #fee9ce;
-  --rail-line: #fee9ce18;
-  background: #0a0a0a;
+  --rail-ink: var(--about-on-night);
+  --rail-accent: var(--about-accent-on-night);
+  --rail-line: var(--about-line-on-night);
+  background: var(--about-night);
   color: var(--rail-ink);
   border-right: 1px solid var(--rail-line);
   flex-direction: column;
@@ -238,7 +239,7 @@ onBeforeUnmount(() => {
   top: 0;
   width: 2px;
   height: 100%;
-  background: #ef5143;
+  background: var(--rail-accent);
   transform: scaleY(var(--rail-progress, 0));
   transform-origin: top;
 }
@@ -253,18 +254,18 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   gap: 5px;
-  background: #ffb15f;
-  color: #0a0a0a;
+  background: var(--about-sand);
+  color: var(--about-ink-on-paper);
   text-decoration: none;
   writing-mode: vertical-rl;
   font-size: 10px;
   font-weight: 700;
 }
 .about-rail__connect:hover {
-  background: #fee9ce;
+  background: var(--about-on-night);
 }
 a:focus-visible {
-  outline: 2px solid #ef5143;
+  outline: 2px solid var(--rail-accent);
   outline-offset: -3px;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -273,11 +274,16 @@ a:focus-visible {
   }
 }
 .about-rail.is-paper {
-  --rail-ink: #0a0a0a;
-  --rail-line: #0a0a0a18;
-  background: #fee9ce;
+  --rail-ink: var(--about-ink-on-paper);
+  --rail-accent: var(--about-accent-on-paper);
+  --rail-line: var(--about-line-on-paper);
+  background: var(--about-on-night);
 }
-.about-rail.is-coral {
-  background: #ef5143;
+/* Match the extracted full-screen internship stage, including reverse scroll. */
+:global(.about-page:has(.internship-story[data-night='true']) .about-rail.is-paper) {
+  --rail-ink: var(--about-on-night);
+  --rail-accent: var(--about-accent-on-night);
+  --rail-line: var(--about-line-on-night);
+  background: var(--about-night);
 }
 </style>

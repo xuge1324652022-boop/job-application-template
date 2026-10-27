@@ -25,6 +25,8 @@ function dimensions(bytes) {
   throw new Error('WebP 缺少画面尺寸')
 }
 
+// Private media lives outside public/. Keep its registered dimensions in the manifest;
+// runtime dimensions from the personal content pack remain authoritative.
 const entries = []
 for (const directory of ['portfolio', 'internship-clean', 'about']) {
   for (const file of readdirSync(path.join(root, 'public', directory)).sort()) {
@@ -34,6 +36,9 @@ for (const directory of ['portfolio', 'internship-clean', 'about']) {
     if (size.width <= 0 || size.height <= 0) throw new Error(`图片尺寸无效：${file}`)
     entries.push([`/${directory}/${file}`, size])
   }
+}
+for (const [url, size] of Object.entries(JSON.parse(readFileSync(target, 'utf8')))) {
+  if (url.startsWith('/personal/')) entries.push([url, size])
 }
 const content = `${JSON.stringify(Object.fromEntries(entries), null, 2)}\n`
 if (check) {

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
-import { basename, dirname, join, resolve } from 'node:path'
+import { basename, dirname, join, relative, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
 import { Writable } from 'node:stream'
 import { personalPortfolio } from '../scripts/personal-portfolio.mjs'
@@ -90,6 +90,101 @@ test('no local pack or a disabled pack leaves template HTML, build and requests 
   assert.equal(f.plugin.transformIndexHtml.handler(), undefined)
   assert.deepEqual(build(f.plugin), [])
   assert.equal((await request(f.plugin, '/personal/selected.webp')).status, 404)
+})
+
+test('a required personal workspace cannot silently fall back to the template', async (t) => {
+  const f = fixture(t)
+  const required = personalPortfolio(f.root, { required: true })
+  assert.throws(() => required.transformIndexHtml.handler(), /完整个人项目/u)
+  assert.throws(() => build(required), /完整个人项目/u)
+  assert.equal((await request(required, '/personal/selected.webp')).status, 500)
+  for (const content of [{ enabled: false, assets: {} }, enabled({})]) {
+    f.manifest(content)
+    assert.throws(() => required.transformIndexHtml.handler(), /本机个人内容包无效/u)
+  }
+  f.manifest({ ...enabled({}), site: { visualPortfolio: {} } })
+  assert.ok(required.transformIndexHtml.handler())
+  assert.deepEqual(build(required), [])
+})
+
+test('an external archive is used only when explicitly selected, with relative and absolute roots', async (t) => {
+  const project = fixture(t)
+  const archive = fixture(t)
+  archive.put(selected(), 'archive-image')
+  archive.put(selected('unselected.webp'), 'not selected')
+  archive.manifest(enabled({ 'selected.webp': selected() }))
+
+  assert.equal(project.plugin.transformIndexHtml.handler(), undefined)
+  assert.deepEqual(build(project.plugin), [])
+  assert.equal((await request(project.plugin, '/personal/selected.webp')).status, 404)
+
+  for (const sourceRoot of [archive.root, relative(project.root, archive.root)]) {
+    const plugin = personalPortfolio(project.root, { sourceRoot })
+    const [tag] = plugin.transformIndexHtml.handler()
+    assert.deepEqual(JSON.parse(tag.children), { profile: { heading: 'Synthetic fixture' } })
+    const emitted = build(plugin)
+    assert.deepEqual(
+      emitted.map((item) => item.fileName),
+      ['personal/selected.webp'],
+    )
+    assert.equal(emitted[0].source.toString(), 'archive-image')
+    for (const preview of [false, true]) {
+      const image = await request(plugin, '/personal/selected.webp', { preview })
+      assert.equal(image.status, 200)
+      assert.equal(image.body.toString(), 'archive-image')
+      assert.equal((await request(plugin, '/personal/unselected.webp', { preview })).status, 404)
+    }
+  }
+})
+
+test('an explicitly selected archive still rejects paths outside its content directory', async (t) => {
+  const project = fixture(t)
+  const archive = fixture(t)
+  const outside = archive.put('outside.webp', 'outside the content directory')
+  archive.put(selected(), 'archive-image')
+  const plugin = personalPortfolio(project.root, { sourceRoot: archive.root })
+  for (const invalid of ['outside.webp', outside, `${directory}/../outside.webp`]) {
+    archive.manifest(enabled({ 'selected.webp': selected(), 'invalid.webp': invalid }))
+    const emitted = []
+    assert.throws(
+      () => plugin.generateBundle.call({ emitFile: (item) => emitted.push(item) }),
+      /个人展示素材/u,
+    )
+    assert.deepEqual(emitted, [])
+    assert.equal((await request(plugin, '/personal/invalid.webp')).status, 404)
+  }
+})
+
+test('an archive asset junction cannot expose files outside its content directory', async (t) => {
+  const project = fixture(t)
+  const archive = fixture(t)
+  archive.put('outside/selected.webp', 'outside fixture')
+  mkdirSync(join(archive.root, directory, 'assets'), { recursive: true })
+  symlinkSync(
+    join(archive.root, 'outside'),
+    join(archive.root, directory, 'assets', 'linked'),
+    'junction',
+  )
+  archive.manifest(enabled({ 'selected.webp': `${directory}/assets/linked/selected.webp` }))
+  const plugin = personalPortfolio(project.root, { sourceRoot: archive.root })
+  assert.throws(() => build(plugin), /个人展示素材/u)
+  assert.equal((await request(plugin, '/personal/selected.webp')).status, 404)
+})
+
+test('an archive content root cannot redirect into another directory', async (t) => {
+  const project = fixture(t)
+  const archive = fixture(t, { createDirectory: false })
+  archive.put('outside-content/assets/selected.webp', 'outside fixture')
+  archive.put(
+    'outside-content/content.json',
+    JSON.stringify(enabled({ 'selected.webp': 'outside-content/assets/selected.webp' })),
+  )
+  mkdirSync(join(archive.root, '本机私有资料'), { recursive: true })
+  symlinkSync(join(archive.root, 'outside-content'), join(archive.root, directory), 'junction')
+  const plugin = personalPortfolio(project.root, { sourceRoot: archive.root })
+  assert.throws(() => plugin.transformIndexHtml.handler(), /本机个人内容包无效/u)
+  assert.throws(() => build(plugin), /本机个人内容包无效/u)
+  assert.equal((await request(plugin, '/personal/selected.webp')).status, 500)
 })
 
 test('the JSON script escapes HTML boundaries and excludes local mapping or extra fields', (t) => {
@@ -242,4 +337,143 @@ test('invalid content returns a fixed error without echoing JSON data', async (t
   assert.equal(response.status, 500)
   assert.equal(response.body.toString(), 'personal content unavailable')
   assert.equal((await request(f.plugin, '/unrelated')).next, true)
+})
+
+test('a complete personal site serves and builds only its registered archive assets', async (t) => {
+  const f = fixture(t)
+  const publicRoot = '本机私有资料/公开素材原件/public'
+  const siteAssets = {
+    '/portfolio/selected.webp': `${publicRoot}/portfolio/selected.webp`,
+    '/internship-clean/selected.webp': `${publicRoot}/internship-clean/selected.webp`,
+    '/color-previews/clip-1.mp4': `${publicRoot}/color-previews/clip-1.mp4`,
+    '/about/portrait.webp': `${publicRoot}/about/portrait.webp`,
+    '/color/调色 1.mp4': 'media/color/调色 1.mp4',
+    '/personal-color-frames/frame-07.jpg':
+      '本机私有资料/公开素材原件/src/assets/color-frames/frame-07.jpg',
+    '/resume.pdf': `${publicRoot}/resume.pdf`,
+  }
+  const bytes = Buffer.from('registered site fixture')
+  for (const file of Object.values(siteAssets)) f.put(file, bytes)
+  f.put(`${publicRoot}/portfolio/unselected.webp`, 'not registered')
+  const site = { photoPage: { HERO: { zh: 'Synthetic full-site fixture' } } }
+  f.manifest({ ...enabled({}), site, siteAssets })
+  const [tag] = f.plugin.transformIndexHtml.handler()
+  const injected = JSON.parse(tag.children)
+  assert.deepEqual(injected.site, site)
+  assert.equal(Object.hasOwn(injected, 'siteAssets'), false)
+  assert.equal(Object.hasOwn(injected, 'assets'), false)
+  const emitted = build(f.plugin)
+  assert.deepEqual(
+    emitted.map((item) => item.fileName),
+    Object.keys(siteAssets).map((url) => url.slice(1)),
+  )
+  for (const item of emitted) assert.deepEqual(item.source, bytes)
+  for (const preview of [false, true]) {
+    for (const url of Object.keys(siteAssets)) {
+      const response = await request(f.plugin, encodeURI(url), { preview })
+      assert.equal(response.status, 200)
+      assert.deepEqual(response.body, bytes)
+      assert.equal(response.next, false)
+      assert.equal(response.headers['x-content-type-options'], 'nosniff')
+    }
+    const head = await request(f.plugin, '/color/%E8%B0%83%E8%89%B2%201.mp4?v=fixture', {
+      method: 'HEAD',
+      preview,
+    })
+    assert.equal(head.status, 200)
+    assert.equal(head.body.length, 0)
+    assert.equal(head.headers['content-length'], bytes.length)
+    assert.equal(head.headers['content-type'], 'video/mp4')
+    const range = await request(f.plugin, '/color/%E8%B0%83%E8%89%B2%201.mp4', {
+      headers: { range: 'bytes=0-2' },
+      preview,
+    })
+    assert.equal(range.status, 206)
+    assert.equal(range.body.toString(), 'reg')
+    const unregistered = await request(f.plugin, '/portfolio/unselected.webp', { preview })
+    assert.equal(unregistered.status, 404)
+    assert.equal(unregistered.next, false)
+    assert.equal((await request(f.plugin, '/color/%E0%A4', { preview })).status, 400)
+    assert.equal(
+      (await request(f.plugin, '/portfolio/selected.webp', { method: 'POST' })).status,
+      405,
+    )
+    assert.equal((await request(f.plugin, '/other/selected.webp', { preview })).next, true)
+  }
+  f.manifest(enabled({}))
+  assert.equal((await request(f.plugin, '/portfolio/unselected.webp')).next, true)
+})
+
+test('invalid complete-site mappings fail before any personal or site asset is emitted', async (t) => {
+  const f = fixture(t)
+  const source = '本机私有资料/公开素材原件/public/portfolio/selected.webp'
+  const absolute = f.put(source, 'registered image')
+  f.put(selected(), 'personal image')
+  f.put('outside.webp', 'outside archive area')
+  const valid = { '/portfolio/selected.webp': source }
+  for (const [url, file] of [
+    ['/portfolio/invalid.webp', 'outside.webp'],
+    ['/portfolio/invalid.webp', absolute],
+    ['/portfolio/invalid.webp', `${source}/../selected.webp`],
+    ['/portfolio/invalid.webp', 'C:\\outside.webp'],
+    ['/portfolio/invalid.webp', source.replace('.webp', '.json')],
+    ['/portfolio/invalid.jpg', source],
+    ['/portfolio/../invalid.webp', source],
+    ['/portfolio/nested/invalid.webp', source],
+    ['/portfolio/invalid.webp?query=1', source],
+    ['/portfolio/invalid.webp#fragment', source],
+    ['/unknown/invalid.webp', source],
+  ]) {
+    f.manifest({
+      ...enabled({ 'selected.webp': selected() }),
+      siteAssets: { ...valid, [url]: file },
+    })
+    const emitted = []
+    assert.throws(
+      () => f.plugin.generateBundle.call({ emitFile: (asset) => emitted.push(asset) }),
+      /完整个人站点素材/u,
+    )
+    assert.deepEqual(emitted, [])
+  }
+  f.manifest({ ...enabled({}), siteAssets: valid })
+  for (const url of [
+    '/portfolio/%2E%2E%2Fselected.webp',
+    '/portfolio/%2E%2E%5Cselected.webp',
+    '/portfolio/nested%2Fselected.webp',
+    '/portfolio/%00selected.webp',
+  ]) {
+    const response = await request(f.plugin, url)
+    assert.equal(response.status, 404)
+    assert.equal(response.next, false)
+  }
+})
+
+test('complete-site archive area roots cannot redirect to unrelated directories', async (t) => {
+  for (const [area, url] of [
+    ['本机私有资料/公开素材原件/public', '/portfolio/selected.webp'],
+    ['本机私有资料/公开素材原件/src/assets/color-frames', '/personal-color-frames/selected.webp'],
+    ['media/color', '/color/selected.webp'],
+  ]) {
+    const f = fixture(t)
+    f.put('outside/selected.webp', 'outside selected media area')
+    mkdirSync(dirname(join(f.root, area)), { recursive: true })
+    symlinkSync(join(f.root, 'outside'), join(f.root, area), 'junction')
+    f.manifest({ ...enabled({}), siteAssets: { [url]: `${area}/selected.webp` } })
+    assert.throws(() => build(f.plugin), /完整个人站点素材/u)
+    assert.equal((await request(f.plugin, url)).status, 404)
+  }
+})
+
+test('a complete-site asset junction cannot escape an otherwise valid archive area', async (t) => {
+  const f = fixture(t)
+  const area = '本机私有资料/公开素材原件/public'
+  f.put('outside/selected.webp', 'outside selected media area')
+  mkdirSync(join(f.root, area), { recursive: true })
+  symlinkSync(join(f.root, 'outside'), join(f.root, area, 'linked'), 'junction')
+  f.manifest({
+    ...enabled({}),
+    siteAssets: { '/portfolio/selected.webp': `${area}/linked/selected.webp` },
+  })
+  assert.throws(() => build(f.plugin), /完整个人站点素材/u)
+  assert.equal((await request(f.plugin, '/portfolio/selected.webp')).status, 404)
 })

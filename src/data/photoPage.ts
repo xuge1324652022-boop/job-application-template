@@ -1,3 +1,4 @@
+import { personalSiteValue } from './personalPortfolio'
 /**
  * `/photo` 页的文案与素材编排：开场、色彩章节、手记和完整画廊顺序。
  * 通用页尾的跨章节动作由 WorkContinuation 统一维护，不在这里复制。
@@ -24,16 +25,16 @@
 import type { Bi } from './aboutProfile'
 import { photoCollection, visualById, type VisualAsset } from './visualPortfolio'
 
-export const HERO = {
+export const HERO = personalSiteValue('photoPage', 'HERO', {
   big: 'PHOTOGRAPHY',
   kicker: { zh: '图像展示示例', en: 'Sample image showcase' } as Bi,
   lead: {
     zh: '用合成图像，体验完整的展示流程。',
     en: 'Explore the full showcase with synthetic sample imagery.',
   } as Bi,
-} as const
+} as const)
 
-export const SECTIONS = {
+const templateSections = {
   notes: {
     label: 'NOTES',
     title: { zh: '示例说明', en: 'Sample notes' },
@@ -52,8 +53,23 @@ export const SECTIONS = {
   },
 } as const
 
+const personalSections = personalSiteValue('photoPage', 'SECTIONS', templateSections)
+export const SECTIONS = {
+  ...personalSections,
+  gallery: {
+    ...personalSections.gallery,
+    lead: (n: number): Bi =>
+      personalSiteValue('photoPage', 'PHOTO_SETS', null)
+        ? {
+            zh: `${n} 次停留，留下风景、人物与光。`,
+            en: `${n} moments held in landscapes, people and light.`,
+          }
+        : templateSections.gallery.lead(n),
+  },
+}
+
 /** 公开模板只描述合成图像和交互，不声称存在真实摄影、器材或拍摄经历。 */
-export const NOTES: readonly Bi[] = [
+export const NOTES: readonly Bi[] = personalSiteValue('photoPage', 'NOTES', [
   {
     zh: '所有图像均为合成几何示例，由网格、色块、圆环与短线组成，不含真实人物、地名或摄影作品。',
     en: 'All images are synthetic geometric samples made from grids, colour blocks, rings and short lines, with no real people, locations or photographs.',
@@ -66,7 +82,7 @@ export const NOTES: readonly Bi[] = [
     zh: '替换成自己的公开作品时，请同步更新标题、替代文本与尺寸，并检查缩略图和查看器是否仍然对应。',
     en: 'When adding your own public work, update titles, alt text and dimensions together, then check that thumbnails still match the viewer.',
   },
-] as const
+] as const)
 
 /**
  * 一个色彩章节（滚动推进的单位）。`PhotoSets.vue` 的章节标题、描述、底色、
@@ -178,10 +194,14 @@ const SET_PLAN: readonly PhotoSetPlan[] = [
   },
 ]
 
-export const PHOTO_SETS: readonly PhotoSet[] = SET_PLAN.map(({ ids, ...set }) => ({
-  ...set,
-  items: ids.map(visualById),
-}))
+export const PHOTO_SETS: readonly PhotoSet[] = personalSiteValue(
+  'photoPage',
+  'PHOTO_SETS',
+  SET_PLAN.map(({ ids, ...set }) => ({
+    ...set,
+    items: ids.map(visualById),
+  })),
+)
 
 /**
  * 开发期自检（`import.meta.env.DEV` 才调用，见 `PhotoView.vue`）。守四条：
@@ -203,7 +223,12 @@ export function assertPhotoSets(): void {
     if (setIds.has(set.id)) bad.push(`色彩章节 id 重复：${set.id}`)
     setIds.add(set.id)
     if (!set.items.length) bad.push(`色彩章节「${set.id}」不能为空`)
-    if (!set.name.zh.trim() || !set.name.en.trim() || !set.description.zh.trim() || !set.description.en.trim()) {
+    if (
+      !set.name.zh.trim() ||
+      !set.name.en.trim() ||
+      !set.description.zh.trim() ||
+      !set.description.en.trim()
+    ) {
       bad.push(`色彩章节「${set.id}」缺少双语文案`)
     }
     if (Object.values(set.palette).some((value) => !/^#[0-9a-f]{6}$/i.test(value))) {
@@ -239,9 +264,13 @@ interface GallerySlot {
  * ⚠️ 这个数组同时是 `PhotoView.vue` 的查看器集合（`galleryViewerItems`）——
  *    两者顺序必须一致，查看器的下标才与点击的槽位对得上。
  */
-export const photoGallery: readonly GallerySlot[] = PHOTO_SETS.flatMap((set) =>
-  set.items.map((item, index): GallerySlot => ({
-    item,
-    span: item.height > item.width ? 'md' : index % 3 === 0 ? 'lg' : 'sm',
-  })),
+export const photoGallery: readonly GallerySlot[] = personalSiteValue(
+  'photoPage',
+  'photoGallery',
+  PHOTO_SETS.flatMap((set) =>
+    set.items.map((item, index): GallerySlot => ({
+      item,
+      span: item.height > item.width ? 'md' : index % 3 === 0 ? 'lg' : 'sm',
+    })),
+  ),
 )

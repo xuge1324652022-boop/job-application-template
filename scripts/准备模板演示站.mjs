@@ -1,11 +1,13 @@
 /** 在独立的忽略目录构建匿名演示；不读取个人入口站点或任何私人原件。 */
 import { spawnSync } from 'node:child_process'
-import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { siteOrigin } from './route-pages.mjs'
+import { assertTemplateArtifact, assertTemplateWorkspace } from './workspace-edition.mjs'
 
 const root = realpathSync(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'))
+assertTemplateWorkspace(root)
 const config = JSON.parse(readFileSync(path.join(root, '发布配置/模板演示站.json'), 'utf8'))
 const origin = siteOrigin(config.站点网址)
 if (!config.站点编号 || origin !== config.站点网址 || !origin.startsWith('https://')) throw new Error('模板演示站配置无效')
@@ -29,5 +31,10 @@ const build = spawnSync(process.execPath, [path.join(root, 'node_modules/vite/bi
   cwd: root, stdio: 'inherit', windowsHide: true, env: { ...process.env, SITE_ORIGIN: origin },
 })
 if (build.status !== 0) throw new Error('匿名演示构建失败')
+for (const name of readdirSync(output, { recursive: true })) {
+  const file = path.join(output, name)
+  if (lstatSync(file).isFile())
+    assertTemplateArtifact(name.split(path.sep).join('/'), /\.html$/iu.test(name) ? readFileSync(file) : Buffer.alloc(0))
+}
 copyFileSync(path.join(output, 'not-found.html'), path.join(output, '404.html'))
 console.log(JSON.stringify({ project_id: config.站点编号, origin, checkout, output, audience: 'unchanged', uploaded: false }))

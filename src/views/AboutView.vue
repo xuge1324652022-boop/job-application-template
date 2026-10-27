@@ -196,25 +196,17 @@ async function prepareScroll(
     await nextFrame(signal)
     await nextFrame(signal)
     if (disposed || signal.aborted) return false
-    ScrollTrigger.refresh()
-    // Horizontal panels have the same document top; map deep links to their scroll progress.
     if (!saved && validHash) {
       const target = document.getElementById(decodeURIComponent(hash.slice(1)))
-      const panel = target?.closest<HTMLElement>('.studio-background__panel')
-      const horizontal = ScrollTrigger.getById('about-background-horizontal')
-      if (panel && horizontal) {
-        const track = panel.parentElement!
-        const travel = track.scrollWidth - track.parentElement!.clientWidth
-        const progress = Math.min(1, panel.offsetLeft / Math.max(1, travel))
-        window.scrollTo({
-          top: horizontal.start + (horizontal.end - horizontal.start) * progress,
-          behavior: 'instant',
-        })
-        horizontal.update()
-        horizontal.getTween()?.progress(1)
-        return false
+      let group = target?.closest('details')
+      while (group) {
+        group.open = true
+        group = group.parentElement?.closest('details') ?? null
       }
+      await nextTick()
+      await nextFrame(signal)
     }
+    ScrollTrigger.refresh()
     return true
   } catch (error) {
     if (signal.aborted || disposed) return false
@@ -269,15 +261,36 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+@font-face {
+  font-family: 'About Archivo';
+  src: url('/fonts/about/archivo-latin-variable.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 .about-page {
-  --display-font: 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  --ab-bg: #0a0a0a;
-  --ab-ink: #fee9ce;
-  --ab-paper: #fee9ce;
-  --ab-soft: #c2b29f;
-  --ab-dim: #766d60;
-  --ab-line: #fee9ce22;
-  --ab-accent: #ef5143;
+  --display-font: 'About Archivo', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --about-night: #12140f;
+  --about-paper: #efe9dc;
+  --about-on-night: #efe9dc;
+  --about-ink-on-paper: #1b1c18;
+  --about-soft-on-paper: #6b665a;
+  --about-soft-on-night: #b7b0a0;
+  --about-line-on-paper: #1b1c1822;
+  --about-line-on-night: #efe9dc22;
+  --about-accent-on-paper: #4e5d3a;
+  --about-accent-on-night: #c6d2ae;
+  --about-sand: #c9b79c;
+  --ab-bg: var(--about-night);
+  --ab-ink: var(--about-on-night);
+  --ab-paper: var(--about-paper);
+  --ab-soft: var(--about-soft-on-night);
+  --ab-dim: var(--about-soft-on-night);
+  --ab-line: var(--about-line-on-night);
+  --ab-accent: var(--about-accent-on-night);
   position: relative;
   min-height: 100vh;
   overflow-x: clip;
@@ -287,7 +300,6 @@ onBeforeUnmount(() => {
 }
 @media (min-width: 981px) and (min-height: 620px) {
   .about-page {
-    --display-font: 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
     padding-left: 48px;
   }
 }

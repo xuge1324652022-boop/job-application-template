@@ -25,6 +25,11 @@
       "path": "public/ai-tools/yuanbao.png",
       "sha256": "8f3ae0d03e06de5e3f3179d05045f0915e9548d3e74bd8bfe2969d2ddea902c5",
       "source": "docs/AI工具图标来源.md"
+    },
+    {
+      "path": "public/fonts/about/archivo-latin-variable.woff2",
+      "sha256": "8f704806dbedeaaeca334b11ec348bc3ac3a439d6431544b3afb54f534ee4967",
+      "source": "public/fonts/about/README.md"
     }
   ]
 }

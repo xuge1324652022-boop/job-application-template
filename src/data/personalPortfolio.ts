@@ -2,6 +2,7 @@ import type { Bi, Capability, Experience, Work } from './aboutProfile'
 import type { VisualAsset } from './visualPortfolio'
 
 interface PersonalPortfolio {
+  site?: Record<string, Record<string, unknown>>
   profile: {
     IDENTITY: {
       nameZh: string
@@ -10,6 +11,7 @@ interface PersonalPortfolio {
       en: { title: string; short: string }
       zh: { title: string }
     }
+    aboutMedia?: { observations: VisualAsset[]; contact?: VisualAsset; internships?: VisualAsset[] }
     TAGLINE: Bi
     ROLE_LINE: Bi
     FACTS: { k: Bi; v: Bi }[]
@@ -42,6 +44,12 @@ export const personalPortfolio: PersonalPortfolio | null = content
   ? (JSON.parse(content) as PersonalPortfolio)
   : null
 export const isPersonalPortfolio = personalPortfolio !== null
+export const isCompletePersonalPortfolio = Boolean(personalPortfolio?.site)
+
+/** Local full-site content takes precedence; a checkout without it keeps template data. */
+export function personalSiteValue<T>(section: string, key: string, fallback: T): T {
+  return (personalPortfolio?.site?.[section]?.[key] ?? fallback) as T
+}
 
 export const aboutPortrait: VisualAsset = personalPortfolio?.portrait ?? {
   id: 'profile-portrait',

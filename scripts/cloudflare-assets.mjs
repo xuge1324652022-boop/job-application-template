@@ -3,6 +3,7 @@ import { lstat, mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 import { createHash } from 'node:crypto'
 import { basename, dirname, extname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { assertTemplateArtifact, assertTemplateWorkspace } from './workspace-edition.mjs'
 
 const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const MAX_SIZE = 25 * 1024 * 1024
@@ -117,6 +118,7 @@ async function publicApproval(projectRoot) {
 }
 
 function verifyPublicBytes(file, buffer, approval) {
+  assertTemplateArtifact(file.path, buffer)
   const sha256 = createHash('sha256').update(buffer).digest('hex')
   if (!TEXT_EXTENSIONS.has(extname(file.path).toLowerCase()) && !approval.approvedHashes.has(sha256)) throw new Error(`拒绝未审核的公开二进制：${file.path}`)
   const expectedSha = approval.approved.get(`public${file.path}`)
@@ -126,6 +128,7 @@ function verifyPublicBytes(file, buffer, approval) {
 }
 
 export async function prepare(outputRoot, projectRoot = PROJECT_ROOT) {
+  assertTemplateWorkspace(projectRoot)
   outputRoot = resolve(outputRoot)
   await rejectSymlinkAncestors(outputRoot)
   if (await inspect(outputRoot)) throw new Error(`拒绝覆盖已有发布目录：${outputRoot}`)
@@ -162,6 +165,7 @@ export async function prepare(outputRoot, projectRoot = PROJECT_ROOT) {
 }
 
 async function readPrepared(outputRoot, projectRoot = PROJECT_ROOT) {
+  assertTemplateWorkspace(projectRoot)
   outputRoot = resolve(outputRoot)
   const manifestPath = join(outputRoot, 'manifest.json')
   await rejectSymlinkAncestors(manifestPath)
@@ -191,6 +195,7 @@ export async function manifest(outputRoot, projectRoot = PROJECT_ROOT) {
 }
 
 export async function upload(outputRoot, { projectRoot = PROJECT_ROOT, fetchImpl = fetch, delay = ms => new Promise(resolve => setTimeout(resolve, ms)), progress = message => process.stderr.write(`${message}\n`) } = {}) {
+  assertTemplateWorkspace(projectRoot)
   let session
   try {
     const sessionText = process.env.CF_ASSET_UPLOAD_SESSION

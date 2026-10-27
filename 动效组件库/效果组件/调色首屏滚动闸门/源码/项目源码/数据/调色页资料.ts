@@ -1,3 +1,4 @@
+import { personalSiteValue } from './本机个人内容接口'
 /**
  * 公开模板调色页的合成短片清单。
  * 15 段静音短片均由程序生成的几何图形组成，不包含个人原片、实拍场景或真实调色履历。
@@ -10,7 +11,7 @@ export const CLIPS: readonly {
   en: string
   note: string
   color: string
-}[] = [
+}[] = personalSiteValue('colorPage', 'CLIPS', [
   {
     n: 1,
     src: enc(1),
@@ -131,54 +132,68 @@ export const CLIPS: readonly {
     note: '合成素材完成收束',
     color: '#007e78',
   },
-
-]
+])
 
 /** 新增示例时，预览、读数与分段轨道随同一份清单更新。 */
 export const CLIP_COUNT = CLIPS.length
-export const PREVIEWS = CLIPS.map((clip) => ({
-  src: clip.src,
-  previewSrc: `/color-previews/clip-${clip.n}.mp4`,
-  poster: `/color-previews/clip-${clip.n}.jpg`,
-}))
+export const PREVIEWS = personalSiteValue(
+  'colorPage',
+  'PREVIEWS',
+  CLIPS.map((clip) => ({
+    src: clip.src,
+    previewSrc: `/color-previews/clip-${clip.n}.mp4`,
+    poster: `/color-previews/clip-${clip.n}.jpg`,
+  })),
+)
 
-export const COLOR_INTRO = {
+export const COLOR_INTRO = personalSiteValue('colorPage', 'COLOR_INTRO', {
   zh: `${CLIP_COUNT} 段合成静音短片，用来演示视频播放、滚动叙事和分段色轨。图像完全由几何元素生成，可替换为自己的公开作品`,
   en: `${CLIP_COUNT} synthetic silent clips demonstrate video playback, scrolling storytelling and segmented colour tracks. The geometry is programmatically generated and can be replaced with your own public work`,
-}
-export const INTRO_LABEL = { zh: '示例说明', en: 'Sample introduction' }
+})
+export const INTRO_LABEL = personalSiteValue('colorPage', 'INTRO_LABEL', {
+  zh: '示例说明',
+  en: 'Sample introduction',
+})
 
 /** 只引用 public/color 内的公开合成短片；文件名含空格，地址必须编码。 */
 function enc(n: number): string {
   return `/color/${encodeURIComponent(`color grade-${n}.mp4`)}`
 }
 
-export const NOTES: readonly { k: string; v: string; en: string }[] = [
-  {
-    k: '合成素材',
-    v: '短片完全由程序生成的网格、色块与圆环组成，不使用真实摄影画面、声音或个人素材',
-    en: 'Each clip consists of programmatically generated grids, colour blocks and rings, without real footage, audio or personal material',
-  },
-  {
-    k: '交互示例',
-    v: '通过静音循环、分段导航与滚动切换，演示调色作品页的浏览体验，不表示真实项目成果',
-    en: 'Silent loops, segmented navigation and scroll transitions demonstrate a colour portfolio browsing experience without claiming real project work',
-  },
-  {
-    k: '替换提示',
-    v: '使用自己的公开作品时，同步更新字幕、说明、预览与尺寸，并在不同屏幕中检查播放和阅读体验',
-    en: 'When adding your own public work, update captions, descriptions, previews and dimensions, then review playback and reading across screen sizes',
-  },
-]
+export const NOTES: readonly { k: string; v: string; en: string }[] = personalSiteValue(
+  'colorPage',
+  'NOTES',
+  [
+    {
+      k: '合成素材',
+      v: '短片完全由程序生成的网格、色块与圆环组成，不使用真实摄影画面、声音或个人素材',
+      en: 'Each clip consists of programmatically generated grids, colour blocks and rings, without real footage, audio or personal material',
+    },
+    {
+      k: '交互示例',
+      v: '通过静音循环、分段导航与滚动切换，演示调色作品页的浏览体验，不表示真实项目成果',
+      en: 'Silent loops, segmented navigation and scroll transitions demonstrate a colour portfolio browsing experience without claiming real project work',
+    },
+    {
+      k: '替换提示',
+      v: '使用自己的公开作品时，同步更新字幕、说明、预览与尺寸，并在不同屏幕中检查播放和阅读体验',
+      en: 'When adding your own public work, update captions, descriptions, previews and dimensions, then review playback and reading across screen sizes',
+    },
+  ],
+)
 
 /** 轨道色仅用于模板的导航区分，不声称由真实作品抽帧测得。 */
 const TRACK_COLORS = CLIPS.map((clip) => clip.color)
 
 /** 将清单颜色沿水平方向均分，供底部分段轨道使用。 */
-export const COLOR_TRACK_FACE = (() => {
-  const pct = 100 / TRACK_COLORS.length
-  const stops = TRACK_COLORS.map(
-    (c, i) => `${c} ${(i * pct).toFixed(3)}% ${((i + 1) * pct).toFixed(3)}%`,
-  )
-  return `linear-gradient(90deg, ${stops.join(', ')})`
-})()
+export const COLOR_TRACK_FACE = personalSiteValue(
+  'colorPage',
+  'COLOR_TRACK_FACE',
+  (() => {
+    const pct = 100 / TRACK_COLORS.length
+    const stops = TRACK_COLORS.map(
+      (c, i) => `${c} ${(i * pct).toFixed(3)}% ${((i + 1) * pct).toFixed(3)}%`,
+    )
+    return `linear-gradient(90deg, ${stops.join(', ')})`
+  })(),
+)

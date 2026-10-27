@@ -91,7 +91,7 @@ function initialize() {
         const context = canvas.getContext('2d', { willReadFrequently: true })
         if (!context) return false
         context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`
-        context.fillStyle = '#fff'
+        context.fillStyle = '#EFE9DC'
         const metrics = context.measureText('Hg国')
         const ascent = metrics.fontBoundingBoxAscent ?? metrics.actualBoundingBoxAscent
         const descent = metrics.fontBoundingBoxDescent ?? metrics.actualBoundingBoxDescent
@@ -129,7 +129,17 @@ function initialize() {
               onRefreshInit: measure,
             },
           })
-          .set(word, { backgroundImage: 'none', color: '#fee9ce', force3D: false }, 0)
+          .set(
+            word,
+            {
+              backgroundImage: 'none',
+              color: getComputedStyle(root.value!)
+                .getPropertyValue('--about-accent-on-night')
+                .trim(),
+              force3D: false,
+            },
+            0,
+          )
           .to(
             word,
             { scale: () => geometry.scale, x: () => geometry.x, y: () => geometry.y, duration: 3 },
@@ -171,7 +181,7 @@ onBeforeUnmount(() => {
   isolation: isolate;
   overflow: clip;
   padding: 8svh 20px 0;
-  background: #0a0a0a;
+  background: var(--about-night);
   text-align: center;
 }
 .identity-words__during-zoom {
@@ -181,7 +191,7 @@ onBeforeUnmount(() => {
   width: 100%;
   z-index: 2;
   margin: 0;
-  color: #ef5143;
+  color: var(--about-accent-on-night);
   font-size: clamp(28px, 4vw, 64px);
   font-weight: 700;
   visibility: hidden;
@@ -201,9 +211,13 @@ onBeforeUnmount(() => {
   font-weight: 700;
   letter-spacing: -0.065em;
   line-height: 1.07;
-  color: #fee9ce;
+  color: var(--about-on-night);
   --reveal: 100%;
-  background: linear-gradient(to bottom, #fee9ce 0 var(--reveal), #fee9ce66 var(--reveal) 100%);
+  background: linear-gradient(
+    to bottom,
+    var(--about-on-night) 0 var(--reveal),
+    var(--about-soft-on-night) var(--reveal) 100%
+  );
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
@@ -218,6 +232,11 @@ onBeforeUnmount(() => {
   }
 }
 .identity-words__word--last {
+  background-image: linear-gradient(
+    to bottom,
+    var(--about-accent-on-night) 0 var(--reveal),
+    var(--about-soft-on-night) var(--reveal) 100%
+  );
   position: relative;
   width: max-content;
   max-width: 100%;

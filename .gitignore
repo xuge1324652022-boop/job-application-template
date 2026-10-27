@@ -125,3 +125,8 @@ outputs/dev-preview-5174*.log
 
 # mimosa 扫描插件的本地会话状态，不属于源码。
 .mimosa/
+
+# 本机素材归档可放回项目内，仍不属于源码或公开交付。
+portfolio-素材归档/
+参考资料/
+media/

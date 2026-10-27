@@ -1,3 +1,4 @@
+import { personalSiteValue } from './本机个人内容接口'
 /**
  * 剪辑 / 新闻基础页的数据契约：先形成可进入、可阅读、可操作的版面，当前仅使用虚构主题与合成素材。
  * 这里的主题与文案属于创作研究，不应补上不存在的客户、业绩或成片路径。
@@ -25,81 +26,113 @@ export type FoundationPage = {
 }
 
 /** 公开模板的主题与阅读结构，不代表真实客户或个人作品清单 */
-export const FOUNDATION_PAGES: Record<FoundationKind, FoundationPage> = {
-  edit: {
-    id: '02', heading: 'EDITING', title: { zh: '剪辑', en: 'Editing' },
-    introduction: {
-      zh: '模板示例：用虚构主题演示剪辑页的阅读结构、节奏与交互，可替换为自己的公开作品',
-      en: 'Template example: fictional themes demonstrate reading structure, rhythm and interaction. Replace them with your own public work',
+export const FOUNDATION_PAGES: Record<FoundationKind, FoundationPage> = personalSiteValue(
+  'foundationPages',
+  'FOUNDATION_PAGES',
+  {
+    edit: {
+      id: '02',
+      heading: 'EDITING',
+      title: { zh: '剪辑', en: 'Editing' },
+      introduction: {
+        zh: '模板示例：用虚构主题演示剪辑页的阅读结构、节奏与交互，可替换为自己的公开作品',
+        en: 'Template example: fictional themes demonstrate reading structure, rhythm and interaction. Replace them with your own public work',
+      },
+      studyLabel: { zh: '节奏实验', en: 'A study in rhythm' },
+      closing: {
+        zh: '剪辑的力量，藏在两个画面相遇的地方',
+        en: 'The energy of an edit lives where two images meet',
+      },
+      themes: [
+        {
+          key: 'rhythm',
+          title: { zh: '节奏', en: 'Rhythm' },
+          words: ['HOLD', 'CUT', 'FEEL'],
+          description: { zh: '快慢之间，留出感受的时间', en: 'Give each moment room to be felt' },
+          detail: {
+            zh: '从一个动作的起落到一段情绪的停留，镜头的长短决定观看的呼吸，先找到段落的重心，再调整密度和留白',
+            en: 'The length of a shot shapes the breath of a sequence, from a gesture to a pause — find its emotional centre, then balance pace with space',
+          },
+        },
+        {
+          key: 'continuity',
+          title: { zh: '衔接', en: 'Continuity' },
+          words: ['LOOK', 'MOVE', 'CONNECT'],
+          description: {
+            zh: '让视线带着画面走向下一个画面',
+            en: 'Let attention travel from one image to the next',
+          },
+          detail: {
+            zh: '用动作、视线和构图建立联系，转场可以很轻，也可以成为段落的标点，重要的是让观众始终知道自己在看什么',
+            en: 'Movement, eyelines and composition connect the shots — a transition can be quiet or decisive, while the viewer always keeps their bearings',
+          },
+        },
+        {
+          key: 'sound',
+          title: { zh: '声音', en: 'Sound' },
+          words: ['LISTEN', 'PAUSE', 'RESONATE'],
+          description: { zh: '声音先到，情绪随后抵达', en: 'Sound arrives first, emotion follows' },
+          detail: {
+            zh: '对白交代信息，环境声建立空间，音乐推动情绪，让声音跨过切点，画面之间就有了更自然的连接',
+            en: 'Dialogue carries information, ambience builds a place and music shapes emotion — sound bridges can make a cut feel natural before it is seen',
+          },
+        },
+      ],
     },
-    studyLabel: { zh: '节奏实验', en: 'A study in rhythm' },
-    closing: {
-      zh: '剪辑的力量，藏在两个画面相遇的地方',
-      en: 'The energy of an edit lives where two images meet',
+    news: {
+      id: '04',
+      heading: 'NEWS',
+      title: { zh: '新闻影像', en: 'News & visual stories' },
+      introduction: {
+        zh: '模板示例：用虚构主题演示新闻影像页的内容编排，不包含真实采访、报道或现场素材',
+        en: 'Template example: fictional themes demonstrate a news imagery layout, without real interviews, reports or on-location footage',
+      },
+      studyLabel: { zh: '观察笔记', en: 'Notes on observation' },
+      closing: {
+        zh: '把镜头靠近现场，把表达交还给事实',
+        en: 'Bring the camera closer to life and let the facts lead',
+      },
+      themes: [
+        {
+          key: 'people',
+          title: { zh: '人物', en: 'People' },
+          words: ['A VOICE', 'A PERSON', 'A STORY'],
+          description: {
+            zh: '由一个人的经历，进入一个议题',
+            en: 'Enter a wider subject through one person',
+          },
+          detail: {
+            zh: '先倾听，再提问，把人物放在具体的生活和选择中，通过动作、语言与细节呈现真实的处境，避免只留下标签',
+            en: 'Listen before asking — gestures, words and everyday choices place a person in context, with room for a life beyond a label',
+          },
+        },
+        {
+          key: 'location',
+          title: { zh: '现场', en: 'On location' },
+          words: ['BE THERE', 'LOOK CLOSE', 'RECORD'],
+          description: {
+            zh: '在发生的地方，找到故事的线索',
+            en: 'Find the story where it happens',
+          },
+          detail: {
+            zh: '远景建立环境，中景交代关系，近景留下细节，让空间、行动与同期声共同构成信息，而不是只依靠解说完成叙事',
+            en: 'Wide shots establish a place, medium shots explain relationships and close-ups preserve details — space, action and location sound all carry information',
+          },
+        },
+        {
+          key: 'context',
+          title: { zh: '观察', en: 'Context' },
+          words: ['NOTICE', 'QUESTION', 'UNDERSTAND'],
+          description: {
+            zh: '把眼前的细节，放回更大的背景',
+            en: 'Connect a small detail to a larger picture',
+          },
+          detail: {
+            zh: '将采访信息、时间线与影像证据相互对照，区分事实和判断，在清楚交代背景的同时，保留观看者思考的空间',
+            en: 'Compare interviews, timelines and visual evidence, distinguish facts from interpretation, and make the context clear while leaving room to think',
+          },
+        },
+      ],
     },
-    themes: [
-      {
-        key: 'rhythm', title: { zh: '节奏', en: 'Rhythm' }, words: ['HOLD', 'CUT', 'FEEL'],
-        description: { zh: '快慢之间，留出感受的时间', en: 'Give each moment room to be felt' },
-        detail: {
-          zh: '从一个动作的起落到一段情绪的停留，镜头的长短决定观看的呼吸，先找到段落的重心，再调整密度和留白',
-          en: 'The length of a shot shapes the breath of a sequence, from a gesture to a pause — find its emotional centre, then balance pace with space',
-        },
-      },
-      {
-        key: 'continuity', title: { zh: '衔接', en: 'Continuity' }, words: ['LOOK', 'MOVE', 'CONNECT'],
-        description: { zh: '让视线带着画面走向下一个画面', en: 'Let attention travel from one image to the next' },
-        detail: {
-          zh: '用动作、视线和构图建立联系，转场可以很轻，也可以成为段落的标点，重要的是让观众始终知道自己在看什么',
-          en: 'Movement, eyelines and composition connect the shots — a transition can be quiet or decisive, while the viewer always keeps their bearings',
-        },
-      },
-      {
-        key: 'sound', title: { zh: '声音', en: 'Sound' }, words: ['LISTEN', 'PAUSE', 'RESONATE'],
-        description: { zh: '声音先到，情绪随后抵达', en: 'Sound arrives first, emotion follows' },
-        detail: {
-          zh: '对白交代信息，环境声建立空间，音乐推动情绪，让声音跨过切点，画面之间就有了更自然的连接',
-          en: 'Dialogue carries information, ambience builds a place and music shapes emotion — sound bridges can make a cut feel natural before it is seen',
-        },
-      },
-    ],
   },
-  news: {
-    id: '04', heading: 'NEWS', title: { zh: '新闻影像', en: 'News & visual stories' },
-    introduction: {
-      zh: '模板示例：用虚构主题演示新闻影像页的内容编排，不包含真实采访、报道或现场素材',
-      en: 'Template example: fictional themes demonstrate a news imagery layout, without real interviews, reports or on-location footage',
-    },
-    studyLabel: { zh: '观察笔记', en: 'Notes on observation' },
-    closing: {
-      zh: '把镜头靠近现场，把表达交还给事实',
-      en: 'Bring the camera closer to life and let the facts lead',
-    },
-    themes: [
-      {
-        key: 'people', title: { zh: '人物', en: 'People' }, words: ['A VOICE', 'A PERSON', 'A STORY'],
-        description: { zh: '由一个人的经历，进入一个议题', en: 'Enter a wider subject through one person' },
-        detail: {
-          zh: '先倾听，再提问，把人物放在具体的生活和选择中，通过动作、语言与细节呈现真实的处境，避免只留下标签',
-          en: 'Listen before asking — gestures, words and everyday choices place a person in context, with room for a life beyond a label',
-        },
-      },
-      {
-        key: 'location', title: { zh: '现场', en: 'On location' }, words: ['BE THERE', 'LOOK CLOSE', 'RECORD'],
-        description: { zh: '在发生的地方，找到故事的线索', en: 'Find the story where it happens' },
-        detail: {
-          zh: '远景建立环境，中景交代关系，近景留下细节，让空间、行动与同期声共同构成信息，而不是只依靠解说完成叙事',
-          en: 'Wide shots establish a place, medium shots explain relationships and close-ups preserve details — space, action and location sound all carry information',
-        },
-      },
-      {
-        key: 'context', title: { zh: '观察', en: 'Context' }, words: ['NOTICE', 'QUESTION', 'UNDERSTAND'],
-        description: { zh: '把眼前的细节，放回更大的背景', en: 'Connect a small detail to a larger picture' },
-        detail: {
-          zh: '将采访信息、时间线与影像证据相互对照，区分事实和判断，在清楚交代背景的同时，保留观看者思考的空间',
-          en: 'Compare interviews, timelines and visual evidence, distinguish facts from interpretation, and make the context clear while leaving room to think',
-        },
-      },
-    ],
-  },
-}
+)

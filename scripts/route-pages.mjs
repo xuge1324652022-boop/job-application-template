@@ -41,7 +41,7 @@ const escape = (value) =>
       ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character],
   )
 /** Read only the inert JSON already injected into this HTML; never open a local pack here. */
-function personalAboutHead(html, original) {
+function personalPageHead(html, original, path) {
   for (const script of html.matchAll(
     /<script\b((?:[^"'<>]|"[^"]*"|'[^']*')*)>([\s\S]*?)<\/script\s*>/giu,
   )) {
@@ -55,7 +55,29 @@ function personalAboutHead(html, original) {
     if (attributes.get('id') !== 'personal-portfolio') continue
     if (attributes.get('type')?.trim().toLowerCase() !== 'application/json') return null
     try {
-      const profile = JSON.parse(script[2])?.profile
+      const pack = JSON.parse(script[2])
+      const metadata = pack?.site?.routeMetadata?.metadata
+      const personalPage =
+        path === undefined
+          ? metadata?.notFound
+          : metadata?.routes?.find((route) => route.path === path)
+      if (path !== '/about') {
+        const bilingual = (value) => typeof value?.zh === 'string' && typeof value?.en === 'string'
+        if (
+          !bilingual(personalPage?.title) ||
+          !bilingual(personalPage?.description) ||
+          !bilingual(metadata?.siteName)
+        )
+          return null
+        return {
+          title: personalPage.title,
+          description: personalPage.description,
+          siteName: metadata.siteName,
+          image: typeof metadata.image === 'string' ? metadata.image : undefined,
+          imageAlt: bilingual(metadata.imageAlt) ? metadata.imageAlt : undefined,
+        }
+      }
+      const profile = pack?.profile
       const identity = profile?.IDENTITY
       const lines = Array.isArray(profile?.PROFILE_LINES)
         ? profile.PROFILE_LINES.filter(
@@ -95,9 +117,9 @@ function personalAboutHead(html, original) {
 export function renderRouteHtml(html, path, origin = siteOrigin()) {
   const page = routeMetadata.routes.find((route) => route.path === normalizeRoutePath(path))
   const original = page ?? routeMetadata.notFound
-  const personal = page?.path === '/about' ? personalAboutHead(html, original) : null
+  const personal = personalPageHead(html, original, page?.path)
   const content = personal ?? original
-  const image = new URL(routeMetadata.image, origin).href
+  const image = new URL(personal?.image ?? routeMetadata.image, origin).href
   const entries = [
     `<title>${escape(content.title.zh)}</title>`,
     `<meta name="description" content="${escape(content.description.zh)}" />`,
@@ -108,7 +130,7 @@ export function renderRouteHtml(html, path, origin = siteOrigin()) {
     `<meta property="og:title" content="${escape(content.title.zh)}" />`,
     `<meta property="og:description" content="${escape(content.description.zh)}" />`,
     `<meta property="og:image" content="${escape(image)}" />`,
-    `<meta property="og:image:alt" content="${escape(routeMetadata.imageAlt.zh)}" />`,
+    `<meta property="og:image:alt" content="${escape(personal?.imageAlt?.zh ?? routeMetadata.imageAlt.zh)}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
     `<meta name="twitter:title" content="${escape(content.title.zh)}" />`,
     `<meta name="twitter:description" content="${escape(content.description.zh)}" />`,

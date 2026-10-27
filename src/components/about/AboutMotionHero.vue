@@ -43,7 +43,9 @@
         <span ref="sceneName" class="about-hero__line" lang="en">{{
           IDENTITY.nameEn.toUpperCase()
         }}</span>
-        <span class="about-hero__signature" aria-hidden="true">{{ IDENTITY.nameZh }}</span>
+        <span class="about-hero__signature" lang="en" aria-hidden="true">{{
+          IDENTITY.nameEn
+        }}</span>
         <span class="about-hero__screen-reader">{{ IDENTITY.nameZh }} · {{ IDENTITY.nameEn }}</span>
       </h1>
       <div ref="meta" class="about-hero__meta">
@@ -93,7 +95,7 @@ const hasScenePortrait = Boolean(personalPortfolio?.portraits?.hero)
 const root = ref<HTMLElement | null>(null)
 const title = ref<HTMLElement | null>(null)
 const sceneName = ref<HTMLElement | null>(null)
-useFitText(sceneName, { min: 20, max: 440 })
+const nameFit = useFitText(sceneName, { min: 1, max: 440 })
 const meta = ref<HTMLElement | null>(null)
 const photo = ref<HTMLElement | null>(null)
 const photoMask = ref<HTMLElement | null>(null)
@@ -130,7 +132,14 @@ onMounted(() => {
           gsap.set(photoMask.value!, { clearProps: 'clipPath' })
         } else {
           entrance = gsap
-            .timeline({ paused: true })
+            .timeline({
+              paused: true,
+              onComplete: () => {
+                nameFit.fit()
+                cancelRefresh?.()
+                cancelRefresh = requestMotionLayoutRefresh()
+              },
+            })
             .fromTo(
               photoMask.value!,
               { clipPath: 'inset(100% 0% 0% 0%)' },
@@ -138,10 +147,9 @@ onMounted(() => {
             )
             .fromTo(
               lines,
-              { yPercent: 116, rotation: 3, autoAlpha: 0 },
+              { yPercent: 116, autoAlpha: 0 },
               {
                 yPercent: 0,
-                rotation: 0,
                 autoAlpha: 1,
                 duration: 1.05,
                 stagger: 0.09,
@@ -171,7 +179,12 @@ onMounted(() => {
             },
           })
           .to(title.value!, { y: () => innerHeight * 0.3, ease: 'none' }, 0)
-          .to(photoMask.value!, { y: () => -innerHeight * 0.14, ease: 'none' }, 0)
+          .fromTo(
+            photo.value!,
+            { scale: 1.12, y: 0, transformOrigin: 'center top' },
+            { scale: 1.12, y: () => -root.value!.clientHeight * 0.08, ease: 'none' },
+            0,
+          )
           .to(meta.value!, { y: () => innerHeight * 0.12, ease: 'none' }, 0)
         parallax = timeline.scrollTrigger
         return () => {
@@ -208,7 +221,7 @@ onBeforeUnmount(() => {
   height: 100svh;
   min-height: 540px;
   overflow: clip;
-  background: #bfc0bd;
+  background: var(--about-night);
   color: var(--ab-ink);
 }
 .about-hero__photo,
@@ -223,15 +236,35 @@ onBeforeUnmount(() => {
   height: 100%;
   object-fit: cover;
   object-position: 66% center;
+  filter: grayscale(1);
+}
+.about-hero__photo-mask::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--about-accent-on-paper);
+  mix-blend-mode: color;
+  opacity: 0.45;
+  pointer-events: none;
+}
+.about-hero__photo::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: clamp(110px, 20svh, 200px);
+  background: linear-gradient(transparent, var(--about-night));
+  pointer-events: none;
 }
 .about-hero__photo figcaption {
   position: absolute;
-  bottom: 14px;
-  left: 18px;
+  bottom: 24px;
+  left: 24px;
+  z-index: 1;
+  max-width: calc(100% - 190px);
+  background: var(--about-night);
   font-size: 10px;
-  color: #222;
-  background: #fee9cebb;
-  padding: 2px 6px;
+  color: var(--about-paper);
+  line-height: 1.5;
 }
 .about-hero__stage {
   position: relative;
@@ -244,24 +277,61 @@ onBeforeUnmount(() => {
   font-family: var(--display-font);
   font-weight: 700;
   line-height: 0.91;
-  padding-bottom: 5vw;
+  padding: 10px 0 4vw;
+  width: 100%;
+  min-width: 0;
+  color: var(--about-ink-on-paper);
+  isolation: isolate;
   letter-spacing: -0.065em;
 }
+.about-hero__title::before {
+  content: '';
+  position: absolute;
+  inset: 0 -14px -8px;
+  z-index: -1;
+  background: linear-gradient(var(--about-paper) 70%, rgb(239 233 220 / 0.93) 85%, transparent);
+}
 .about-hero__line {
+  color: var(--about-ink-on-paper);
+  -webkit-text-fill-color: var(--about-ink-on-paper);
+  -webkit-text-stroke: 0.4px var(--about-paper);
+  text-align: left;
+  font-size: 12vw;
+  paint-order: stroke fill;
   display: block;
   width: 100%;
   white-space: nowrap;
-  transform: scaleY(1.55);
+  transform: none;
   transform-origin: center top;
 }
 .about-hero__signature {
   position: absolute;
   right: 7%;
   bottom: -0.12em;
-  color: var(--ab-accent);
-  font: italic 28px/1.1 cursive;
-  transform: rotate(-13deg);
-  letter-spacing: -0.08em;
+  color: var(--about-ink-on-paper);
+  text-shadow:
+    0 0 2px var(--about-paper),
+    0 0 4px var(--about-paper);
+  padding: 0 0.15em 0.3em;
+  font-family: 'Segoe Script', 'Snell Roundhand', 'Brush Script MT', cursive;
+  font-size: clamp(28px, 3vw, 48px);
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.4;
+  letter-spacing: -0.055em;
+  white-space: nowrap;
+  transform: rotate(-7deg);
+}
+.about-hero__signature::after {
+  content: '';
+  position: absolute;
+  left: 8%;
+  right: -3%;
+  bottom: 0.1em;
+  height: 0.18em;
+  border-bottom: 1px solid currentColor;
+  border-radius: 50%;
+  transform: rotate(-3deg);
 }
 .about-hero__screen-reader {
   position: absolute;
@@ -273,7 +343,7 @@ onBeforeUnmount(() => {
 .about-hero__meta {
   width: min(48%, 540px);
   margin-top: 3px;
-  color: #0a0a0a;
+  color: var(--about-ink-on-paper);
 }
 .about-hero__tagline {
   font-size: clamp(20px, 2.3vw, 38px);
@@ -288,17 +358,19 @@ onBeforeUnmount(() => {
 }
 .about-hero__scroll {
   position: absolute;
-  bottom: 17px;
-  right: 32px;
+  bottom: 14px;
+  right: 24px;
+  min-height: 44px;
+  align-items: center;
   display: flex;
   gap: 9px;
-  color: #0a0a0a;
-  font-size: 10px;
+  color: var(--about-paper);
+  font-size: 11px;
   font-weight: 700;
   text-decoration: none;
 }
 .about-hero__scroll-arrow {
-  display: none;
+  display: inline;
 }
 a:focus-visible {
   outline: 2px solid var(--ab-accent);
@@ -309,21 +381,35 @@ a:focus-visible {
     min-height: 560px;
   }
   .about-hero__stage {
-    padding: 72px 16px 0;
+    padding: 76px 16px 0;
+    width: 100%;
+    min-width: 0;
   }
   .about-hero__photo-mask img {
     object-position: 62% center;
   }
   .about-hero__meta {
-    width: 100%;
-    margin-top: 18px;
+    position: absolute;
+    inset: auto 16px 100px;
+    width: auto;
+    margin: 0;
   }
   .about-hero__tagline {
-    color: #0a0a0a;
-    background: #fee9ceeb;
+    color: var(--about-ink-on-paper);
+    background: var(--about-paper);
+    text-shadow: none;
     width: fit-content;
-    padding: 8px 10px;
     font-size: 23px;
+  }
+  .about-hero__photo::after {
+    height: 44svh;
+    background: linear-gradient(transparent, rgb(18 20 15 / 0.8) 55%, var(--about-night));
+  }
+  .about-hero__title {
+    padding-bottom: 36px;
+  }
+  .about-hero__line {
+    transform: none;
   }
   .about-hero__signature {
     font-size: 22px;

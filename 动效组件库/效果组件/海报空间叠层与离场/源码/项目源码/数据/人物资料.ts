@@ -340,6 +340,11 @@ export const WORKS: readonly Work[] = personal?.WORKS ?? [
 ]
 
 export interface Experience {
+  visualAssetIds?: string[]
+  cardMetrics?: { value: string; label: Bi }[]
+  cardTags?: Bi[]
+  cardNote?: Bi
+  cardFlow?: Bi[]
   id: string
   workId: string
   period: Bi
@@ -500,6 +505,17 @@ export const EXPERIENCE: readonly Experience[] =
   personal?.EXPERIENCE ??
   EXPERIENCE_DETAILS.map((experience) => ({
     ...experience,
+    cardMetrics: [
+      { value: '12', label: { zh: '示例交付', en: 'Sample deliveries' } },
+      { value: '03', label: { zh: '示例方案', en: 'Sample concepts' } },
+      { value: '04', label: { zh: '示例环节', en: 'Sample stages' } },
+    ],
+    cardFlow: [
+      { zh: '需求', en: 'Brief' },
+      { zh: '制作', en: 'Create' },
+      { zh: '审核', en: 'Review' },
+      { zh: '交付', en: 'Deliver' },
+    ],
     points: experience.details.map((detail) => detail.body),
   }))
 
@@ -521,20 +537,30 @@ export function assertParity(): void {
   const isBi = (v: unknown): v is Bi =>
     typeof v === 'object' && v !== null && 'zh' in v && 'en' in v
 
+  /**
+   * 这些字段的**空数组是合法语义**，不是内容缺失：
+   *   visualAssetIds —— 该段经历没有可公开配图，卡片回退成排版卡（数字 + 流程条）；
+   *   cardFlow / cardTags / cardMetrics —— 同上，缺项由卡片自己降级。
+   * ⚠️ 曾经没有这份豁免：实习卡片给部分经历写了 `visualAssetIds: []`，
+   *    通用规则把它们判成「内容缺失」，DEV 下直接抛在 AboutView 的 setup 里
+   *    ⇒ 整页黑屏（生产构建因 `import.meta.env.DEV` 关掉断言才没暴露）。
+   */
+  const OPTIONAL_LISTS = new Set(['visualAssetIds', 'cardFlow', 'cardTags', 'cardMetrics'])
+
   /** 递归遍历任意嵌套结构，把每个 `Bi` 叶子的空值记进 `bad`（`path` 用于报错定位） */
-  const walk = (node: unknown, path: string): void => {
+  const walk = (node: unknown, path: string, key = ''): void => {
     if (isBi(node)) {
       if (!node.zh.trim()) bad.push(`${path}.zh 为空`)
       if (!node.en.trim()) bad.push(`${path}.en 为空`)
       return
     }
     if (Array.isArray(node)) {
-      if (node.length === 0) bad.push(`${path} 是空数组`)
+      if (node.length === 0 && !OPTIONAL_LISTS.has(key)) bad.push(`${path} 是空数组`)
       node.forEach((v, i) => walk(v, `${path}[${i}]`))
       return
     }
     if (typeof node === 'object' && node !== null) {
-      for (const [k, v] of Object.entries(node)) walk(v, `${path}.${k}`)
+      for (const [k, v] of Object.entries(node)) walk(v, `${path}.${k}`, k)
     }
   }
 

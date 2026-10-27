@@ -1,6 +1,17 @@
 <template>
   <footer id="contact" class="studio-contact">
     <section class="studio-contact__scene" aria-labelledby="contact-title">
+      <img
+        v-if="contactPhoto"
+        class="studio-contact__environment"
+        :src="contactPhoto.src"
+        :srcset="visualImageSources(contactPhoto)"
+        sizes="100vw"
+        :width="contactPhoto.width"
+        :height="contactPhoto.height"
+        alt=""
+        loading="lazy"
+      />
       <h2 id="contact-title" class="studio-contact__title" lang="en">
         <span>LET’S</span><span>HAVE</span><span>A</span><span>CHAT</span>
       </h2>
@@ -28,12 +39,8 @@
       </div>
     </section>
     <section class="studio-contact__closing" :aria-label="lang === 'zh' ? '结语' : 'Closing note'">
-      <blockquote>
-        <span v-for="(line, i) in quoteLines" :key="line" class="studio-contact__quote-line"
-          >{{ i === 0 ? '“' : '' }}{{ line }}{{ i === quoteLines.length - 1 ? '”' : '' }}</span
-        >
-      </blockquote>
-      <p class="studio-contact__signature">{{ IDENTITY.nameZh }}</p>
+      <blockquote ref="closingQuote">“{{ TAGLINE[lang] }}”</blockquote>
+      <p class="studio-contact__signature" lang="en">{{ IDENTITY.nameEn }}</p>
     </section>
     <div class="studio-contact__base">
       <RouterLink :to="{ path: '/', query: route.query }"
@@ -50,18 +57,17 @@
   </footer>
 </template>
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import { personalPortfolio } from '../../数据/本机个人内容接口'
+import { visualImageSources } from '../../工具/响应式图片'
+import { useFitText } from '../../组合函数/标题字号拟合'
 import { CONTACT, IDENTITY, TAGLINE, type Lang } from '../../数据/人物资料'
+const contactPhoto = personalPortfolio?.profile.aboutMedia?.contact
 const phones = 'phones' in CONTACT ? (CONTACT.phones ?? []) : []
-const props = defineProps<{ lang: Lang }>()
-const quoteLines = computed(
-  () =>
-    TAGLINE[props.lang]
-      .match(/[^，。.!?]+[，。.!?]?/g)
-      ?.map((line) => line.trim())
-      .filter(Boolean) ?? [],
-)
+defineProps<{ lang: Lang }>()
+const closingQuote = ref<HTMLElement | null>(null)
+useFitText(closingQuote, { min: 1, max: 108 })
 const route = useRoute()
 function toTop() {
   window.scrollTo({
@@ -72,8 +78,8 @@ function toTop() {
 </script>
 <style scoped>
 .studio-contact {
-  background: #0a0a0a;
-  color: #fee9ce;
+  background: var(--about-night);
+  color: var(--about-on-night);
 }
 .studio-contact__scene {
   position: relative;
@@ -85,8 +91,24 @@ function toTop() {
   isolation: isolate;
   overflow: clip;
 }
+.studio-contact__environment {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1) brightness(0.32);
+  z-index: -2;
+}
+.studio-contact__scene::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgb(18 20 15 / 0.13), rgb(18 20 15 / 0.33) 50%, var(--about-night));
+  z-index: -1;
+}
 .studio-contact__title {
-  color: #ef5143;
+  color: var(--about-accent-on-night);
   font-size: clamp(70px, min(14vw, 19svh), 270px);
   font-family: var(--display-font);
   font-weight: 700;
@@ -116,7 +138,7 @@ function toTop() {
   gap: 28px 5vw;
   margin-inline: -20px;
   padding: 24px 20px;
-  background: #0a0a0a;
+  background: var(--about-night);
 }
 .studio-contact__links > div {
   min-width: 0;
@@ -128,7 +150,7 @@ function toTop() {
   white-space: nowrap;
 }
 .studio-contact__links p {
-  color: #ffb15f;
+  color: var(--about-sand);
   font-size: 12px;
   font-weight: 700;
   margin-bottom: 8px;
@@ -137,7 +159,7 @@ function toTop() {
   font-size: clamp(20px, 2.3vw, 40px);
   font-weight: 700;
   letter-spacing: -0.04em;
-  color: #fee9ce;
+  color: var(--about-on-night);
   text-decoration-thickness: 1px;
   text-underline-offset: 10px;
   overflow-wrap: anywhere;
@@ -150,24 +172,42 @@ function toTop() {
   justify-content: center;
   padding: 100px 8vw;
   text-align: center;
-  gap: 70px;
+  gap: clamp(32px, 5vw, 70px);
 }
 .studio-contact__closing blockquote {
-  max-width: 1100px;
-  font-size: clamp(26px, 5.625vw, 108px);
+  width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+  font-size: clamp(12px, 4vw, 108px);
   line-height: 1.08;
   font-weight: 700;
   letter-spacing: -0.05em;
   margin: 0;
 }
-.studio-contact__quote-line {
-  display: block;
-  white-space: nowrap;
-}
 .studio-contact__signature {
-  color: #ffb15f;
-  font: italic 42px/1.2 cursive;
-  transform: rotate(-12deg);
+  position: relative;
+  margin: 0;
+  padding: 0 0.15em 0.3em;
+  color: var(--about-accent-on-night);
+  font-family: 'Segoe Script', 'Snell Roundhand', 'Brush Script MT', cursive;
+  font-size: clamp(28px, 4vw, 58px);
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.4;
+  letter-spacing: -0.055em;
+  white-space: nowrap;
+  transform: rotate(-7deg);
+}
+.studio-contact__signature::after {
+  content: '';
+  position: absolute;
+  left: 8%;
+  right: -3%;
+  bottom: 0.1em;
+  height: 0.18em;
+  border-bottom: 1px solid currentColor;
+  border-radius: 50%;
+  transform: rotate(-3deg);
 }
 .studio-contact__base {
   display: flex;
@@ -175,12 +215,12 @@ function toTop() {
   flex-wrap: wrap;
   gap: 24px;
   padding: 30px 20px;
-  border-top: 1px solid #fee9ce18;
+  border-top: 1px solid var(--about-line-on-night);
   font-size: 14px;
 }
 .studio-contact__base a,
 .studio-contact__base button {
-  color: #ef5143;
+  color: var(--about-accent-on-night);
   text-decoration: none;
   border: 0;
   background: transparent;
@@ -189,34 +229,43 @@ function toTop() {
 }
 .studio-contact__base > span {
   margin-left: auto;
-  color: #fee9ce88;
+  color: var(--about-soft-on-night);
   font-size: 12px;
 }
 a:focus-visible,
 button:focus-visible {
-  outline: 2px solid #ffb15f;
+  outline: 2px solid var(--about-accent-on-night);
   outline-offset: 7px;
 }
 @media (max-width: 760px) {
   .studio-contact__scene {
-    min-height: 100svh;
-    padding: 60px 18px 32px;
+    min-height: 80svh;
+    padding: 36px 18px 24px;
   }
   .studio-contact__title {
-    font-size: 21vw;
-    margin-bottom: 100px;
+    font-size: 18vw;
+    margin-bottom: 32px;
   }
   .studio-contact__title span:nth-child(4) {
     padding-left: 28%;
   }
   .studio-contact__links {
-    flex-direction: column;
-    gap: 25px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px 16px;
     margin-inline: -18px;
     padding-inline: 18px;
   }
+  .studio-contact__links > div:first-child {
+    grid-column: 1 / -1;
+  }
+  .studio-contact__closing {
+    min-height: 0;
+    padding: 64px 6vw;
+    gap: 32px;
+  }
   .studio-contact__links a {
-    font-size: 21px;
+    font-size: 18px;
   }
   .studio-contact__base {
     gap: 20px;

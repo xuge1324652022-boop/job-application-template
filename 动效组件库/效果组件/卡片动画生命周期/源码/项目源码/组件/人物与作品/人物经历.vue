@@ -22,7 +22,7 @@
       <span class="about-exp__index">01</span>
       <span class="about-exp__rule" />
       <h3 class="about-exp__lead">关于我</h3>
-      <span class="about-exp__name">示例求职者</span>
+      <span class="about-exp__name">{{ IDENTITY.nameZh }}</span>
       <span class="about-exp__role">VIDEO EDITOR</span>
       <span class="about-exp__role">COLORIST</span>
       <span class="about-exp__role">VISUAL DESIGNER</span>
@@ -37,10 +37,8 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
 import TemplateMark from './个人标志扫描.vue'
-import {
-  createAboutExperience,
-  type AboutExperienceHandle,
-} from './人物经历动画'
+import { IDENTITY } from '../../数据/人物资料'
+import { createAboutExperience, type AboutExperienceHandle } from './人物经历动画'
 import './人物经历样式.css'
 
 const rootRef = ref<HTMLElement | null>(null)

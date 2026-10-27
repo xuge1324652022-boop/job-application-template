@@ -292,19 +292,19 @@
       "original": "src/components/about/AboutExperience.vue",
       "path": "源码/项目源码/组件/人物与作品/人物经历.vue",
       "role": "dependency",
-      "originalSha256": "9a504f3050d9a0e753e970392a8b2479dcae196379a0d92291e7c8fc97a01a2a",
-      "originalBytes": 1993,
-      "sha256": "acd4d0a54dde3c5f76f259d0f7edb7ca6e9af3e8d6fab22123ccb09dca7c38b7",
-      "bytes": 1996
+      "originalSha256": "3bf81a93220095ae9f7ce7065fe02cec1d3f0131dc8067df648b9042b2ac13d5",
+      "originalBytes": 2045,
+      "sha256": "0c69e5c0eabb870a8389d3a30d52547c1228a669b94abe567a1810dbbfd7df64",
+      "bytes": 2050
     },
     {
       "original": "src/components/about/TemplateMark.vue",
       "path": "源码/项目源码/组件/人物与作品/个人标志扫描.vue",
       "role": "dependency",
-      "originalSha256": "ea2546bb4743e4f707d8a0e3fdd253e5ab72ed08d582fad14e049223419a172b",
-      "originalBytes": 5668,
-      "sha256": "ea2546bb4743e4f707d8a0e3fdd253e5ab72ed08d582fad14e049223419a172b",
-      "bytes": 5668
+      "originalSha256": "0887b3549d96925108bd4bd2126b215a73f3a3ae303359274204744f7184a888",
+      "originalBytes": 5722,
+      "sha256": "0c097d27937eb98be75e28b0e23937df7fc866bd07eeaf620700ca005bd624d4",
+      "bytes": 5731
     },
     {
       "original": "src/components/about/aboutExperience.css",
@@ -370,6 +370,15 @@
       "bytes": 6977
     },
     {
+      "original": "src/data/aboutProfile.ts",
+      "path": "源码/项目源码/数据/人物资料.ts",
+      "role": "dependency",
+      "originalSha256": "7b88b1deef7eb64739c08b98cca12afac5a6bc2cba0d81eba8206f390a72c072",
+      "originalBytes": 24916,
+      "sha256": "908ca9f09085425a465fc3a302f7d02ee20344ca1f40f9e9e4ee694c71044864",
+      "bytes": 24923
+    },
+    {
       "original": "src/data/chapters.ts",
       "path": "源码/项目源码/数据/作品章节资料.ts",
       "role": "dependency",
@@ -377,6 +386,24 @@
       "originalBytes": 1417,
       "sha256": "c1dfb941f54a2002c10bfb4d4b0f7d5f0edd3d99c704ebfa755fec55d0a8c4b8",
       "bytes": 1417
+    },
+    {
+      "original": "src/data/personalPortfolio.ts",
+      "path": "源码/项目源码/数据/本机个人内容接口.ts",
+      "role": "dependency",
+      "originalSha256": "eb9fcd16396eacdcc80eaa4a7100d36643d273f8b52b0992306aadfa7f7006f1",
+      "originalBytes": 2862,
+      "sha256": "bbe2f1a121a65ec3c9ee5d98fd78fa6dff886c51b68ee7a10b683cc84726b0fc",
+      "bytes": 2865
+    },
+    {
+      "original": "src/data/visualPortfolio.ts",
+      "path": "源码/项目源码/数据/视觉作品资料.ts",
+      "role": "dependency",
+      "originalSha256": "fc1f99d02c7d9b2885275e4a8361e1ee570132b656a3c9c2a598b0e1b62bc4be",
+      "originalBytes": 22963,
+      "sha256": "910ee9502b04b9c56e5301e2be13da3046af61e528e18339b81a674d67e37b54",
+      "bytes": 22970
     },
     {
       "original": "src/style.css",

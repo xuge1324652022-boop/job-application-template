@@ -171,9 +171,20 @@
     {
       "file": "src/components/about/AboutStudioStory.vue",
       "symbols": [
-        "about-background-horizontal"
+        "studio-background",
+        "AboutInternshipCards"
       ],
-      "purpose": "工作室背景横向段：随滚动横向推进的工作室背景叙事条。"
+      "purpose": "作品图带与原创实习卡双排；实习卡抽出铺满后，以黑底横向交替展示素材和居中履历，手机及减弱动态使用自然文档流。"
+    },
+    {
+      "file": "src/components/about/AboutInternshipCards.vue",
+      "symbols": [
+        "about-internship-story",
+        "geometry",
+        "readingTimes",
+        "matchMedia"
+      ],
+      "purpose": "第二排原创履历卡抽出为全屏，滚动驱动图片与居中履历横向交替；断点清理恢复自然流，深链定位到阅读停顿。"
     }
   ],
   "mechanism": {
@@ -181,37 +192,34 @@
     "stages": [
       {
         "name": "hero-name-parallax",
-        "description": "英文姓名巨字叠人物图。提供portraits.hero时满幅照片配单行大写姓名；否则使用兼容右侧照片和按空格分行姓名。照片遮罩、姓名和小字按一次性时间线进入；滚动不固定，文字、照片和小字分别以+0.3H、−0.14H、+0.12H相对位移产生视差。 新图单行姓名由useFitText按可用宽度在20–180px范围拟合，避免长姓名尾部裁切；原fallback仍按空格分行。",
+        "description": "姓名以深色实心字置于独立奶油色承托上，单行按容器宽度拟合。照片遮罩固定，内部照片预放大1.12并上移0.08H，避免底部露出空条。手机标语位于下部深色渐变上。",
         "properties": [
           "photoMask.clipPath",
           "line.yPercent/rotation/autoAlpha",
           "meta.autoAlpha/y",
-          "title/photoMask/meta.y"
+          "title/photo/meta.y",
+          "photo.scale"
         ],
         "timing": "active放行后仅一次入场：照片遮罩1.1，姓名从0.2起持续1.05并错峰0.09，小字从1.05起0.6；视差top top→bottom top、scrub:true。断点重建清除旧隐藏起点，已播放则直接可见。"
       },
       {
         "name": "quote-mission-rise",
-        "description": "TAGLINE按当前语言拆成句行，行色由灰色依次点亮到奶油色。正文整体从舞台下部向上经过，点亮后保持亮色，最后上移到屏幕外。人物照片通过共享CSS变为黑白、压暗并羽化，原始照片及构图不随文字运动。",
+        "description": "深色背景主张从第一帧可读的浅灰逐行点亮到奶油色；正文从舞台中央附近略向上移动，尾部保持文字，不移出屏幕。",
         "properties": [
-          "line.color:#4b4b49→#ffe8ce",
-          "content.y:0.32H→−0.18H→出屏",
-          "shared portrait.filter/mask-image"
+          "line.color:#b8ac9b→#ffe8ce",
+          "content.y:0.04H→−0.18H"
         ],
-        "timing": "至少761×620且允许动态时top top固定2.8H，refreshPriority:45，scrub:0.35；每行自0.12起点亮0.45、错峰0.48，正文0–1.8向上经过，1.8–2.2停留，2.2–3.1上移离场。"
+        "timing": "至少761×620且允许动态时固定0.9H；逐行点亮，尾部短暂停留；小屏及减少动态时自然排版。"
       },
       {
         "name": "independent-word-zoom",
-        "description": "紧接主张，继续同一黑白人物构图。页面传我是谁/WHO I AM，聚焦字符分别为索引1/6。先显示橙色完整巨字，按舞台84%宽、56%高适配字号；围绕实测聚焦字符放大至局部笔画越界，并过渡为奶油色。字腔和笔画间隙真实保留，照片不缩放；尾部保持不透明以供观察，下一节自然滚入，不提前淡成空黑屏。",
+        "description": "三层身份标题在首帧位于视口内，中间行居中，上下行仅偏移8%。上下层合拢后整层隐藏，中央标题缩小；反向滚动恢复。无照片底图。",
         "properties": [
-          "--word-zoom-size",
-          "word.transformOrigin",
-          "word.x/y/scale/autoAlpha:1",
-          "word.color:#ffb15f→#ffe8ce",
-          "caption.autoAlpha",
-          "word.force3D:false"
+          "slice.xPercent",
+          "slice.yPercent/clipPath/autoAlpha",
+          "stack.scale"
         ],
-        "timing": "至少981×650且允许动态时固定4.2H，页面集成refreshPriority:44，scrub:0.35；0–0.6可读，0.6–2.8以power2.inOut放大，1.1–1.7颜色过渡，2.8–3.65不透明停留。scale=max(W/聚焦字宽,H/聚焦字高)×1.65；onRefreshInit重测。组件默认优先级35可由宿主覆盖。"
+        "timing": "桌面允许动态时固定1.2个舞台高度；小屏和减少动态显示静态完整标题。"
       },
       {
         "name": "practice-word-marquee",
@@ -311,9 +319,9 @@
       "experienceReveal.summaries/current/motionReady/media"
     ],
     "propertyOwnership": [
-      "首屏入场写姓名子行、照片遮罩与小字的入场属性；滚动视差写外层title/photoMask/meta的y，首屏不固定。",
+      "首屏入场写姓名子行、照片遮罩与小字；滚动视差写title/photo/meta的y及photo.scale，照片遮罩不平移。",
       "拼贴带、浮动主图、故事轨道和底纸分层；主图按钮整体拥有x/y/scale/rotation，点击盒及焦点环与画面保持一致。",
-      "主张场景只拥有TAGLINE逐行颜色和正文上移；AboutWordZoom独立拥有身份字形的颜色、位置和缩放，两幕共用固定照片CSS。人物底图不随字形放大，字形末尾不主动淡出。",
+      "主张拥有逐行颜色和正文轻微上移；身份折字拥有上下层位置、裁切、显隐及中央缩小。两幕首帧文字可见。",
       "章节标题行负责x/yPercent/clipPath，外层标题负责scale/y，正文负责透明度与颜色；独立字形放大不能替换scale:0.065的折叠收束。",
       "个人介绍图像容器只写clipPath，装饰词段只写颜色；事实、技能和工具保持自然文档流。",
       "工作之外固定stage不参与平移，track拥有横向x，内部image-mask拥有clipPath；固定标题栏避让全局索引。",

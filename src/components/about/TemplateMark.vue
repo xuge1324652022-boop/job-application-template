@@ -25,12 +25,7 @@
       -->
       <mask :id="maskId">
         <g stroke="#fff" stroke-width="4" stroke-linecap="butt">
-          <circle
-            :cx="GEO.circle.cx"
-            :cy="GEO.circle.cy"
-            :r="GEO.circle.r"
-            fill="#666"
-          />
+          <circle :cx="GEO.circle.cx" :cy="GEO.circle.cy" :r="GEO.circle.r" fill="#666" />
           <line
             v-for="(l, i) in GEO.bars"
             :key="`bar-${i}`"
@@ -49,12 +44,7 @@
     <!-- 结构本体 -->
     <g class="demo__structure">
       <!-- 圆：弱填充，几乎是空的 -->
-      <circle
-        class="demo__circle"
-        :cx="GEO.circle.cx"
-        :cy="GEO.circle.cy"
-        :r="GEO.circle.r"
-      />
+      <circle class="demo__circle" :cx="GEO.circle.cx" :cy="GEO.circle.cy" :r="GEO.circle.r" />
       <!-- X：两条对角线 -->
       <line
         v-for="(l, i) in GEO.bars"
@@ -96,6 +86,7 @@
 
 <script setup lang="ts">
 import { useId } from 'vue'
+import { personalSiteValue } from '../../data/personalPortfolio'
 /*
  * 构图参数。全都在 240×240 的 viewBox 里定义，改这里就能整体重排。
  *
@@ -105,7 +96,7 @@ import { useId } from 'vue'
  *   · Y 从圆心正下方长出 —— 竖干起于圆心，分叉落在基准线上
  *   · 基准细线横贯全图，把三者锚在同一个水平面上
  */
-const GEO = {
+const templateGeometry = {
   w: 240,
   h: 240,
   circle: { cx: 104, cy: 116, r: 70 },
@@ -125,6 +116,7 @@ const GEO = {
     { y: 158, width: 64, height: 2 },
   ],
 } as const
+const GEO = personalSiteValue('home', 'markGeometry', templateGeometry)
 
 /*
  * SVG 的 mask id 必须文档唯一。useId跨组件实例分配标识，避免扫描线串用遮罩。

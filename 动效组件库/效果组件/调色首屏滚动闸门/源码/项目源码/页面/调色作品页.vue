@@ -107,7 +107,7 @@
           class="cview__video"
           :data-clip="clip.n"
           :data-src="clip.src"
-          :data-poster="`/color-previews/clip-${clip.n}.jpg`"
+          :data-poster="PREVIEWS[clip.n - 1]?.poster"
           muted
           loop
           playsinline

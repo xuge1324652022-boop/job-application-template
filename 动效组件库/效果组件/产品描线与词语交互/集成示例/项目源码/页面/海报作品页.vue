@@ -9,20 +9,41 @@
       </p>
       <h1 ref="titleRef" class="pp__big">{{ HERO.big }}</h1>
       <!-- 首屏在揭幕后按中英段落各自入场；不能套用后续章节的“到中线即收尾”，否则宽屏会直接跳完。 -->
-      <ReferenceIntroduction class="pp__statement" :text="POSTER_INTRO" :label="INTRO_LABEL" :active="introGone && !covered" :finish-at="false" reveal-by="paragraph" />
+      <ReferenceIntroduction
+        class="pp__statement"
+        :text="POSTER_INTRO"
+        :label="INTRO_LABEL"
+        :active="introGone && !covered"
+        :finish-at="false"
+        reveal-by="paragraph"
+      />
     </section>
 
     <InternshipPosterStack :items="internshipFeatured" :lang="lang" @open="onOpenInternship" />
     <InternshipPosterGallery :groups="internshipGroups" :lang="lang" @open="onOpenInternship" />
     <section class="pp__military-heading" aria-labelledby="military-title">
       <span>02 / TEMPLATE STUDIES</span>
-      <h2 id="military-title">{{ lang === 'zh' ? '几何海报，版式示例' : 'Geometric posters. Layout examples' }}</h2>
+      <h2 id="military-title">
+        {{
+          lang === 'zh'
+            ? isPersonalPortfolio
+              ? '军事海报，个人练习'
+              : '几何海报，版式示例'
+            : isPersonalPortfolio
+              ? 'Military posters. Personal studies'
+              : 'Geometric posters. Layout examples'
+        }}
+      </h2>
       <ReferenceIntroduction :text="MILITARY_INTRO" :label="MILITARY_LABEL" variant="section" />
     </section>
     <!-- 调色板与色彩章节在首屏以下：经 LazySection 提前一屏加载，EditorialPair 依赖
          页面挂载时建立的 morph 固定舞台，必须保持同步加载。 -->
-    <LazySection min-height="130vh"><PosterPalette :items="posterSeries" :lang="lang" @open="onOpenSeries" /></LazySection>
-    <LazySection min-height="200vh"><PosterColourChapters :items="posterSeries" :lang="lang" @open="onOpenSeries" /></LazySection>
+    <LazySection min-height="130vh"
+      ><PosterPalette :items="posterSeries" :lang="lang" @open="onOpenSeries"
+    /></LazySection>
+    <LazySection min-height="200vh"
+      ><PosterColourChapters :items="posterSeries" :lang="lang" @open="onOpenSeries"
+    /></LazySection>
     <div class="pp__body">
       <!-- ==================== 03 编辑设计 ==================== -->
       <AboutSection
@@ -65,15 +86,28 @@
 </template>
 
 <script setup lang="ts">
+import { isCompletePersonalPortfolio as isPersonalPortfolio } from '../数据/本机个人内容接口'
 /**
  * /poster 组织实习产品版面、军事个人练习与编辑设计，三类作品保持各自来源。
  * 本页负责标题与看图集合；叠层、空间切换和章节动画由对应子组件持有。
  */
-import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
+import {
+  computed,
+  defineAsyncComponent,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  provide,
+  ref,
+  watch,
+} from 'vue'
 
 import gsap from 'gsap'
 import ReferenceIntroduction from '../组件/引导文字揭示.vue'
-import { referenceIntroductionGate, referenceIntroductionPace } from '../组件/引导文字状态'
+import {
+  referenceIntroductionGate,
+  referenceIntroductionPace,
+} from '../组件/引导文字状态'
 import AboutSection from '../组件/人物与作品/作品章节容器.vue'
 import LazySection from '../组件/延迟挂载区块.vue'
 import InternshipPosterStack from '../组件/人物与作品/实习海报叠层.vue'
@@ -81,18 +115,14 @@ import InternshipPosterGallery from '../组件/人物与作品/实习海报画�
 import EditorialPair from '../组件/人物与作品/摄影编辑对照.vue'
 // 首屏以下的重画廊与结尾拆成独立 chunk 随 LazySection 按需加载；查看器打开时才加载。
 const PosterPalette = defineAsyncComponent(() => import('../组件/人物与作品/海报色带.vue'))
-const PosterColourChapters = defineAsyncComponent(() => import('../组件/人物与作品/海报色彩章节.vue'))
+const PosterColourChapters = defineAsyncComponent(
+  () => import('../组件/人物与作品/海报色彩章节.vue'),
+)
 const WorkContinuation = defineAsyncComponent(() => import('../组件/作品续读导航.vue'))
 const VisualViewer = defineAsyncComponent(() => import('../组件/人物与作品/完整作品查看器.vue'))
 import { pick, WORKS } from '../数据/人物资料'
 import { subpageLanguage as lang } from '../组合函数/子页语言状态'
-import {
-
-  HERO,
-  SECTIONS,
-  editorialPair,
-  posterSeries,
-} from '../数据/海报页资料'
+import { HERO, SECTIONS, editorialPair, posterSeries } from '../数据/海报页资料'
 import { assertCollectionCoverage, type VisualAsset } from '../数据/视觉作品资料'
 import { internshipFeatured, internshipGroups, POSTER_INTRO } from '../数据/实习海报资料'
 import { setupAboutReveal, type AboutRevealHandle } from '../组合函数/数据标记揭示控制'
@@ -114,8 +144,18 @@ if (import.meta.env.DEV) {
 }
 
 const INTRO_LABEL = { zh: '视觉表达', en: 'Visual communication' }
-const MILITARY_LABEL = { zh: '合成示例', en: 'Synthetic examples' }
-const MILITARY_INTRO = { zh: '以合成几何图，演示字体、色彩与系列构图', en: 'Synthetic geometry demonstrates type, colour and serial composition' }
+const MILITARY_LABEL = isPersonalPortfolio
+  ? { zh: '个人练习', en: 'Personal studies' }
+  : { zh: '合成示例', en: 'Synthetic examples' }
+const MILITARY_INTRO = isPersonalPortfolio
+  ? {
+      zh: '以车辆为主体，探索字体、色彩与系列构图',
+      en: 'Studies in type, colour and composition, built around military vehicles',
+    }
+  : {
+      zh: '以合成几何图，演示字体、色彩与系列构图',
+      en: 'Synthetic geometry demonstrates type, colour and serial composition',
+    }
 
 /* ---------------- 全局揭幕后的标题入场 ---------------- */
 
@@ -139,9 +179,13 @@ let disposed = false
 let reveal: AboutRevealHandle | null = null
 
 const covered = computed(
-  () => routeCurtainBlocked.value || !!jumpTarget.value || overlayActive.value || isTransitioning.value,
+  () =>
+    routeCurtainBlocked.value || !!jumpTarget.value || overlayActive.value || isTransitioning.value,
 )
-provide(referenceIntroductionGate, computed(() => introGone.value && !covered.value))
+provide(
+  referenceIntroductionGate,
+  computed(() => introGone.value && !covered.value),
+)
 // 介绍按自身时长自然展开，不在中线跳到终态；其它子页仍保持默认文字节奏。
 provide(referenceIntroductionPace, 1.3)
 
@@ -161,13 +205,13 @@ function playIntro(): void {
     return
   }
 
-  const tl = introTimeline = gsap.timeline({
+  const tl = (introTimeline = gsap.timeline({
     // 标题完成后再建滚动揭示
     onComplete: () => {
       introGone.value = true
       void buildReveal()
     },
-  })
+  }))
   if (titleRef.value) {
     tl.fromTo(
       titleRef.value,
@@ -228,8 +272,13 @@ function onOpenSeries(index: number, trigger: HTMLElement): void {
 
 /** 查看器只打开该 PDF 的页面，不把产品版面与个人军事作品串到一起。 */
 function onOpenInternship(item: VisualAsset, trigger: HTMLElement): void {
-  const group = internshipGroups.find(group => group.items.some(page => page.id === item.id))
-  if (group) openViewerAt(group.items, group.items.findIndex(page => page.id === item.id), trigger)
+  const group = internshipGroups.find((group) => group.items.some((page) => page.id === item.id))
+  if (group)
+    openViewerAt(
+      group.items,
+      group.items.findIndex((page) => page.id === item.id),
+      trigger,
+    )
 }
 
 /** 编辑设计里点开 → 两张一组（原片 + 封面练习） */
@@ -316,11 +365,25 @@ onBeforeUnmount(() => {
   letter-spacing: -0.03em;
   color: var(--ab-ink);
 }
-.pp__statement { margin-top:clamp(54px,10vh,110px); }
-.pp__military-heading > span { font-size:10px; letter-spacing:.16em; }
-.pp__military-heading h2 { margin:22px 0 42px; font-size:clamp(30px,4vw,56px); font-weight:500; letter-spacing:-.035em; }
-.pp__military-heading { padding:100px 4.4vw 60px; }
-.pp__military-heading h2 { margin-bottom:24px; }
+.pp__statement {
+  margin-top: clamp(54px, 10vh, 110px);
+}
+.pp__military-heading > span {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+}
+.pp__military-heading h2 {
+  margin: 22px 0 42px;
+  font-size: clamp(30px, 4vw, 56px);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+}
+.pp__military-heading {
+  padding: 100px 4.4vw 60px;
+}
+.pp__military-heading h2 {
+  margin-bottom: 24px;
+}
 
 /* ==================== 正文 ==================== */
 
@@ -330,5 +393,4 @@ onBeforeUnmount(() => {
   margin-inline: auto;
   padding-inline: clamp(20px, 4.4vw, 64px);
 }
-
 </style>

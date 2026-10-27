@@ -172,7 +172,7 @@ const runtimeSource = ts.transpileModule(
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   },
 ).outputText
-function runtimeHead(profile) {
+function runtimeHead(profile, site) {
   const nodes = []
   const createElement = (name) => ({
     nodeName: name,
@@ -215,7 +215,10 @@ function runtimeHead(profile) {
       if (name === '../data/routeMetadata.json') return { default: routeMetadata }
       if (name === './useSubpageLanguage') return { subpageLanguage: { value: 'zh' } }
       if (name === '../data/personalPortfolio')
-        return { personalPortfolio: profile ? { profile } : null }
+        return {
+          personalPortfolio: profile || site ? { profile, site } : null,
+          personalSiteValue: (section, key, fallback) => site?.[section]?.[key] ?? fallback,
+        }
       throw new Error('Unexpected runtime head dependency')
     },
   })
@@ -260,6 +263,35 @@ for (const profile of [personalProfile, null, {}]) {
       assert.equal(runtime.meta('name', 'description'), page.description[language])
       assert.equal(runtime.meta('property', 'og:site_name'), routeMetadata.siteName[language])
     }
+  }
+}
+
+// A complete local site must restore both static and runtime non-About metadata.
+const fullMetadata = {
+  ...routeMetadata,
+  siteName: { zh: '测试个人作品集', en: 'Fixture Personal Portfolio' },
+  routes: routeMetadata.routes.map((page) => ({
+    ...page,
+    title: { zh: `个人页面 ${page.path}`, en: `Personal page ${page.path}` },
+    description: { zh: `真实内容夹具 ${page.path}`, en: `Personal fixture ${page.path}` },
+  })),
+}
+const fullSite = { routeMetadata: { metadata: fullMetadata } }
+const fullHtml = template.replace(
+  '</head>',
+  `<script id="personal-portfolio" type="application/json">${JSON.stringify({ profile: personalProfile, site: fullSite })}</script></head>`,
+)
+const fullRuntime = runtimeHead(personalProfile, fullSite)
+for (const page of fullMetadata.routes.filter((page) => page.path !== '/about')) {
+  const head = onlyHead(renderRouteHtml(fullHtml, page.path, 'https://example.test'))
+  assert(head.includes(`<title>${escapedHeadValue(page.title.zh)}</title>`))
+  assert(head.includes(escapedHeadValue(page.description.zh)))
+  assert(head.includes(escapedHeadValue(fullMetadata.siteName.zh)))
+  for (const language of ['zh', 'en']) {
+    fullRuntime.update(page.path, language)
+    assert.equal(fullRuntime.document.title, page.title[language])
+    assert.equal(fullRuntime.meta('name', 'description'), page.description[language])
+    assert.equal(fullRuntime.meta('property', 'og:site_name'), fullMetadata.siteName[language])
   }
 }
 

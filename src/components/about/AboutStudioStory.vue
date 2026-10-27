@@ -6,54 +6,12 @@
           {{ pick(line, lang) }}
         </p>
       </div>
-      <div
-        id="stories"
-        class="studio-ribbons"
-        :aria-label="lang === 'zh' ? '精选作品' : 'Selected work'"
-      >
-        <div
-          v-for="(row, rowIndex) in ribbonRows"
-          :key="rowIndex"
-          class="studio-ribbon"
-          :class="{ 'studio-ribbon--second': rowIndex === 1 }"
-        >
-          <div class="studio-ribbon__track">
-            <button v-for="item in row" :key="item.id" type="button" @click="open(item, $event)">
-              <img
-                :src="item.src"
-                :srcset="visualImageSources(item)"
-                sizes="(max-width: 760px) 65vw, (max-width: 980px) 36vw, 36vw"
-                :width="item.width"
-                :height="item.height"
-                :alt="pick(item.alt, lang)"
-                loading="lazy"
-                @load="refresh"
-              />
-            </button>
-          </div>
-        </div>
-      </div>
-      <div id="experience" class="studio-experience__history">
-        <article
-          v-for="experience in EXPERIENCE"
-          :id="`work-${experience.workId}`"
-          :key="experience.id"
-        >
-          <p class="studio-meta">{{ pick(experience.period, lang) }}</p>
-          <h2>{{ pick(experience.company, lang) }}</h2>
-          <p class="studio-role">{{ pick(experience.role, lang) }}</p>
-          <p class="studio-copy">{{ pick(experience.focus, lang) }}</p>
-          <details @toggle="refresh">
-            <summary>
-              {{ lang === 'zh' ? '完整经历' : 'Full experience' }}<span aria-hidden="true">＋</span>
-            </summary>
-            <div v-for="(detail, index) in experience.details" :key="index" class="studio-detail">
-              <h3>{{ pick(detail.title, lang) }}</h3>
-              <p>{{ pick(detail.body, lang) }}</p>
-            </div>
-          </details>
-        </article>
-      </div>
+      <AboutInternshipCards
+        :lang="lang"
+        :images="images"
+        @open="(item, trigger) => emit('open', item, trigger)"
+        @refresh="refresh"
+      />
     </section>
     <section id="achievements" class="studio-achievements">
       <h2>{{ lang === 'zh' ? '让想法成为作品' : 'Ideas, made visible.' }}</h2>
@@ -114,99 +72,46 @@
         }}
       </p>
     </section>
-    <section id="recognition" ref="recognition" class="studio-background">
-      <div ref="recognitionStage" class="studio-background__stage">
-        <div ref="recognitionTrack" class="studio-background__track">
-          <header class="studio-background__cover">
-            <p>{{ lang === 'zh' ? '关于我的更多信息' : 'A closer look' }}</p>
-            <h2>{{ lang === 'zh' ? '个人履历' : 'Background' }}</h2>
-            <span aria-hidden="true">↗</span>
-          </header>
-          <article id="profile" class="studio-background__panel">
-            <h3>{{ lang === 'zh' ? '个人信息' : 'Profile' }}</h3>
-            <div class="studio-background__content">
-              <img
-                class="studio-background__visual"
-                :src="images[4]?.src ?? images[0]?.src"
-                :alt="pick(images[4]?.alt ?? images[0]!.alt, lang)"
-                width="900"
-                height="420"
-                loading="lazy"
-                @load="refresh"
-              />
-              <dl>
-                <div v-for="(fact, i) in FACTS" :key="i">
-                  <dt>{{ pick(fact.k, lang) }}</dt>
-                  <dd>{{ pick(fact.v, lang) }}</dd>
-                </div>
-              </dl>
-            </div>
-          </article>
-          <article id="ai-workflow" class="studio-background__panel">
-            <h3>{{ lang === 'zh' ? '技能与方法' : 'Skills & methods' }}</h3>
-            <div class="studio-background__content">
-              <img
-                class="studio-background__visual"
-                :src="images[0]?.src"
-                :alt="pick(images[0]!.alt, lang)"
-                width="900"
-                height="420"
-                loading="lazy"
-                @load="refresh"
-              />
-              <section
-                v-for="skill in RESUME_SKILLS"
-                :key="skill.id"
-                class="studio-background__row"
-              >
-                <h4>{{ pick(skill.title, lang) }}</h4>
-                <p>{{ pick(skill.body, lang) }}</p>
-              </section>
-            </div>
-          </article>
-          <article class="studio-background__panel">
-            <h3>{{ lang === 'zh' ? '交流与协作' : 'Conversation' }}</h3>
-            <div class="studio-background__content">
-              <img
-                class="studio-background__visual"
-                :src="images[6]?.src ?? images[0]?.src"
-                :alt="pick(images[6]?.alt ?? images[0]!.alt, lang)"
-                width="900"
-                height="420"
-                loading="lazy"
-                @load="refresh"
-              />
-              <section v-for="(pair, i) in CHAT" :key="i" class="studio-background__row">
-                <h4>{{ pick(pair.q, lang) }}</h4>
-                <p>{{ pick(pair.a, lang) }}</p>
-              </section>
-            </div>
-          </article>
-          <article v-if="RECOGNITION.length" class="studio-background__panel">
-            <h3>{{ lang === 'zh' ? '荣誉与认可' : 'Recognition' }}</h3>
-            <div class="studio-background__content">
-              <img
-                class="studio-background__visual"
-                :src="images[6]?.src ?? images[0]?.src"
-                :alt="pick(images[6]?.alt ?? images[0]!.alt, lang)"
-                width="900"
-                height="420"
-                loading="lazy"
-                @load="refresh"
-              />
-              <details
-                v-for="item in RECOGNITION"
-                :key="item.id"
-                class="studio-background__row"
-                @toggle="refresh"
-              >
-                <summary>{{ pick(item.title, lang) }}</summary>
-                <p>{{ pick(item.note, lang) }}</p>
-              </details>
-            </div>
-          </article>
+    <section id="recognition" class="studio-background" aria-labelledby="background-title">
+      <header class="studio-background__cover">
+        <p>{{ lang === 'zh' ? '教育、方法与交流' : 'Education, methods & conversation' }}</p>
+        <h2 id="background-title">{{ lang === 'zh' ? '个人背景' : 'Background' }}</h2>
+      </header>
+      <details id="profile" class="studio-background__group" open @toggle="refresh">
+        <summary>{{ lang === 'zh' ? '个人信息' : 'Profile' }}</summary>
+        <dl class="studio-background__facts">
+          <div v-for="(fact, i) in FACTS" :key="i">
+            <dt>{{ pick(fact.k, lang) }}</dt>
+            <dd>{{ pick(fact.v, lang) }}</dd>
+          </div>
+        </dl>
+      </details>
+      <details id="ai-workflow" class="studio-background__group" @toggle="refresh">
+        <summary>{{ lang === 'zh' ? '技能与方法' : 'Skills & methods' }}</summary>
+        <div v-for="skill in RESUME_SKILLS" :key="skill.id" class="studio-background__row">
+          <h3>{{ pick(skill.title, lang) }}</h3>
+          <p>{{ pick(skill.body, lang) }}</p>
         </div>
-      </div>
+      </details>
+      <details class="studio-background__group" @toggle="refresh">
+        <summary>{{ lang === 'zh' ? '交流与协作' : 'Conversation' }}</summary>
+        <div v-for="(pair, i) in CHAT" :key="i" class="studio-background__row">
+          <h3>{{ pick(pair.q, lang) }}</h3>
+          <p>{{ pick(pair.a, lang) }}</p>
+        </div>
+      </details>
+      <details
+        v-if="RECOGNITION.length"
+        id="honours"
+        class="studio-background__group"
+        @toggle="refresh"
+      >
+        <summary>{{ lang === 'zh' ? '荣誉与认可' : 'Recognition' }}</summary>
+        <div v-for="item in RECOGNITION" :key="item.id" class="studio-background__row">
+          <h3>{{ pick(item.title, lang) }}</h3>
+          <p>{{ pick(item.note, lang) }}</p>
+        </div>
+      </details>
     </section>
   </div>
 </template>
@@ -216,7 +121,6 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import {
   PROFILE_LINES,
-  EXPERIENCE,
   WORKS,
   CAPABILITIES,
   FACTS,
@@ -226,6 +130,7 @@ import {
   pick,
   type Lang,
 } from '../../data/aboutProfile'
+import AboutInternshipCards from './AboutInternshipCards.vue'
 import { personalPortfolio } from '../../data/personalPortfolio'
 import { editorial, photography, type VisualAsset } from '../../data/visualPortfolio'
 import { visualImageSources } from '../../utils/responsiveImage'
@@ -235,11 +140,6 @@ const emit = defineEmits<{ open: [item: VisualAsset, trigger: HTMLElement] }>()
 const images = personalPortfolio?.selectedWorks.length
   ? personalPortfolio.selectedWorks
   : [...editorial, ...photography].slice(0, 7)
-// Partition once: each image appears exactly once, including the flattened mobile strip.
-const ribbonSplit = Math.ceil(images.length / 2)
-const ribbonRows = [images.slice(0, ribbonSplit), images.slice(ribbonSplit)].filter(
-  (row) => row.length,
-)
 // Keep each image attached to its authored story; array order is not a project association.
 const projects = personalPortfolio?.storyPanels.length
   ? personalPortfolio.storyPanels.map((panel) => ({
@@ -267,9 +167,6 @@ function open(item: VisualAsset, event: MouseEvent) {
   emit('open', item, event.currentTarget as HTMLElement)
 }
 const root = ref<HTMLElement | null>(null)
-const recognition = ref<HTMLElement | null>(null)
-const recognitionStage = ref<HTMLElement | null>(null)
-const recognitionTrack = ref<HTMLElement | null>(null)
 let media: gsap.MatchMedia | undefined
 let cancelPreparation: (() => void) | undefined
 let cancelRefresh: (() => void) | undefined
@@ -292,48 +189,13 @@ onMounted(() => {
         gsap.utils.toArray<HTMLElement>('.studio-statement', el).forEach((line) => {
           gsap.fromTo(
             line,
-            { opacity: 0.22 },
+            { color: getComputedStyle(el).getPropertyValue('--about-soft-on-paper').trim() },
             {
-              opacity: 1,
+              color: getComputedStyle(el).getPropertyValue('--about-accent-on-paper').trim(),
               ease: 'none',
               scrollTrigger: { trigger: line, start: 'top 85%', end: 'bottom 65%', scrub: true },
             },
           )
-        })
-        gsap.utils.toArray<HTMLElement>('.studio-ribbon__track', el).forEach((ribbon, index) => {
-          const distance = () => Math.max(0, ribbon.scrollWidth - ribbon.parentElement!.clientWidth)
-          gsap.fromTo(
-            ribbon,
-            { x: () => (index === 0 ? 0 : -distance()) },
-            {
-              x: () => (index === 0 ? -distance() : 0),
-              ease: 'none',
-              scrollTrigger: {
-                trigger: ribbon.parentElement,
-                start: 'top bottom',
-                end: 'bottom top',
-                scrub: true,
-                invalidateOnRefresh: true,
-              },
-            },
-          )
-        })
-        const track = recognitionTrack.value!
-        gsap.to(track, {
-          x: () => -Math.max(0, track.scrollWidth - recognitionStage.value!.clientWidth),
-          ease: 'none',
-          scrollTrigger: {
-            id: 'about-background-horizontal',
-            trigger: recognition.value!,
-            pin: recognitionStage.value!,
-            start: () =>
-              recognitionStage.value!.offsetHeight > innerHeight ? 'bottom bottom' : 'top top',
-            end: () =>
-              `+=${Math.max(1, track.scrollWidth - recognitionStage.value!.clientWidth) * 1.25}`,
-            scrub: 0.35,
-            invalidateOnRefresh: true,
-            refreshPriority: 10,
-          },
         })
       },
       root.value,
@@ -357,9 +219,9 @@ onBeforeUnmount(() => {
 </script>
 <style scoped>
 .studio-story {
-  --studio-paper: #fee9ce;
-  --studio-red: #ef5143;
-  --studio-black: #0a0a0a;
+  --studio-paper: var(--about-paper);
+  --studio-red: var(--about-accent-on-paper);
+  --studio-black: var(--about-ink-on-paper);
 }
 .studio-experience {
   background: var(--studio-paper);
@@ -422,6 +284,7 @@ onBeforeUnmount(() => {
   scroll-margin-top: 40px;
 }
 .studio-meta {
+  color: var(--about-soft-on-paper);
   font-size: 12px;
   margin: 0 0 16px;
 }
@@ -441,7 +304,7 @@ onBeforeUnmount(() => {
 }
 .studio-experience details {
   margin-top: 24px;
-  border-top: 1px solid #0a0a0a22;
+  border-top: 1px solid var(--about-line-on-paper);
 }
 .studio-experience summary {
   padding: 16px 0;
@@ -462,10 +325,11 @@ onBeforeUnmount(() => {
 }
 .studio-achievements {
   padding: 12vw 6vw;
-  background: var(--studio-black);
-  color: var(--studio-paper);
+  background: var(--studio-paper);
+  color: var(--studio-black);
 }
 .studio-achievements > h2 {
+  color: var(--about-accent-on-paper);
   font-size: clamp(40px, 7vw, 134px);
   line-height: 1.1;
   letter-spacing: -0.06em;
@@ -506,13 +370,14 @@ onBeforeUnmount(() => {
 }
 .studio-practice {
   position: relative;
-  background: var(--studio-red);
-  color: var(--studio-paper);
+  background: var(--studio-paper);
+  color: var(--studio-black);
   padding: 10vw 5vw 8vw;
   text-align: center;
   overflow: clip;
 }
 .studio-practice header h2 {
+  color: var(--about-accent-on-paper);
   font-size: clamp(64px, 15vw, 280px);
   line-height: 0.95;
   font-weight: 700;
@@ -537,7 +402,7 @@ summary::-webkit-details-marker {
 }
 .studio-practice__list summary:hover,
 .studio-practice__list details[open] summary {
-  color: #0a0a0a;
+  color: var(--about-accent-on-paper);
 }
 .studio-practice__list details > p {
   width: min(700px, 90%);
@@ -558,81 +423,74 @@ summary::-webkit-details-marker {
   line-height: 1.8;
 }
 .studio-background {
+  padding: clamp(48px, 7vw, 100px) 8%;
   background: var(--studio-paper);
   color: var(--studio-black);
 }
-.studio-background__stage {
-  overflow: clip;
-}
-.studio-background__track {
-  display: flex;
-  width: max-content;
-  min-height: 100svh;
-}
 .studio-background__cover {
-  width: calc(100vw - 48px);
-  flex: none;
-  padding: 7vw;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  margin-bottom: 40px;
 }
 .studio-background__cover p {
-  font-size: 15px;
+  font-size: 14px;
 }
 .studio-background__cover h2 {
   color: var(--studio-red);
-  font-size: clamp(64px, 12vw, 210px);
-  line-height: 1.05;
-  letter-spacing: -0.06em;
-  margin: 32px 0;
+  font-size: clamp(40px, 7vw, 100px);
+  line-height: 1.1;
+  letter-spacing: -0.05em;
+  margin: 16px 0;
 }
-.studio-background__cover > span {
-  font-size: 100px;
+.studio-background__group {
+  border-top: 1px solid #1b1c1833;
+  scroll-margin-top: 76px;
 }
-.studio-background__panel {
-  width: calc(100vw - 48px);
-  flex: none;
-  box-sizing: border-box;
-  display: grid;
-  grid-template-columns: 90px 1fr;
-  border-left: 1px solid #0a0a0a22;
-  padding: 28px 5vw 28px 0;
-  gap: 3vw;
+.studio-background__group:last-child {
+  border-bottom: 1px solid #1b1c1833;
 }
-.studio-background__visual {
-  width: 100%;
-  height: clamp(180px, 30svh, 320px);
-  object-fit: cover;
-  display: block;
-  margin-bottom: 24px;
-}
-.studio-background__content {
-  min-width: 0;
-}
-.studio-background__panel > h3 {
-  align-self: end;
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  font-size: 28px;
-  color: var(--studio-red);
-  padding: 0 20px;
-}
-.studio-background__panel dl > div,
-.studio-background__row {
-  border-top: 1px solid #0a0a0a22;
-  padding: 15px 0;
-}
-.studio-background__panel dt,
-.studio-background__row h4 {
-  font-size: 18px;
+.studio-background__group > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px 0;
+  min-height: 64px;
+  list-style: none;
+  cursor: pointer;
+  font-size: clamp(22px, 2.4vw, 34px);
   font-weight: 700;
-  margin-bottom: 10px;
 }
-.studio-background__panel dd,
+.studio-background__group > summary::after {
+  content: '+';
+  font-weight: 400;
+}
+.studio-background__group[open] > summary::after {
+  content: '−';
+}
+.studio-background__facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px 6vw;
+  padding: 8px 0 32px;
+}
+.studio-background__facts dt,
+.studio-background__row h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.studio-background__facts dd,
 .studio-background__row p {
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: 16px;
+  line-height: 1.7;
+  margin: 0;
+}
+.studio-background__row {
+  max-width: 800px;
+  padding: 8px 0 28px;
+}
+.studio-ribbon__label {
+  font-size: 13px;
+  margin: 0 5vw 36px;
 }
 button:focus-visible,
 a:focus-visible,
@@ -640,36 +498,7 @@ summary:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 6px;
 }
-@media (max-width: 980px), (max-height: 649px), (prefers-reduced-motion: reduce) {
-  .studio-background__track {
-    width: 100%;
-    display: block;
-  }
-  .studio-background__cover {
-    width: 100%;
-    padding: 80px 6vw;
-  }
-  .studio-background__panel {
-    width: 100%;
-    grid-template-columns: 1fr;
-    padding: 50px 6vw;
-    border-top: 1px solid #0a0a0a22;
-  }
-  .studio-background__visual {
-    width: 100%;
-    height: clamp(180px, 30svh, 320px);
-    object-fit: cover;
-    display: block;
-    margin-bottom: 24px;
-  }
-  .studio-background__content {
-    min-width: 0;
-  }
-  .studio-background__panel > h3 {
-    writing-mode: horizontal-tb;
-    transform: none;
-    padding: 0;
-  }
+@media (max-height: 649px), (prefers-reduced-motion: reduce) {
   .studio-ribbon {
     overflow-x: auto;
   }
@@ -678,44 +507,85 @@ summary:focus-visible {
     transform: none;
   }
 }
+@media (max-width: 980px) {
+  .studio-ribbons {
+    overflow-x: auto;
+    padding: 16px 5vw;
+    scroll-padding-inline: 5vw;
+  }
+  .studio-ribbons .studio-ribbon {
+    padding: 0;
+    overflow: visible;
+  }
+  .studio-ribbons .studio-ribbon--second {
+    display: none;
+  }
+  .studio-ribbon__label {
+    margin: 0 0 20px;
+  }
+  .studio-ribbons .studio-ribbon__track {
+    transform: none;
+    gap: 16px;
+  }
+  .studio-ribbons .studio-ribbon button {
+    flex: 0 0 65vw;
+    width: 65vw;
+    height: 48vw;
+    min-width: 0;
+  }
+}
 @media (max-width: 760px) {
   .studio-experience {
-    padding: 90px 0;
+    padding: 56px 0;
   }
   .studio-experience__intro {
     width: 90%;
-    margin-bottom: 60px;
+    margin-bottom: 28px;
   }
   .studio-statement {
-    font-size: 8vw;
-    line-height: 1.3;
-  }
-  .studio-ribbon button {
-    width: 65vw;
-    height: 55vw;
+    font-size: 7.2vw;
+    line-height: 1.35;
   }
   .studio-experience__history {
     grid-template-columns: 1fr;
     width: 88%;
-    gap: 54px;
-    margin-top: 60px;
+    gap: 36px;
+    margin-top: 36px;
   }
   .studio-achievements {
-    padding-block: 90px;
+    padding: 56px 6vw;
+  }
+  .studio-achievements > h2 {
+    color: var(--about-accent-on-paper);
+    margin-bottom: 40px;
   }
   .studio-project {
     grid-template-columns: 1fr;
-    gap: 30px;
-    margin-bottom: 80px;
+    gap: 20px;
+    margin-bottom: 48px;
+  }
+  .studio-project img {
+    max-height: 260px;
+  }
+  .studio-project h3 {
+    margin-bottom: 16px;
   }
   .studio-project--reverse > button {
     order: 0;
   }
+  .studio-copy {
+    font-size: 18px;
+    line-height: 1.5;
+  }
   .studio-practice {
-    padding: 90px 5vw;
+    padding: 56px 5vw;
   }
   .studio-practice header h2 {
+    color: var(--about-accent-on-paper);
     font-size: 17vw;
+  }
+  .studio-practice header p {
+    margin-bottom: 32px;
   }
   .studio-practice__list summary {
     font-size: 9vw;
@@ -723,24 +593,25 @@ summary:focus-visible {
   .studio-practice__list details > p {
     font-size: 16px;
   }
-}
-@media (max-width: 980px) {
-  .studio-ribbons {
-    display: flex;
-    gap: 20px;
-    overflow-x: auto;
-    padding: 16px 5vw;
-    scroll-padding-inline: 5vw;
+  .studio-background {
+    padding: 48px 6vw;
   }
-  .studio-ribbons .studio-ribbon,
-  .studio-ribbons .studio-ribbon__track {
-    display: contents;
+  .studio-background__cover {
+    margin-bottom: 24px;
   }
-  .studio-ribbons .studio-ribbon button {
-    flex: 0 0 65vw;
-    width: 65vw;
-    height: 55vw;
-    min-width: 0;
+  .studio-background__facts {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding-bottom: 24px;
+  }
+  .studio-background__facts > div {
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 16px;
+  }
+  .studio-background__group > summary {
+    padding: 18px 0;
+    font-size: 24px;
   }
 }
 </style>

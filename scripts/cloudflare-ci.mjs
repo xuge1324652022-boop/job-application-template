@@ -6,6 +6,7 @@ import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } 
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { promisify } from 'node:util'
 import siteConfig from '../deploy/site-config.json' with { type: 'json' }
+import { assertTemplateArtifact, assertTemplateWorkspace } from './workspace-edition.mjs'
 
 const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 export const WORKER_NAME = 'job-application-template'
@@ -106,6 +107,7 @@ async function projectSettings(projectRoot) {
 /** 只读取源码配置及 dist；不会读取凭据、本地完整视频或访问网络。 */
 export async function prepare({ projectRoot = PROJECT_ROOT, outputRoot } = {}) {
   projectRoot = resolve(projectRoot)
+  assertTemplateWorkspace(projectRoot)
   outputRoot = resolve(outputRoot || join(projectRoot, 'tmp', 'cloudflare-ci', randomUUID()))
   outputLocation(projectRoot, outputRoot)
   await noSymlinks(outputRoot)
@@ -117,6 +119,7 @@ export async function prepare({ projectRoot = PROJECT_ROOT, outputRoot } = {}) {
   // 先完整检查源文件；随后只把检查过的字节写入隔离快照。
   for (const file of files) {
     const buffer = await readSafe(file.absolute, file.path)
+    assertTemplateArtifact(file.path, buffer)
     localManifest[file.path] = { hash: assetHash(buffer, file.path), size: buffer.length }
     if (Object.hasOwn(mediaManifest, file.path) && !same({ [file.path]: localManifest[file.path] }, { [file.path]: mediaManifest[file.path] })) fail('dist 不能覆盖已登记的完整调色视频：字节必须与清单一致')
   }
@@ -137,6 +140,7 @@ export async function prepare({ projectRoot = PROJECT_ROOT, outputRoot } = {}) {
 /** 重新校验快照和 committed 媒体引用；只允许按受版本控制的清单补齐缺失媒体。 */
 export async function validate({ projectRoot = PROJECT_ROOT, outputRoot }) {
   projectRoot = resolve(projectRoot)
+  assertTemplateWorkspace(projectRoot)
   outputRoot = resolve(outputRoot)
   outputLocation(projectRoot, outputRoot)
   const settings = await projectSettings(projectRoot)
@@ -145,6 +149,7 @@ export async function validate({ projectRoot = PROJECT_ROOT, outputRoot }) {
   const localManifest = {}
   for (const file of files) {
     const buffer = await readSafe(file.absolute, file.path)
+    assertTemplateArtifact(file.path, buffer)
     localManifest[file.path] = { hash: assetHash(buffer, file.path), size: buffer.length }
     if (Object.hasOwn(settings.mediaManifest, file.path) && !same({ [file.path]: localManifest[file.path] }, { [file.path]: settings.mediaManifest[file.path] })) fail('本地快照不能覆盖 committed 媒体引用：字节必须与清单一致')
   }
@@ -335,6 +340,7 @@ export async function uploader(input, session, { accountId, fetchImpl = fetch, d
 
 /** 凭据仅取自调用方 env 的两个明确字段；不加载 dotenv 或本机账号配置。 */
 export async function deploy({ projectRoot = PROJECT_ROOT, outputRoot, fetchImpl = fetch, env = process.env, progress = () => {}, delay, checkoutShaImpl = checkoutSha, remoteShaImpl = readRemoteSha } = {}) {
+  assertTemplateWorkspace(projectRoot)
   const accountId = account(env.CLOUDFLARE_ACCOUNT_ID)
   const token = env.CLOUDFLARE_API_TOKEN
   if (typeof token !== 'string' || !token || /\s/.test(token)) fail('缺少有效的 CLOUDFLARE_API_TOKEN')

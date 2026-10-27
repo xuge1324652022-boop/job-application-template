@@ -193,6 +193,8 @@
     "src/views/PosterView.vue": "项目源码/页面/海报作品页.vue",
     "src/components/about/AboutIndustries.vue": "项目源码/组件/人物与作品/实践场景.vue",
     "src/components/about/AboutStudioContact.vue": "项目源码/组件/人物与作品/工作室联系.vue",
-    "src/components/about/aboutTextFocus.ts": "项目源码/组件/人物与作品/字形实心焦点.ts"
+    "src/components/about/aboutTextFocus.ts": "项目源码/组件/人物与作品/字形实心焦点.ts",
+    "src/components/about/AboutInternshipCards.vue": "项目源码/组件/人物与作品/实习叙事卡片.vue",
+    "src/components/about/AboutInternshipCover.vue": "项目源码/组件/人物与作品/实习原创封面.vue"
   }
 }

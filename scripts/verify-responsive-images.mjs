@@ -67,7 +67,8 @@ assert.notEqual(
   viewerImageSizes({ width: 2000, height: 1000 }),
   '查看器竖图必须受高度约束',
 )
-assert.equal(groups, 47)
+assert.equal(groups, Object.keys(records).filter((file) => file.endsWith('-1600.webp')).length)
+assert.equal(Object.keys(records).filter((file) => !file.startsWith('/personal/') && file.endsWith('-1600.webp')).length, 47)
 // The optional edition must use its own real widths, while unknown files still fail closed.
 personal.personalPortfolio = {
   imageDimensions: {

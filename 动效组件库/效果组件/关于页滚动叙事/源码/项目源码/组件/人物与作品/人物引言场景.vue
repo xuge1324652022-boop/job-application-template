@@ -70,7 +70,7 @@ onMounted(() => {
               trigger: stageElement,
               refreshPriority: 45,
               start: 'top top',
-              end: () => `+=${Math.round(innerHeight * 1.6)}`,
+              end: () => `+=${Math.round(innerHeight * 0.9)}`,
               pin: true,
               pinSpacing: true,
               anticipatePin: 1,
@@ -81,25 +81,23 @@ onMounted(() => {
           // 只给每行一段亮色 tween，避免上一段尚未完成就被退暗覆盖。
           .fromTo(
             rows,
-            { color: '#4b4b49' },
-            { color: '#ffe8ce', stagger: 0.48, duration: 0.45 },
+            {
+              color: getComputedStyle(root.value!).getPropertyValue('--about-soft-on-night').trim(),
+            },
+            {
+              color: getComputedStyle(root.value!).getPropertyValue('--about-on-night').trim(),
+              stagger: 0.48,
+              duration: 0.45,
+            },
             0.12,
           )
           .fromTo(
             content.value!,
-            { y: () => stageElement.clientHeight * 0.32 },
+            { y: () => stageElement.clientHeight * 0.04 },
             { y: () => -stageElement.clientHeight * 0.18, duration: 1.8 },
             0,
           )
-          .to({}, { duration: 0.4 })
-          .to(
-            content.value!,
-            {
-              y: () => -(content.value!.offsetTop + content.value!.offsetHeight + 40),
-              duration: 0.9,
-            },
-            2.2,
-          )
+          .to({}, { duration: 0.25 })
       },
       root.value,
     )
@@ -129,7 +127,7 @@ onBeforeUnmount(() => {
 <style scoped>
 .quote-scene {
   position: relative;
-  background: #090909;
+  background: var(--about-night);
 }
 .quote-scene__stage {
   position: relative;
@@ -166,7 +164,7 @@ onBeforeUnmount(() => {
   font-weight: 700;
   letter-spacing: -0.04em;
   line-height: 1.12;
-  color: #ffe8ce;
+  color: var(--about-on-night);
 }
 .quote-scene__line {
   display: block;

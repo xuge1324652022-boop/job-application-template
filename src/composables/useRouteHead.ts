@@ -1,9 +1,11 @@
 import { watch } from 'vue'
 import type { Router } from 'vue-router'
-import metadata from '../data/routeMetadata.json'
+import templateMetadata from '../data/routeMetadata.json'
 import type { Lang } from '../data/aboutProfile'
 import { subpageLanguage } from './useSubpageLanguage'
-import { personalPortfolio } from '../data/personalPortfolio'
+import { personalPortfolio, personalSiteValue } from '../data/personalPortfolio'
+
+const metadata = personalSiteValue('routeMetadata', 'metadata', templateMetadata)
 
 // 初始404没有canonical，仍能从构建时的OG地址恢复规范域名；后续导航不丢失它。
 const canonicalOrigin = new URL(

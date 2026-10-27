@@ -22,7 +22,7 @@
       <span class="about-exp__index">01</span>
       <span class="about-exp__rule" />
       <h3 class="about-exp__lead">关于我</h3>
-      <span class="about-exp__name">示例求职者</span>
+      <span class="about-exp__name">{{ IDENTITY.nameZh }}</span>
       <span class="about-exp__role">VIDEO EDITOR</span>
       <span class="about-exp__role">COLORIST</span>
       <span class="about-exp__role">VISUAL DESIGNER</span>
@@ -37,10 +37,8 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
 import TemplateMark from './TemplateMark.vue'
-import {
-  createAboutExperience,
-  type AboutExperienceHandle,
-} from './aboutExperienceAnimation'
+import { IDENTITY } from '../../data/aboutProfile'
+import { createAboutExperience, type AboutExperienceHandle } from './aboutExperienceAnimation'
 import './aboutExperience.css'
 
 const rootRef = ref<HTMLElement | null>(null)

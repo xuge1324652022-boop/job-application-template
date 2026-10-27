@@ -234,7 +234,11 @@ export function checkPublicPrivacy({ localAudit = false } = {}) {
   const exports = {}
   // This VM has no document, so the optional local edition must remain inactive.
   // Isolated historical gate fixtures omit this browser-only helper entirely.
-  const personalHelper = { personalPortfolio: null, isPersonalPortfolio: false }
+  const personalHelper = {
+    personalPortfolio: null,
+    isPersonalPortfolio: false,
+    personalSiteValue: (_section, _key, fallback) => fallback,
+  }
   const helperPath = 'src/data/personalPortfolio.ts'
   if (existsSync(helperPath)) {
     assert(normalFile(helperPath), '个人版读取模块不是普通文件')
@@ -311,7 +315,13 @@ export function checkPublicPrivacy({ localAudit = false } = {}) {
       ts.transpileModule(readFileSync(visualModulePath, 'utf8'), {
         compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
       }).outputText,
-      { exports: visualExports },
+      {
+        exports: visualExports,
+        require: (request) => {
+          assert(request === './personalPortfolio', '默认视觉模块包含未核验的运行时依赖')
+          return personalHelper
+        },
+      },
     )
     problems.push(
       ...templateVisualPrivacyProblems(

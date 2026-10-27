@@ -1,7 +1,7 @@
 import { existsSync, statSync } from 'node:fs'
 import { dirname, extname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { sendMediaFile } from './scripts/media-http.mjs'
 import { routePages } from './scripts/route-pages.mjs'
@@ -69,41 +69,53 @@ function serveColorMedia() {
   }
 }
 
-export default defineConfig({
-  plugins: [vue(), personalPortfolio(ROOT), routePages(), serveColorMedia()],
-  // Vite 8（rolldown）的 dev 依赖扫描默认会从根目录所有 HTML 里抽
-  // `<script type="module">`，结果把 outputs/_archived-20260920/ 下 8 份历史
-  // 归档（含 React/JSX）也当 entry 解析，第一次启动就报
-  // "Failed to scan for dependencies from entries / Unexpected JSX expression"。
-  // 这里把 entries 锁死到根 index.html，扫描就不会越界去摸归档目录。
-  // outputs/ 中同时有受版本控制的校验脚本和被忽略的采样归档；dev 扫描不看 Git。
-  optimizeDeps: {
-    entries: ['index.html'],
-  },
-  server: {
-    host: '127.0.0.1',
-    port: 5173,
-    strictPort: false,
-    open: false,
-    watch: {
-      ignored: [
-        '**/tmp/**',
-        '**/outputs/**',
-        '**/backups/**',
-        '**/作品/**',
-        '**/参考资料/**',
-        '**/上线交付/**',
-        '**/网站部署文件/**',
-        '**/逆向工程工具/**',
-      ],
+export default defineConfig(({ mode }) => {
+  const local = loadEnv(mode, ROOT, 'PERSONAL_')
+  return {
+    plugins: [
+      vue(),
+      personalPortfolio(ROOT, {
+        sourceRoot: local.PERSONAL_PORTFOLIO_ROOT || ROOT,
+        required: local.PERSONAL_PORTFOLIO_REQUIRED === 'true',
+      }),
+      routePages(),
+      serveColorMedia(),
+    ],
+    // Vite 8（rolldown）的 dev 依赖扫描默认会从根目录所有 HTML 里抽
+    // `<script type="module">`，结果把 outputs/_archived-20260920/ 下 8 份历史
+    // 归档（含 React/JSX）也当 entry 解析，第一次启动就报
+    // "Failed to scan for dependencies from entries / Unexpected JSX expression"。
+    // 这里把 entries 锁死到根 index.html，扫描就不会越界去摸归档目录。
+    // outputs/ 中同时有受版本控制的校验脚本和被忽略的采样归档；dev 扫描不看 Git。
+    optimizeDeps: {
+      entries: ['index.html'],
     },
-  },
-  build: {
-    // 不沿用 Vite 8 的 Safari 16.4/Chrome 111 默认语法门槛；移动 WebView 单独保守编译。
-    // 这只约束输出语法；媒体策略及 CSS/DOM 能力仍由组件检测和回退处理。
-    target: ['chrome94', 'safari15', 'ios15'],
-    outDir: 'dist',
-    copyPublicDir: true,
-    assetsInlineLimit: 0, // 图片作为独立请求缓存，避免小图内联到 JS/CSS；不改变源图像素。
-  },
+    server: {
+      host: '127.0.0.1',
+      port: 5173,
+      strictPort: false,
+      open: false,
+      watch: {
+        ignored: [
+          '**/tmp/**',
+          '**/outputs/**',
+          '**/backups/**',
+          '**/作品/**',
+          '**/参考资料/**',
+          '**/上线交付/**',
+          '**/网站部署文件/**',
+          '**/逆向工程工具/**',
+          '**/portfolio-素材归档/**',
+        ],
+      },
+    },
+    build: {
+      // 不沿用 Vite 8 的 Safari 16.4/Chrome 111 默认语法门槛；移动 WebView 单独保守编译。
+      // 这只约束输出语法；媒体策略及 CSS/DOM 能力仍由组件检测和回退处理。
+      target: ['chrome94', 'safari15', 'ios15'],
+      outDir: 'dist',
+      copyPublicDir: true,
+      assetsInlineLimit: 0, // 图片作为独立请求缓存，避免小图内联到 JS/CSS；不改变源图像素。
+    },
+  }
 })
