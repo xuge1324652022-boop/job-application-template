@@ -4,63 +4,18 @@
  */
 import type { Lang } from './aboutProfile'
 
-export interface ResumeTextPart {
+/** 拆分结果：一段原文 + 是否加粗。仅本文件消费，不对外导出。 */
+interface ResumeTextPart {
   text: string
   strong: boolean
 }
 
-const DETAIL_EMPHASIS: Readonly<Record<string, readonly Record<Lang, readonly string[]>[]>> = {
-  'template-content': [
-    {
-      zh: ['虚构需求', '受众、信息与表达方向'],
-      en: ['fictional brief', 'audience, information and communication goals'],
-    },
-    {
-      zh: ['脚本、素材筛选、节奏剪辑与字幕检查'],
-      en: ['scripting, asset selection, pacing and subtitle review'],
-    },
-    { zh: ['虚构活动', '统一命名'], en: ['fictional activity', 'consistent names'] },
-    {
-      zh: ['演示版本', '不使用真实账号数据或个人业绩'],
-      en: ['demonstration data rather than real account metrics or personal achievements'],
-    },
-    {
-      zh: ['素材授权、内容检查与文件清单'],
-      en: ['asset permissions, content review and a delivery checklist'],
-    },
-  ],
-  'template-ai': [
-    {
-      zh: ['虚构主题', '故事结构、镜头顺序与画面说明'],
-      en: ['story structure, shot order and visual notes', 'fictional topic'],
-    },
-    { zh: ['不同画面方向', '一致性检查步骤'], en: ['visual directions', 'consistency checks'] },
-    {
-      zh: ['尺寸、字幕与文件版本', '可复用清单'],
-      en: ['dimensions, subtitles and file versions', 'reusable checklist'],
-    },
-  ],
-  'template-product': [
-    {
-      zh: ['虚构产品', '镜头清单、场景说明与素材目录'],
-      en: ['shots, scene notes and an asset catalogue', 'fictional product'],
-    },
-    {
-      zh: ['不关联真实客户、品牌或商业成果'],
-      en: ['without reference to a real client, brand or commercial result'],
-    },
-  ],
-  'media-centre': [
-    {
-      zh: ['虚构活动', '设备清单、记录计划与协作约定'],
-      en: ['equipment, documentation and collaboration checklists', 'fictional activity'],
-    },
-    {
-      zh: ['演示素材', '不包含真实学校、媒体推选或获奖记录'],
-      en: ['demonstration assets', 'without real university, media or award records'],
-    },
-  ],
-}
+/*
+ * 这里原本还有一张 `DETAIL_EMPHASIS` 表（按经历 id + 详情序号给加粗片段）和它的
+ * 取用函数 `resumeDetailParts`。经历详情改用 `resumeSkillParts` / `resumeFactParts`
+ * 之后，两者在 src / scripts / tests 里都成了零引用 —— 保留只会让人以为经历详情
+ * 还在走这套加粗。需要时从 git 历史取回。
+ */
 
 /** 下标与 FACTS 展示顺序绑定。 */
 const FACT_EMPHASIS: Readonly<Record<number, Record<Lang, readonly string[]>>> = {
@@ -80,7 +35,7 @@ const SKILL_EMPHASIS: Readonly<Record<string, Record<Lang, readonly string[]>>> 
 }
 
 /** 只拆分纯文本给 Vue 转义插值；不插 HTML，保证原文拼接后完全不变。 */
-export function splitResumeEmphasis(text: string, fragments: readonly string[]): ResumeTextPart[] {
+function splitResumeEmphasis(text: string, fragments: readonly string[]): ResumeTextPart[] {
   const ranges: { start: number; end: number }[] = []
   for (const fragment of fragments) {
     if (!fragment) continue
@@ -108,16 +63,6 @@ export function splitResumeEmphasis(text: string, fragments: readonly string[]):
   }
   if (cursor < text.length) parts.push({ text: text.slice(cursor), strong: false })
   return parts
-}
-
-/** 经历按稳定 id + 详情序号取重点；找不到映射就保留普通正文，不猜测加粗内容。 */
-export function resumeDetailParts(
-  text: string,
-  experienceId: string,
-  detailIndex: number,
-  lang: Lang,
-): ResumeTextPart[] {
-  return splitResumeEmphasis(text, DETAIL_EMPHASIS[experienceId]?.[detailIndex]?.[lang] ?? [])
 }
 
 /** 资料行按 FACTS 下标关联；调整行序时同步更新 FACT_EMPHASIS。 */

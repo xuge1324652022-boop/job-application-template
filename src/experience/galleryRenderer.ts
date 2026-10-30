@@ -1,5 +1,6 @@
 import type { Ref } from 'vue'
-import { CARD_COUNT, clamp, layoutGallery } from '../utils/galleryMotion'
+import { clamp } from '../utils/clamp'
+import { CARD_COUNT, layoutGallery } from '../utils/galleryMotion'
 import type { GalleryState } from '../utils/galleryMotion'
 
 interface GalleryRendererOptions {

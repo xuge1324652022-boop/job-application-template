@@ -82,6 +82,7 @@ import {
   isCompletePersonalPortfolio as isPersonalPortfolio,
 } from '../数据/本机个人内容接口'
 import { visualById } from '../数据/视觉作品资料'
+import { motionScrollBehavior } from '../工具/动态偏好'
 import colorFrame from '../素材/调色帧/调色第7帧.jpg'
 
 type Destination = 'about' | 'edit' | 'video' | 'color' | 'news' | 'creative' | 'poster' | 'photo'
@@ -177,7 +178,7 @@ const nextTo = computed(() => ({ path: work.value.path, query: { from: source.va
 function toTop() {
   window.scrollTo({
     top: 0,
-    behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+    behavior: motionScrollBehavior(),
   })
 }
 </script>

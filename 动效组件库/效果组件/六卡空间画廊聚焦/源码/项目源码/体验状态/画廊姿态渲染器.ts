@@ -1,5 +1,6 @@
 import type { Ref } from 'vue'
-import { CARD_COUNT, clamp, layoutGallery } from '../工具/画廊动画控制'
+import { clamp } from '../工具/数值钳制'
+import { CARD_COUNT, layoutGallery } from '../工具/画廊动画控制'
 import type { GalleryState } from '../工具/画廊动画控制'
 
 interface GalleryRendererOptions {

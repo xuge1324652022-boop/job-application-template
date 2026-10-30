@@ -230,10 +230,10 @@
       "original": "src/components/about/PosterColourChapters.vue",
       "path": "源码/项目源码/组件/人物与作品/海报色彩章节.vue",
       "role": "entry",
-      "originalSha256": "4161d0b81334bed52d2602f3f2146d74b7398cc30a79c2fc51f3925b74c945d5",
-      "originalBytes": 17267,
-      "sha256": "c7e5938e0a317047858ef91dc9caf06ee27d5313ecb887d41508bd2d9587f06d",
-      "bytes": 17291
+      "originalSha256": "b637a44af4cc7a505a85137189628b98228ebc958fdcb9f8353e814c18080adf",
+      "originalBytes": 17252,
+      "sha256": "c95382e96c2cded3c7db331fa2e071f36a631bb2f49049023fad8ce2426b193e",
+      "bytes": 17284
     },
     {
       "original": "src/data/aboutProfile.ts",
@@ -248,10 +248,10 @@
       "original": "src/data/imageVariants.json",
       "path": "源码/项目源码/数据/图片实际尺寸.json",
       "role": "dependency",
-      "originalSha256": "14e09713c5eeaf886e5070e91559145fc6914b67b25a97d86af51351bc40482a",
-      "originalBytes": 12605,
-      "sha256": "14e09713c5eeaf886e5070e91559145fc6914b67b25a97d86af51351bc40482a",
-      "bytes": 12605
+      "originalSha256": "404dc65cf4cf7454237aa42b35530d97a6567f4d9f21d6a4592def2a911a39fc",
+      "originalBytes": 13300,
+      "sha256": "404dc65cf4cf7454237aa42b35530d97a6567f4d9f21d6a4592def2a911a39fc",
+      "bytes": 13300
     },
     {
       "original": "src/data/personalPortfolio.ts",
@@ -266,19 +266,28 @@
       "original": "src/data/visualPortfolio.ts",
       "path": "源码/项目源码/数据/视觉作品资料.ts",
       "role": "dependency",
-      "originalSha256": "fc1f99d02c7d9b2885275e4a8361e1ee570132b656a3c9c2a598b0e1b62bc4be",
-      "originalBytes": 22963,
-      "sha256": "910ee9502b04b9c56e5301e2be13da3046af61e528e18339b81a674d67e37b54",
-      "bytes": 22970
+      "originalSha256": "e0276ef3f86a80d1277489f07d105f72340f7981e35b8026986c7a6e84f76a83",
+      "originalBytes": 22956,
+      "sha256": "59ae9bc184bfec36a9459d23eb07e17832c3042105639305c294647d720628e0",
+      "bytes": 22963
     },
     {
       "original": "src/style.css",
       "path": "源码/项目源码/全局样式.css",
       "role": "global-style",
-      "originalSha256": "d17284112f7cd7ce1dc7f7e48847895d2086b25cd404079d5b5a5647475ec2ca",
-      "originalBytes": 4142,
-      "sha256": "d17284112f7cd7ce1dc7f7e48847895d2086b25cd404079d5b5a5647475ec2ca",
-      "bytes": 4142
+      "originalSha256": "4d8434037404ff51386849082a9113c2fdb60bce4e5741ca8801f15d85c10a9b",
+      "originalBytes": 4144,
+      "sha256": "4d8434037404ff51386849082a9113c2fdb60bce4e5741ca8801f15d85c10a9b",
+      "bytes": 4144
+    },
+    {
+      "original": "src/utils/clamp.ts",
+      "path": "源码/项目源码/工具/数值钳制.ts",
+      "role": "dependency",
+      "originalSha256": "80a5af82ad7b6872211f1f69c56f0d854be9a6ac393ab964b50dc61a34e7eb5a",
+      "originalBytes": 856,
+      "sha256": "80a5af82ad7b6872211f1f69c56f0d854be9a6ac393ab964b50dc61a34e7eb5a",
+      "bytes": 856
     },
     {
       "original": "src/utils/motionLayout.ts",
@@ -293,19 +302,19 @@
       "original": "src/utils/responsiveImage.ts",
       "path": "源码/项目源码/工具/响应式图片.ts",
       "role": "dependency",
-      "originalSha256": "1da57df0406457b4b0ace433f4ff8eaa330817e1d46a2dcd5eb2c45ae8ab51e1",
-      "originalBytes": 1262,
-      "sha256": "634aba5c953aabbdcfa92ba65947be8f969631136d16122f89cd228050daa9bc",
-      "bytes": 1278
+      "originalSha256": "ebd1551b1eb5802141ec3de15876aac44a424f31dc23a1cfbc970582a3ddf178",
+      "originalBytes": 2147,
+      "sha256": "b6dcb38d0d01366412a19f5b556be65b357bf0f24951079a521d4d3331051bdc",
+      "bytes": 2163
     },
     {
       "original": "src/views/PosterView.vue",
       "path": "集成示例/项目源码/页面/海报作品页.vue",
       "role": "integration-context",
-      "originalSha256": "cde3006689c28afb231442de9af48289388d34361fbc06e7f6e3240dafc86872",
-      "originalBytes": 13578,
-      "sha256": "b5f15a5b27700fcea59da8a09c53afea01abe68417fe83e6019c366cee68669d",
-      "bytes": 13681
+      "originalSha256": "81e4b70a7b38b8d328b9ce23fb7453929f03500f11c14d5d89826d9705cf9f26",
+      "originalBytes": 13534,
+      "sha256": "1d622a44f6dbb8ea673fbd69ce8bbf11d85eb995b000dabb58d3c885d36f3fd5",
+      "bytes": 13637
     },
     {
       "original": "src/data/posterPage.ts",

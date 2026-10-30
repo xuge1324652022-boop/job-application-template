@@ -21,21 +21,6 @@
           fetchpriority="high"
         />
       </div>
-      <figcaption>
-        {{
-          isPersonalPortfolio
-            ? lang === 'zh'
-              ? hasScenePortrait
-                ? 'AI 辅助人物插画 · 非纪实照片'
-                : '个人形象照片'
-              : hasScenePortrait
-                ? 'AI-assisted illustration · not a photograph'
-                : 'Personal portrait'
-            : lang === 'zh'
-              ? '合成图像示例'
-              : 'Synthetic image example'
-        }}
-      </figcaption>
     </figure>
     <div class="about-hero__stage">
       <!-- 英文姓名巨字铺满可用宽度。 -->
@@ -68,11 +53,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { IDENTITY, TAGLINE, type Lang } from '../../data/aboutProfile'
-import {
-  aboutHeroPortrait,
-  isPersonalPortfolio,
-  personalPortfolio,
-} from '../../data/personalPortfolio'
+import { aboutHeroPortrait, personalPortfolio } from '../../data/personalPortfolio'
 import { prepareMotionLayout, requestMotionLayoutRefresh } from '../../utils/motionLayout'
 import { visualImageSources } from '../../utils/responsiveImage'
 import { useFitText } from '../../composables/useFitText'
@@ -255,17 +236,7 @@ onBeforeUnmount(() => {
   background: linear-gradient(transparent, var(--about-night));
   pointer-events: none;
 }
-.about-hero__photo figcaption {
-  position: absolute;
-  bottom: 24px;
-  left: 24px;
-  z-index: 1;
-  max-width: calc(100% - 190px);
-  background: var(--about-night);
-  font-size: 10px;
-  color: var(--about-paper);
-  line-height: 1.5;
-}
+
 .about-hero__stage {
   position: relative;
   height: 100%;

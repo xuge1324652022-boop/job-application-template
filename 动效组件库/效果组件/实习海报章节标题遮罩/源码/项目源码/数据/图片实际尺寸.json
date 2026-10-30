@@ -574,5 +574,41 @@
   "/about/portrait-900.webp": {
     "width": 900,
     "height": 675
+  },
+  "/personal/ec100-01-400.webp": {
+    "width": 400,
+    "height": 209
+  },
+  "/personal/ec100-01-1600.webp": {
+    "width": 1600,
+    "height": 838
+  },
+  "/personal/ec100-01-2560.webp": {
+    "width": 2560,
+    "height": 1340
+  },
+  "/personal/v10l-01-400.webp": {
+    "width": 400,
+    "height": 400
+  },
+  "/personal/v10l-01-1600.webp": {
+    "width": 1600,
+    "height": 1600
+  },
+  "/personal/v10l-01-2560.webp": {
+    "width": 2560,
+    "height": 2560
+  },
+  "/personal/vela-01-400.webp": {
+    "width": 295,
+    "height": 400
+  },
+  "/personal/vela-01-1600.webp": {
+    "width": 1178,
+    "height": 1600
+  },
+  "/personal/vela-01-2560.webp": {
+    "width": 1885,
+    "height": 2560
   }
 }

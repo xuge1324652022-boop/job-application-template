@@ -1,5 +1,5 @@
 <template>
-  <div ref="root" class="studio-story">
+  <div class="studio-story">
     <section id="experience-reveal" class="studio-experience">
       <AboutInternshipCards
         :lang="lang"
@@ -111,9 +111,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, nextTick, ref, watch } from 'vue'
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 import {
   WORKS,
   CAPABILITIES,
@@ -128,7 +126,7 @@ import AboutInternshipCards from './AboutInternshipCards.vue'
 import { personalPortfolio } from '../../data/personalPortfolio'
 import { editorial, photography, type VisualAsset } from '../../data/visualPortfolio'
 import { visualImageSources } from '../../utils/responsiveImage'
-import { prepareMotionLayout, requestMotionLayoutRefresh } from '../../utils/motionLayout'
+import { requestMotionLayoutRefresh } from '../../utils/motionLayout'
 const props = defineProps<{ lang: Lang }>()
 const emit = defineEmits<{ open: [item: VisualAsset, trigger: HTMLElement] }>()
 const images = personalPortfolio?.selectedWorks.length
@@ -160,9 +158,6 @@ const projectImage = (i: number) => projects[i]!.image
 function open(item: VisualAsset, event: MouseEvent) {
   emit('open', item, event.currentTarget as HTMLElement)
 }
-const root = ref<HTMLElement | null>(null)
-let media: gsap.MatchMedia | undefined
-let cancelPreparation: (() => void) | undefined
 let cancelRefresh: (() => void) | undefined
 let disposed = false
 function refresh() {
@@ -170,33 +165,7 @@ function refresh() {
   cancelRefresh?.()
   cancelRefresh = requestMotionLayoutRefresh()
 }
-gsap.registerPlugin(ScrollTrigger)
-onMounted(() => {
-  if (!root.value) return
-  cancelPreparation = prepareMotionLayout(root.value, () => {
-    if (disposed || !root.value) return
-    media = gsap.matchMedia()
-    media.add(
-      '(min-width: 981px) and (min-height: 650px) and (prefers-reduced-motion: no-preference)',
-      () => {
-        const el = root.value!
-        gsap.utils.toArray<HTMLElement>('.studio-statement', el).forEach((line) => {
-          gsap.fromTo(
-            line,
-            { color: getComputedStyle(el).getPropertyValue('--about-soft-on-paper').trim() },
-            {
-              color: getComputedStyle(el).getPropertyValue('--about-accent-on-paper').trim(),
-              ease: 'none',
-              scrollTrigger: { trigger: line, start: 'top 85%', end: 'bottom 65%', scrub: true },
-            },
-          )
-        })
-      },
-      root.value,
-    )
-    refresh()
-  })
-})
+onMounted(refresh)
 watch(
   () => props.lang,
   async () => {
@@ -206,9 +175,7 @@ watch(
 )
 onBeforeUnmount(() => {
   disposed = true
-  cancelPreparation?.()
   cancelRefresh?.()
-  media?.revert()
 })
 </script>
 <style scoped>
@@ -222,100 +189,15 @@ onBeforeUnmount(() => {
   color: var(--studio-black);
   padding: 8svh 0;
 }
-.studio-experience__intro {
-  width: min(1120px, 83%);
-  margin: 0 auto 8svh;
-  text-align: center;
-}
-.studio-statement {
-  font-size: clamp(32px, 5.625vw, 108px);
-  font-weight: 700;
-  letter-spacing: -0.055em;
-  line-height: 1.12;
-  color: var(--studio-red);
-  margin-bottom: 0.7em;
-}
-.studio-ribbon {
-  overflow: hidden;
-  padding: 4vw 0 9vw;
-}
-.studio-ribbon__track {
-  display: flex;
-  gap: 24px;
-  width: max-content;
-  transform: rotate(-4deg);
-}
-.studio-ribbon--second .studio-ribbon__track {
-  transform: rotate(4deg);
-}
-.studio-ribbon.studio-ribbon--second button {
-  width: 36vw;
-}
-.studio-ribbon button {
-  width: 28vw;
-  height: 24vw;
-  min-width: 220px;
-  border: 0;
-  padding: 0;
-  background: transparent;
-  cursor: pointer;
-}
-.studio-ribbon img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.studio-experience__history {
-  max-width: 1240px;
-  width: 84%;
-  margin: 6vw auto 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 7vw;
-}
-.studio-experience__history article {
-  scroll-margin-top: 40px;
-}
 .studio-meta {
   color: var(--about-soft-on-paper);
   font-size: 12px;
   margin: 0 0 16px;
 }
-.studio-experience__history h2 {
-  font-size: clamp(26px, 2.5vw, 44px);
-  line-height: 1.2;
-  letter-spacing: -0.04em;
-}
-.studio-role {
-  margin: 12px 0 24px;
-  font-size: 15px;
-}
 .studio-copy {
   font-size: clamp(20px, 2.25vw, 38px);
   line-height: 1.35;
   letter-spacing: -0.035em;
-}
-.studio-experience details {
-  margin-top: 24px;
-  border-top: 1px solid var(--about-line-on-paper);
-}
-.studio-experience summary {
-  padding: 16px 0;
-  font-size: 13px;
-  cursor: pointer;
-}
-.studio-experience summary span {
-  float: right;
-}
-.studio-detail {
-  margin: 22px 0;
-  font-size: 15px;
-  line-height: 1.8;
-}
-.studio-detail h3 {
-  font-size: 17px;
-  margin-bottom: 8px;
 }
 .studio-achievements {
   padding: 12vw 6vw;
@@ -404,9 +286,16 @@ summary::-webkit-details-marker {
   font-size: 20px;
   line-height: 1.6;
 }
+/*
+ * 折叠面板里的「查看相关实践」原本是 96×26 的纯文本链接，手指很难点中。
+ * 改成 inline-flex + 44px 最小高度：文字位置不变，命中区从 26 抬到 44。
+ * 它是 <details> 里最后一个元素，且面板默认收起，不影响首屏排版。
+ */
 .studio-practice__list a {
   color: inherit;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   margin-bottom: 32px;
   text-underline-offset: 6px;
 }
@@ -482,69 +371,15 @@ summary::-webkit-details-marker {
   max-width: 800px;
   padding: 8px 0 28px;
 }
-.studio-ribbon__label {
-  font-size: 13px;
-  margin: 0 5vw 36px;
-}
 button:focus-visible,
 a:focus-visible,
 summary:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 6px;
 }
-@media (max-height: 649px), (prefers-reduced-motion: reduce) {
-  .studio-ribbon {
-    overflow-x: auto;
-  }
-  .studio-ribbon__track,
-  .studio-ribbon--second .studio-ribbon__track {
-    transform: none;
-  }
-}
-@media (max-width: 980px) {
-  .studio-ribbons {
-    overflow-x: auto;
-    padding: 16px 5vw;
-    scroll-padding-inline: 5vw;
-  }
-  .studio-ribbons .studio-ribbon {
-    padding: 0;
-    overflow: visible;
-  }
-  .studio-ribbons .studio-ribbon--second {
-    display: none;
-  }
-  .studio-ribbon__label {
-    margin: 0 0 20px;
-  }
-  .studio-ribbons .studio-ribbon__track {
-    transform: none;
-    gap: 16px;
-  }
-  .studio-ribbons .studio-ribbon button {
-    flex: 0 0 65vw;
-    width: 65vw;
-    height: 48vw;
-    min-width: 0;
-  }
-}
 @media (max-width: 760px) {
   .studio-experience {
     padding: 56px 0;
-  }
-  .studio-experience__intro {
-    width: 90%;
-    margin-bottom: 28px;
-  }
-  .studio-statement {
-    font-size: 7.2vw;
-    line-height: 1.35;
-  }
-  .studio-experience__history {
-    grid-template-columns: 1fr;
-    width: 88%;
-    gap: 36px;
-    margin-top: 36px;
   }
   .studio-achievements {
     padding: 56px 6vw;

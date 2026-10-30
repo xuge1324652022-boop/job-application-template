@@ -7,8 +7,8 @@ import { personalSiteValue } from './本机个人内容接口'
 import type { Bi } from './人物资料'
 import type { VisualAsset } from './视觉作品资料'
 
-export type PosterRect = readonly [x: number, y: number, width: number, height: number]
-export interface PosterFragment {
+type PosterRect = readonly [x: number, y: number, width: number, height: number]
+interface PosterFragment {
   kind: 'headline' | 'block'
   rect: PosterRect
 }

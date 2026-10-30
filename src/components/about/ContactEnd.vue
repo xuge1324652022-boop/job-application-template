@@ -56,6 +56,12 @@
                   <a class="end__a" :href="`mailto:${CONTACT.email}`">{{ CONTACT.email }}</a>
                 </dd>
               </div>
+              <div v-for="phone in phones" :key="phone" class="end__row">
+                <dt>电话<span lang="en">Phone</span></dt>
+                <dd>
+                  <a class="end__a" :href="`tel:${phone}`">{{ phone }}</a>
+                </dd>
+              </div>
               <div v-if="CONTACT.gmail" class="end__row">
                 <dt>备用邮箱<span lang="en">Alternate email</span></dt>
                 <dd>
@@ -128,6 +134,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { CONTACT, FACTS, IDENTITY, type Lang } from '../../data/aboutProfile'
 import { aboutCardPortrait, isPersonalPortfolio } from '../../data/personalPortfolio'
 import { prepareMotionLayout } from '../../utils/motionLayout'
+import { motionScrollBehavior } from '../../utils/motion'
 defineProps<{ lang: Lang }>()
 const route = useRoute()
 const source = computed(() => (route.query.from === 'cards' ? 'cards' : 'gallery'))
@@ -155,6 +162,7 @@ const nextTo = computed(() =>
     ? { path: '/about', query: { from: source.value }, hash: '#beyond-work' }
     : { path: '/edit', query: { from: source.value } },
 )
+const phones = 'phones' in CONTACT ? (CONTACT.phones ?? []) : []
 const targetRole = FACTS.find((fact) => fact.k.en === 'Target role')
 const availability = FACTS.find((fact) =>
   ['Availability', 'Internship schedule'].includes(fact.k.en),
@@ -195,7 +203,7 @@ function resetMagnet() {
 function toTop() {
   window.scrollTo({
     top: 0,
-    behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+    behavior: motionScrollBehavior(),
   })
 }
 function contactTravel(direction: -1 | 1): number {
@@ -323,13 +331,12 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .end {
-  --ab-ink: #f7f7f5;
-  --ab-soft: #acadb2;
-  --ab-line: #44454a;
+  --ab-ink: var(--about-on-night, #efe9dc);
+  --ab-soft: var(--about-soft-on-night, #b7b0a0);
+  --ab-line: var(--about-line-on-night, #efe9dc22);
   position: relative;
-  width: 100vw;
-  margin-inline: calc(50% - 50vw);
-  background: #1c1d20;
+  width: 100%;
+  background: var(--about-night, #12140f);
   color: var(--ab-ink);
   scroll-margin-top: 0;
   overflow: clip;
@@ -354,7 +361,7 @@ onBeforeUnmount(() => {
   top: 0;
   border-radius: 50%;
   transform: translate(-50%, -86.6666%);
-  background: var(--ab-bg);
+  background: var(--about-paper, #efe9dc);
 }
 .end__inner {
   width: 100%;
@@ -382,7 +389,7 @@ onBeforeUnmount(() => {
   display: block;
 }
 .end__title-line {
-  color: #b7b8ba;
+  color: var(--ab-soft);
 }
 .end__title-line img {
   display: inline-block;
@@ -428,7 +435,7 @@ onBeforeUnmount(() => {
   width: clamp(128px, 13vw, 184px);
   aspect-ratio: 1;
   transform: translateY(-50%);
-  color: white;
+  color: var(--about-ink-on-paper, #1b1c18);
   text-decoration: none;
 }
 .end__orb {
@@ -439,7 +446,7 @@ onBeforeUnmount(() => {
   height: 100%;
   border-radius: 50%;
   overflow: hidden;
-  background: #455ce9;
+  background: var(--about-accent-on-night, #c6d2ae);
   isolation: isolate;
 }
 .end__orb-fill {
@@ -447,7 +454,7 @@ onBeforeUnmount(() => {
   z-index: -1;
   inset: 0;
   border-radius: 50%;
-  background: #344bd5;
+  background: var(--about-sand, #c9b79c);
   transform: translateY(101%);
   transition: transform 0.6s cubic-bezier(0.65, 0, 0.35, 1);
 }
@@ -497,7 +504,15 @@ onBeforeUnmount(() => {
   font-size: clamp(16px, 1.6vw, 22px);
   line-height: 1.5;
 }
+/*
+ * mailto: / tel: 是手机上最该好点的链接，但纯 inline 的命中高只有 17px（文字内容区）。
+ * inline-flex + 44px 最小高度把命中区抬到 44；文字仍居中在原位，观感不变。
+ * `overflow-wrap:anywhere` 保留 —— 长邮箱仍能在窄屏断行，不会撑破 dd。
+ */
 .end__a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: inherit;
   overflow-wrap: anywhere;
   text-decoration: none;

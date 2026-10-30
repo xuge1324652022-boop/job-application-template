@@ -1,7 +1,7 @@
 import { ref, watch } from 'vue'
 import type { Lang } from '../数据/人物资料'
 
-export const SUBPAGE_LANGUAGE_KEY = 'portfolio:language'
+const SUBPAGE_LANGUAGE_KEY = 'portfolio:language'
 
 function readLanguage(): Lang {
   try {
@@ -18,8 +18,8 @@ export const subpageLanguage = ref<Lang>(readLanguage())
 watch(
   subpageLanguage,
   (language) => {
-    if (typeof document !== 'undefined')
-      document.documentElement.lang = language === 'en' ? 'en' : 'zh-CN'
+    // 纯静态 SPA，没有服务端渲染阶段；document 恒在，不再包 typeof 判断。
+    document.documentElement.lang = language === 'en' ? 'en' : 'zh-CN'
     try {
       window.localStorage.setItem(SUBPAGE_LANGUAGE_KEY, language)
     } catch {

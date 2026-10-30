@@ -44,7 +44,7 @@
     }
   ],
   "mechanism": {
-    "trigger": "covered由routeCurtainBlocked、jumpTarget、overlayActive、isTransitioning派生，转false时playIntro只运行一次。",
+    "trigger": "covered由routeCurtainBlocked、jumpTarget、isTransitioning派生，转false时playIntro只运行一次。",
     "stages": [
       {
         "name": "摄影标题",

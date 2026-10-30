@@ -1,22 +1,30 @@
 <template>
   <!-- 正式作品迁入前的主题基础页；这里的时间线与取景框是交互排版研究。 -->
   <main ref="root" class="foundation" :class="`foundation--${kind}`">
-    <section class="foundation__hero foundation__container" :aria-label="page.title.zh">
+    <section class="foundation__hero foundation__container foundation__band" :aria-label="page.title.zh">
       <p class="foundation__chapter">{{ page.id }} / {{ page.title.zh }} <span lang="en">{{ page.title.en }}</span></p>
       <h1 ref="heading" class="foundation__heading">{{ page.heading }}</h1>
       <ReferenceIntroduction class="foundation__introduction" :label="page.title" :text="page.introduction" :active="ready" />
+      <dl v-if="kind === 'edit'" class="foundation__hero-meta">
+        <div><dt>段落长度</dt><dd>12 <span>s</span></dd></div>
+        <div><dt>主题</dt><dd>03</dd></div>
+        <div><dt>轨道</dt><dd>Image · Sound</dd></div>
+      </dl>
     </section>
 
-    <section class="foundation__study foundation__container" :aria-label="page.studyLabel.zh">
+    <section class="foundation__study foundation__container foundation__band" :aria-label="page.studyLabel.zh">
       <div class="foundation__study-top">
         <p><span>{{ page.studyLabel.zh }}</span><span lang="en">{{ page.studyLabel.en }}</span></p>
         <span>{{ kind === 'edit' ? '移动时间线，试试不同的停顿' : '选择主题，改变观察的角度' }}<small lang="en">{{ kind === 'edit' ? 'Move the playhead to explore the pace' : 'Choose a different point of view' }}</small></span>
       </div>
+      <!-- 剪辑页：页签改为吸底胶囊导航，占位块保留原有纵向节奏 -->
+      <div v-if="kind === 'edit'" class="foundation__dock-spacer" aria-hidden="true" />
       <div class="foundation__tabs" role="tablist" :aria-label="page.studyLabel.zh">
         <button v-for="(theme, index) in page.themes" :id="`${kind}-tab-${theme.key}`" :key="theme.key" role="tab" type="button"
           data-cursor="Explore" data-cursor-zh="切换" data-cursor-en="Explore" data-cursor-action="explore"
           :aria-selected="selected === index" :tabindex="selected === index ? 0 : -1" :aria-controls="`${kind}-study-panel`"
           @click="selectTheme(index)" @keydown="onTabKeydown($event, index)">
+          <span class="foundation__tab-index">{{ String(index + 1).padStart(2, '0') }}</span>
           <span>{{ theme.title.zh }}</span><span lang="en">{{ theme.title.en }}</span>
         </button>
       </div>
@@ -39,7 +47,7 @@
             <div class="foundation__playhead" />
           </div>
           <div class="foundation__transport">
-            <button type="button" :data-cursor="playing ? 'Pause' : 'Play'" :data-cursor-zh="playing ? '暂停' : '播放'" :data-cursor-en="playing ? 'Pause' : 'Play'" data-cursor-action="playback" :aria-label="playing ? '暂停节奏演示 / Pause study' : '播放节奏演示 / Play study'" :aria-pressed="playing" @click="togglePlayback"><span aria-hidden="true">{{ playing ? 'Ⅱ' : '▷' }}</span><span>{{ playing ? '暂停' : '播放' }}</span><span lang="en">{{ playing ? 'Pause' : 'Play' }}</span></button>
+            <button type="button" :data-cursor="playing ? 'Pause' : 'Play'" data-cursor-zh="暂停" :data-cursor-en="playing ? 'Pause' : 'Play'" data-cursor-action="playback" :aria-label="playing ? '暂停节奏演示 / Pause study' : '播放节奏演示 / Play study'" :aria-pressed="playing" @click="togglePlayback"><span aria-hidden="true">{{ playing ? 'Ⅱ' : '▷' }}</span><span>{{ playing ? '暂停' : '播放' }}</span><span lang="en">{{ playing ? 'Pause' : 'Play' }}</span></button>
             <input :value="playhead" type="range" min="0" max="100" step="0.1" aria-label="节奏时间线 / Rhythm timeline" @input="seek" />
             <output>{{ String(Math.round(playhead / 100 * 12)).padStart(2, '0') }} / 12s</output>
           </div>
@@ -49,13 +57,51 @@
       <p class="foundation__study-caption"><span>动态排版与主题研究</span><span lang="en">Motion type & theme studies</span></p>
     </section>
 
-    <section class="foundation__notes foundation__container" :aria-label="kind === 'edit' ? '剪辑主题' : '新闻影像主题'">
+    <!-- 剪辑页专属：三栏数据（对应 Mellem 的 6,500 / 25% / 244 数字段） -->
+    <section v-if="kind === 'edit'" class="foundation__numbers foundation__container foundation__band" aria-label="节奏实验数据">
+      <ul class="foundation__stats">
+        <li>
+          <p class="foundation__stat-value">12<span>s</span></p>
+          <p class="foundation__stat-label">单段循环长度<small lang="en">Loop length</small></p>
+        </li>
+        <li>
+          <p class="foundation__stat-value">03</p>
+          <p class="foundation__stat-label">可切换主题<small lang="en">Themes in study</small></p>
+        </li>
+        <li>
+          <p class="foundation__stat-value">02</p>
+          <p class="foundation__stat-label">画面与声音轨<small lang="en">Picture & sound</small></p>
+        </li>
+      </ul>
+    </section>
+
+    <section v-if="kind === 'edit'" class="foundation__notes foundation__container foundation__band" aria-label="剪辑主题">
+      <article v-for="(theme, index) in page.themes" :id="`${kind}-${theme.key}`" :key="theme.key" class="foundation__note" :class="{ 'is-open': openNote === index }">
+        <h2 class="foundation__note-title">
+          <button type="button" class="foundation__note-toggle" :aria-expanded="openNote === index" :aria-controls="`${kind}-note-${theme.key}`" @click="toggleNote(index)">
+            <span class="foundation__note-index" aria-hidden="true">{{ String(index + 1).padStart(2, '0') }}</span>
+            <span class="foundation__note-name">{{ theme.title.zh }}</span>
+            <span class="foundation__note-en" lang="en">{{ theme.title.en }}</span>
+            <span class="foundation__note-plus" aria-hidden="true" />
+          </button>
+        </h2>
+        <div :id="`${kind}-note-${theme.key}`" class="foundation__note-body">
+          <div class="foundation__note-inner">
+            <p class="foundation__note-lede">{{ theme.description.zh }}<span lang="en">{{ theme.description.en }}</span></p>
+            <div class="foundation__detail"><p>{{ theme.detail.zh }}</p><p lang="en">{{ theme.detail.en }}</p></div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section v-else class="foundation__notes foundation__container" :aria-label="'新闻影像主题'">
       <article v-for="theme in page.themes" :id="`${kind}-${theme.key}`" :key="theme.key" class="foundation__note">
         <h2><span>{{ theme.title.zh }}</span><span lang="en">{{ theme.title.en }}</span></h2>
         <div class="foundation__note-copy"><p>{{ theme.description.zh }}</p><p lang="en">{{ theme.description.en }}</p><div class="foundation__detail"><p>{{ theme.detail.zh }}</p><p lang="en">{{ theme.detail.en }}</p></div></div>
       </article>
     </section>
-    <section class="foundation__closing foundation__container"><ReferenceIntroduction :label="{ zh: '继续创作', en: 'An ongoing practice' }" :text="page.closing" variant="section" /></section>
+
+    <section class="foundation__closing foundation__container foundation__band"><ReferenceIntroduction :label="{ zh: '继续创作', en: 'An ongoing practice' }" :text="page.closing" variant="section" /></section>
     <WorkContinuation :next="kind === 'edit' ? 'color' : 'poster'" />
   </main>
 </template>
@@ -72,7 +118,7 @@ import ReferenceIntroduction from '../components/ReferenceIntroduction.vue'
 import { referenceIntroductionGate } from '../components/ReferenceIntroduction'
 import WorkContinuation from '../components/WorkContinuation.vue'
 import { FOUNDATION_PAGES, type FoundationKind } from '../data/foundationPages'
-import { isTransitioning, jumpTarget, markSubpageVisit, overlayActive } from '../composables/useTransition'
+import { isTransitioning, jumpTarget, markSubpageVisit } from '../composables/useTransition'
 import { routeCurtainBlocked } from '../composables/usePageCurtain'
 import { useFitText } from '../composables/useFitText'
 import { requestMotionLayoutRefresh } from '../utils/motionLayout'
@@ -86,11 +132,21 @@ const selected = ref(0)
 const activeTheme = computed(() => page.value.themes[selected.value]!)
 const introDone = ref(false)
 // 全局遮罩管路由时序，本页标题结束后才放行共享段落，避免两套入场同时争用文字。
-const covered = computed(() => routeCurtainBlocked.value || !!jumpTarget.value || overlayActive.value || isTransitioning.value)
+const covered = computed(() => routeCurtainBlocked.value || !!jumpTarget.value || isTransitioning.value)
 const ready = computed(() => introDone.value && !covered.value)
 provide(referenceIntroductionGate, ready)
-useFitText(heading, { min: 42, max: 240 })
+/*
+ * 剪辑页走 Mellem 式的克制标题（84px @1600 ≈ 5.3vw），不再撑满整行；
+ * 新闻页保持原有满幅拟合。useFitText 按容器宽度算，不能用 vw 直接乘视口。
+ */
+useFitText(heading, { min: 42, max: props.kind === 'edit' ? 150 : 240 })
 markSubpageVisit(page.value.id)
+
+/** 剪辑页的笔记默认展开第一条，其余折叠。 */
+const openNote = ref<number | null>(0)
+function toggleNote(index: number): void {
+  openNote.value = openNote.value === index ? null : index
+}
 
 const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
 let context: gsap.Context | undefined
@@ -285,5 +341,335 @@ onBeforeUnmount(() => {
 @media(prefers-reduced-motion:reduce) {
   .foundation-type-enter-active,.foundation-type-leave-active,.foundation__tabs button { transition:none; }
   .foundation-type-enter-from,.foundation-type-leave-to { transform:none; }
+}
+
+/* ==========================================================================
+   剪辑页皮肤（Mellem 风格）：仅在 .foundation--edit 下生效，/news 输出不变。
+   色板与节奏来自实测：侧边 2.083vw、段间距 8.333vw、胶囊圆角 100px。
+   ========================================================================== */
+.foundation--edit {
+  --m-beige:#F2ECDC; --m-green:#394B33; --m-ink:#1A2218; --m-chart:#C8CF21;
+  --m-line:rgba(57,75,51,.18);
+  --ab-bg:#F2ECDC; --ab-ink:#394B33; --ab-soft:#6E7566; --ab-line:#CFC8B6;
+  background:var(--ab-bg); color:var(--ab-ink);
+  /* 给吸底胶囊导航留出安全区 */
+  padding-bottom:clamp(84px,7vw,128px);
+  font-weight:400;
+}
+/* 满幅色带：100vw 伪元素铺底，body 的 overflow-x:clip 负责裁掉溢出 */
+.foundation--edit .foundation__band { position:relative; z-index:0; }
+.foundation--edit .foundation__band::before {
+  content:""; position:absolute; z-index:-1; top:0; bottom:0; left:50%;
+  width:100vw; transform:translateX(-50%); background:var(--band,var(--ab-bg));
+}
+.foundation--edit .foundation__container { max-width:1520px; padding-inline:clamp(20px,2.0833vw,40px); }
+
+/* —— 深色首屏 —— */
+.foundation--edit .foundation__hero {
+  --band:var(--m-ink); --ab-ink:var(--m-beige); --ab-soft:#A7AE9C; --ab-line:rgba(242,236,220,.16);
+  color:var(--m-beige);
+  padding-top:clamp(104px,9.2vw,150px); padding-bottom:clamp(56px,5vw,84px);
+}
+.foundation--edit .foundation__chapter {
+  gap:10px; font-size:clamp(11px,.86vw,14px); letter-spacing:.02em; color:#A7AE9C;
+}
+.foundation--edit .foundation__chapter [lang=en] { opacity:.7; }
+.foundation--edit .foundation__heading {
+  margin-top:clamp(18px,2.2vw,34px);
+  font-weight:500; letter-spacing:-.045em; line-height:.9;
+}
+.foundation--edit .foundation__introduction { margin-top:clamp(40px,4.4vw,72px); max-width:min(100%,58rem); }
+.foundation--edit :deep(.reference-introduction__copy) {
+  font-size:clamp(17px,1.667vw,28px); line-height:1.26; letter-spacing:-.018em; font-weight:400;
+}
+.foundation--edit :deep(.reference-introduction__copy + .reference-introduction__copy) { margin-top:.7em; }
+.foundation--edit :deep(.reference-introduction__copy[lang=en]) { color:#C3C9B8; }
+/*
+ * Mellem 的小标签在段落**上方**，不是悬挂在左侧。
+ * 该组件默认把标签绝对定位 + 给首行 text-indent，这里改成静态并清零缩进宽度
+ * （自定义属性声明在组件根上，父级同名选择器特异性更高才能覆盖）。
+ */
+.foundation--edit .foundation__introduction,
+.foundation--edit :deep(.reference-introduction) { --reference-label-width:0px; }
+.foundation--edit :deep(.reference-introduction__label) {
+  position:static; display:flex; flex-direction:row; flex-wrap:wrap; gap:10px;
+  max-width:none; margin-bottom:clamp(14px,1.3vw,20px);
+  font-size:clamp(11px,.86vw,13px); color:#A7AE9C; letter-spacing:.03em;
+}
+
+/* 首屏下方三栏元信息（对应 Mellem 的 Occupation / Address 栏） */
+.foundation--edit .foundation__hero-meta {
+  display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:clamp(16px,2vw,32px);
+  margin:clamp(36px,4.2vw,64px) 0 0; padding-top:clamp(18px,1.8vw,26px);
+  border-top:1px solid rgba(242,236,220,.16);
+}
+.foundation--edit .foundation__hero-meta dt {
+  font-size:clamp(10px,.78vw,13px); letter-spacing:.04em; color:#A7AE9C; margin-bottom:6px;
+}
+.foundation--edit .foundation__hero-meta dd {
+  margin:0; font-size:clamp(14px,1.11vw,19px); letter-spacing:-.01em;
+}
+.foundation--edit .foundation__hero-meta dd span { font-size:.72em; opacity:.6; margin-left:2px; }
+
+/* —— 节奏实验：深绿带 —— */
+.foundation--edit .foundation__study {
+  --band:var(--m-green); --ab-ink:var(--m-beige); --ab-soft:#B3BAA6; --ab-line:rgba(242,236,220,.18);
+  color:var(--m-beige);
+  padding-top:clamp(56px,5.4vw,96px); padding-bottom:clamp(64px,6vw,104px);
+  /*
+   * 吸底导航是 fixed，但会被 .foundation__band 的 z-index:0 关进本节层叠上下文，
+   * 于是被后面的色带整块盖住。抬到 20 让它浮在后续区块之上（各区带本身不重叠）。
+   */
+  z-index:20;
+}
+.foundation--edit .foundation__study-top {
+  align-items:start; margin-bottom:clamp(22px,2.2vw,34px);
+  font-size:clamp(11px,.86vw,14px); color:#B3BAA6;
+}
+.foundation--edit .foundation__study-top p { color:var(--m-beige); }
+.foundation--edit .foundation__study-top p [lang=en] { color:#B3BAA6; }
+.foundation--edit .foundation__study-top small { font-size:clamp(10px,.78vw,12px); color:#9AA491; }
+.foundation--edit .foundation__dock-spacer { height:clamp(46px,3.4vw,58px); }
+
+/* 页签 → 吸底胶囊导航 */
+.foundation--edit .foundation__tabs {
+  position:fixed; left:50%; bottom:clamp(14px,1.5vw,24px); transform:translateX(-50%);
+  z-index:40; width:auto; max-width:calc(100vw - 28px);
+  display:flex; gap:2px; padding:6px;
+  border:1px solid rgba(242,236,220,.16); border-radius:100px;
+  background:rgba(26,34,24,.9);
+  -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+  box-shadow:0 18px 44px rgba(10,14,9,.32);
+}
+.foundation--edit .foundation__tabs button {
+  flex:0 0 auto; min-height:44px; padding:0 clamp(13px,1.2vw,20px);
+  display:flex; align-items:center; gap:8px; white-space:nowrap;
+  border:0; border-radius:100px; background:transparent; color:var(--m-beige);
+  font:inherit; font-size:clamp(12px,.95vw,15px); text-align:left;
+  opacity:.62; transition:opacity .25s, background-color .25s, color .25s;
+}
+.foundation--edit .foundation__tabs button [lang=en] { font-size:.78em; opacity:.7; }
+.foundation--edit .foundation__tabs button[aria-selected="true"] {
+  background:var(--m-chart); color:var(--m-ink); opacity:1;
+}
+.foundation--edit .foundation__tabs button[aria-selected="true"] [lang=en] { opacity:.65; }
+.foundation--edit .foundation__tabs button:hover { opacity:1; }
+.foundation--edit .foundation__tab-index {
+  font-size:.72em; letter-spacing:.04em; opacity:.5;
+}
+.foundation--edit .foundation__tabs button[aria-selected="true"] .foundation__tab-index { opacity:.55; }
+
+/* 面板：不再自带黑底，改为绿带上的排版区 */
+.foundation--edit .foundation__panel { background:transparent; color:var(--m-beige); }
+.foundation--edit .foundation__screen {
+  min-height:clamp(360px,42vh,560px);
+  padding:clamp(20px,2.4vw,40px) 0 clamp(28px,3vw,48px);
+  align-items:flex-start;
+}
+.foundation--edit .foundation__screen-note {
+  font-size:clamp(11px,.86vw,14px); color:#B3BAA6; letter-spacing:.02em;
+}
+.foundation--edit .foundation__screen-word {
+  margin:clamp(16px,1.8vw,28px) 0 clamp(18px,2vw,30px);
+  font-size:clamp(56px,7.4vw,132px); font-weight:500; letter-spacing:-.05em; line-height:.94;
+  color:var(--m-beige);
+}
+.foundation--edit .foundation__screen-subtitle {
+  font-size:clamp(16px,1.45vw,24px); line-height:1.3; letter-spacing:-.015em; max-width:36ch;
+}
+.foundation--edit .foundation__screen-subtitle [lang=en] { color:#B3BAA6; margin-top:8px; }
+/* 底边小字：.35 的透明度落在深绿上基本看不见，抬到 .55 并与轨道拉开一点距离 */
+.foundation--edit .foundation__screen-register {
+  right:0; bottom:clamp(6px,1vw,12px);
+  font-size:clamp(9px,.7vw,11px); letter-spacing:.06em; color:#B3BAA6; opacity:.55;
+}
+
+/* 时间线：Mellem 的色块语言 */
+.foundation--edit .foundation__timeline { padding:0; }
+.foundation--edit .foundation__tracks { border-top:1px solid rgba(242,236,220,.2); padding-top:16px; }
+.foundation--edit .foundation__picture-track>span,
+.foundation--edit .foundation__sound-track>span {
+  width:clamp(44px,3.4vw,58px); font-size:clamp(9px,.66vw,10px); letter-spacing:.08em; color:#9AA491;
+}
+.foundation--edit .foundation__picture-track { height:clamp(38px,3.2vw,52px); gap:3px; }
+.foundation--edit .foundation__picture-track i { background:rgba(242,236,220,.22); }
+.foundation--edit .foundation__picture-track i:nth-of-type(2) { background:rgba(242,236,220,.42); }
+.foundation--edit .foundation__picture-track i:nth-of-type(3) { background:var(--m-chart); }
+.foundation--edit .foundation__picture-track i:nth-of-type(4) { background:rgba(242,236,220,.7); }
+.foundation--edit .foundation__sound-track { height:clamp(34px,2.8vw,44px); gap:2px; margin-top:6px; }
+.foundation--edit .foundation__sound-track i { background:rgba(200,207,33,.55); }
+.foundation--edit .foundation__playhead { background:var(--m-chart); width:1px; }
+
+/* 播放条：胶囊按钮 + 细轨 */
+.foundation--edit .foundation__transport { gap:clamp(12px,1.4vw,22px); margin-top:clamp(18px,1.8vw,26px); }
+.foundation--edit .foundation__transport button {
+  min-height:44px; padding:0 clamp(14px,1.2vw,20px); gap:8px;
+  border:2px solid rgba(242,236,220,.34); border-radius:100px;
+  font-size:clamp(11px,.9vw,14px); letter-spacing:.02em;
+  transition:border-color .25s, background-color .25s, color .25s;
+}
+.foundation--edit .foundation__transport button:hover {
+  border-color:var(--m-chart); background:var(--m-chart); color:var(--m-ink);
+}
+.foundation--edit .foundation__transport button>span:first-child { font-size:13px; width:auto; }
+/*
+ * 滑块：视觉轨道只有 2px，但输入框本身要给 32px 的触控热区，
+ * 否则手机上几乎点不中（原先 input 高度＝2px，热区就是那 2px）。
+ */
+.foundation--edit .foundation__transport input {
+  flex:1; min-width:20px; height:32px; margin:0;
+  background:transparent; border-radius:0; appearance:none; -webkit-appearance:none;
+  cursor:pointer;
+}
+.foundation--edit .foundation__transport input::-webkit-slider-runnable-track {
+  height:2px; border-radius:2px; background:rgba(242,236,220,.26);
+}
+.foundation--edit .foundation__transport input::-webkit-slider-thumb {
+  -webkit-appearance:none; width:12px; height:12px; border-radius:50%;
+  background:var(--m-chart); border:0; cursor:pointer;
+}
+.foundation--edit .foundation__transport input::-moz-range-thumb {
+  width:12px; height:12px; border:0; border-radius:50%; background:var(--m-chart); cursor:pointer;
+}
+.foundation--edit .foundation__transport output {
+  min-width:58px; font-size:clamp(10px,.78vw,12px); letter-spacing:.04em; color:#B3BAA6;
+}
+.foundation--edit .foundation__study-caption {
+  margin-top:clamp(20px,2vw,30px); padding-top:14px;
+  border-top:1px solid rgba(242,236,220,.14);
+  font-size:clamp(10px,.78vw,12px); color:#9AA491;
+}
+
+/* —— 数字段 —— */
+.foundation--edit .foundation__numbers {
+  --band:var(--m-beige);
+  padding-top:clamp(48px,4.6vw,80px); padding-bottom:clamp(48px,4.6vw,80px);
+}
+.foundation--edit .foundation__stats {
+  display:grid; grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:clamp(20px,3vw,56px); margin:0; padding:0; list-style:none;
+  border-top:1px solid var(--m-line); padding-top:clamp(24px,2.4vw,40px);
+}
+.foundation--edit .foundation__stat-value {
+  font-size:clamp(46px,5.2vw,92px); line-height:.92; letter-spacing:-.05em; font-weight:500;
+}
+.foundation--edit .foundation__stat-value span { font-size:.44em; letter-spacing:0; margin-left:2px; }
+.foundation--edit .foundation__stat-label {
+  margin-top:clamp(12px,1.1vw,18px); font-size:clamp(11px,.86vw,14px);
+  line-height:1.4; color:var(--m-soft, #6E7566);
+  display:flex; flex-direction:column; gap:4px;
+}
+.foundation--edit .foundation__stat-label small { font-size:.86em; color:#8C9384; }
+
+/* —— 笔记：手风琴 —— */
+.foundation--edit .foundation__notes { --band:var(--m-beige); padding-bottom:clamp(40px,4vw,72px); }
+.foundation--edit .foundation__note {
+  display:block; padding:0; border-top:1px solid var(--m-line);
+}
+.foundation--edit .foundation__note:last-child { border-bottom:1px solid var(--m-line); }
+.foundation--edit .foundation__note-title { margin:0; font-size:inherit; font-weight:400; }
+.foundation--edit .foundation__note-toggle {
+  width:100%; display:grid; grid-template-columns:clamp(36px,3vw,54px) 1fr auto auto;
+  align-items:center; gap:clamp(10px,1.4vw,24px);
+  padding:clamp(20px,2.2vw,34px) 0; border:0; background:transparent;
+  color:inherit; font:inherit; text-align:left; cursor:pointer;
+  transition:padding .3s;
+}
+.foundation--edit .foundation__note-index {
+  font-size:clamp(10px,.78vw,12px); letter-spacing:.06em; color:#8C9384;
+}
+.foundation--edit .foundation__note-name {
+  font-size:clamp(22px,2.4vw,40px); line-height:1.1; letter-spacing:-.035em; font-weight:500;
+}
+.foundation--edit .foundation__note-en {
+  font-size:clamp(11px,.9vw,14px); color:#8C9384; letter-spacing:.01em;
+}
+/* 加号：两条线旋转成减号 */
+.foundation--edit .foundation__note-plus {
+  position:relative; width:14px; height:14px; flex:none;
+}
+.foundation--edit .foundation__note-plus::before,
+.foundation--edit .foundation__note-plus::after {
+  content:""; position:absolute; left:50%; top:50%; background:currentColor;
+  transform:translate(-50%,-50%); transition:transform .35s cubic-bezier(.215,.61,.355,1), opacity .35s;
+}
+.foundation--edit .foundation__note-plus::before { width:14px; height:1.5px; }
+.foundation--edit .foundation__note-plus::after { width:1.5px; height:14px; }
+.foundation--edit .foundation__note.is-open .foundation__note-plus::after { transform:translate(-50%,-50%) rotate(90deg); opacity:0; }
+
+.foundation--edit .foundation__note-body {
+  display:grid; grid-template-rows:0fr;
+  transition:grid-template-rows .42s cubic-bezier(.215,.61,.355,1);
+}
+.foundation--edit .foundation__note.is-open .foundation__note-body { grid-template-rows:1fr; }
+.foundation--edit .foundation__note-inner { overflow:hidden; }
+.foundation--edit .foundation__note:not(.is-open) .foundation__note-inner {
+  visibility:hidden; transition:visibility 0s .42s;
+}
+.foundation--edit .foundation__note-lede {
+  max-width:44ch; padding-bottom:clamp(16px,1.6vw,24px);
+  font-size:clamp(18px,1.667vw,27px); line-height:1.3; letter-spacing:-.02em;
+}
+.foundation--edit .foundation__note-lede [lang=en] {
+  display:block; margin-top:.5em; color:#7B8274; font-size:.84em;
+}
+.foundation--edit .foundation__note .foundation__detail {
+  max-width:62ch; margin:0 0 clamp(24px,2.4vw,40px);
+  padding-top:clamp(14px,1.4vw,20px); border-top:1px solid var(--m-line);
+  font-size:clamp(13px,1vw,16px); line-height:1.75; color:#5C6354;
+}
+.foundation--edit .foundation__detail [lang=en] { margin-top:10px; font-size:.94em; line-height:1.7; color:#7B8274; }
+
+/* —— 收尾：荧光黄绿带 —— */
+.foundation--edit .foundation__closing {
+  --band:var(--m-chart); --ab-ink:#394B33; --ab-soft:#4C5A42; --ab-line:rgba(26,34,24,.2);
+  color:var(--m-ink);
+  padding-top:clamp(64px,6vw,104px); padding-bottom:clamp(64px,6vw,104px);
+}
+.foundation--edit .foundation__closing :deep(.reference-introduction__copy) {
+  font-size:clamp(24px,3vw,52px); line-height:1.12; letter-spacing:-.04em; font-weight:500;
+  max-width:min(100%,22em); text-wrap:balance;
+}
+/*
+ * 中文收尾句不能交给 text-wrap:balance：它按字数均分，会把「两个」这种词从中间劈开
+ * （实测「藏在两 / 个画面相遇的地方」）。改回贪心填行，断在「…相遇的 / 地方」这类语义边界。
+ * 英文仍用 balance —— 英文按词断行，均分是好事。
+ */
+.foundation--edit .foundation__closing :deep(.reference-introduction__copy[lang="zh"]) {
+  text-wrap:wrap;
+}
+/* 荧光黄底上不能再用深底那套浅灰，否则对比度掉到不可读 */
+.foundation--edit .foundation__closing :deep(.reference-introduction__copy[lang=en]) {
+  color:#46523C; font-size:clamp(18px,2.1vw,34px); max-width:min(100%,26em);
+}
+.foundation--edit .foundation__closing :deep(.reference-introduction__label) {
+  color:#4C5A42; font-size:clamp(11px,.86vw,13px); letter-spacing:.04em;
+  margin-bottom:clamp(16px,1.5vw,24px);
+}
+
+@media(max-width:760px) {
+  .foundation--edit .foundation__hero-meta { grid-template-columns:1fr; gap:14px; }
+  .foundation--edit .foundation__stats { grid-template-columns:1fr; gap:26px; }
+  .foundation--edit .foundation__note-toggle {
+    grid-template-columns:1fr auto; gap:6px 12px; padding:22px 0;
+  }
+  .foundation--edit .foundation__note-index { display:none; }
+  .foundation--edit .foundation__note-en { grid-column:1; }
+  .foundation--edit .foundation__note-plus { grid-row:1 / span 2; grid-column:2; }
+  .foundation--edit .foundation__tabs { width:calc(100vw - 24px); }
+  .foundation--edit .foundation__tabs button { flex:1 1 0; justify-content:center; padding:0 10px; }
+  .foundation--edit .foundation__tabs button [lang=en] { display:none; }
+  .foundation--edit .foundation__tabs button .foundation__tab-index { display:none; }
+  /* 保持绝对定位，否则会退回 flex 行被正文挤成两行 */
+  .foundation--edit .foundation__screen { min-height:clamp(258px,30vh,360px); }
+  /* 手机上底边小字与轨道只差 0px，右对齐（left:auto 才能取消基类的 left:24px） */
+  .foundation--edit .foundation__screen-register { left:auto; right:0; bottom:6px; }
+  /* 吸底导航高约 72px，底部留白不足时永远压住「动态排版与主题研究」这行 */
+  .foundation--edit .foundation__study { padding-bottom:88px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .foundation--edit .foundation__note-body,
+  .foundation--edit .foundation__note-plus::before,
+  .foundation--edit .foundation__note-plus::after { transition:none; }
 }
 </style>

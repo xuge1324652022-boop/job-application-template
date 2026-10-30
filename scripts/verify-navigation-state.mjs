@@ -133,7 +133,6 @@ function navigationHarness({ reduced = true, storageBlocked = false } = {}) {
   }
   const transition = {
     jumpTarget: reactivity.ref(null),
-    overlayActive: reactivity.ref(false),
     isTransitioning: reactivity.ref(false),
     jumpPathFor: (id) =>
       ['/about', '/edit', '/color', '/news', '/poster', '/photo'][Number(id) - 1],
@@ -355,6 +354,25 @@ test('目标已落地才揭幕，视觉退出完成前仍锁输入', async () =>
   assert.equal(h.routeCurtainActive.value, false)
   assert.equal(h.classes.has('page-turn-lock'), false)
   h.unmount()
+})
+
+test('路由揭幕、取消和卸载只释放自己的锁，保留查看器 no-scroll', async () => {
+  const h = navigationHarness()
+  h.classes.add('no-scroll')
+  await h.navigate('/color')
+  await flush()
+  assert.equal(h.classes.has('page-turn-lock'), false)
+  assert.equal(h.classes.has('no-scroll'), true)
+  const cover = h.holdCover()
+  const pending = h.routeHooks.before(h.router.resolve('/about'), h.router.currentRoute.value)
+  await flush()
+  await h.routeHooks.before(h.router.resolve('/color#same-page'), h.router.currentRoute.value)
+  cover.resolve()
+  assert.equal(await pending, false)
+  assert.equal(h.classes.has('page-turn-lock'), false)
+  assert.equal(h.classes.has('no-scroll'), true)
+  h.unmount()
+  assert.equal(h.classes.has('no-scroll'), true)
 })
 
 test('同页 query/hash 和重复点击均取消挂起旧导航，迟到错误不能覆盖新目标', async () => {

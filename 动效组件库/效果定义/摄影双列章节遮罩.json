@@ -45,10 +45,9 @@
     {
       "file": "src/utils/photoStory.ts",
       "symbols": [
-        "chapterSchedule",
-        "unit"
+        "chapterSchedule"
       ],
-      "purpose": "纯函数排出进入、首张停留、照片行程、末张停留与下一章擦入时间，并统一钳制进度。"
+      "purpose": "纯函数排出进入、首张停留、照片行程、末张停留与下一章擦入时间；进度钳制改由 utils/clamp 统一提供。"
     }
   ],
   "mechanism": {

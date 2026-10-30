@@ -15,6 +15,13 @@ const canonicalOrigin = new URL(
 ).origin
 
 /** 构建输出提供首次抓取的 head；这里同步应用内导航与语言切换。 */
+/*
+ * ⚠️ 这个函数虽然只在本文件内被调用，但**必须保持 export**：
+ *    `scripts/verify-route-head.mjs` 把本文件转译进 vm 沙箱后直接取
+ *    `exports.updateRouteHead` 来驱动用例。审计脚本只扫 src/，所以曾把它误判成
+ *    「内部专用、不该 export」—— 去掉 export 会让该用例以 `runtime.update is not
+ *    a function` 静默失败。
+ */
 export function updateRouteHead(path: string, language: Lang = subpageLanguage.value): void {
   const normalized = path === '/' ? '/' : path.replace(/\/$/u, '')
   const page = metadata.routes.find(

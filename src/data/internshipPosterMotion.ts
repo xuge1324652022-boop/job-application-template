@@ -7,8 +7,8 @@ import { personalSiteValue } from './personalPortfolio'
 import type { Bi } from './aboutProfile'
 import type { VisualAsset } from './visualPortfolio'
 
-export type PosterRect = readonly [x: number, y: number, width: number, height: number]
-export interface PosterFragment {
+type PosterRect = readonly [x: number, y: number, width: number, height: number]
+interface PosterFragment {
   kind: 'headline' | 'block'
   rect: PosterRect
 }

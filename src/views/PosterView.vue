@@ -133,7 +133,6 @@ import {
   isTransitioning,
   jumpTarget,
   markSubpageVisit,
-  overlayActive,
 } from '../composables/useTransition'
 import { routeCurtainBlocked } from '../composables/usePageCurtain'
 
@@ -179,8 +178,7 @@ let disposed = false
 let reveal: AboutRevealHandle | null = null
 
 const covered = computed(
-  () =>
-    routeCurtainBlocked.value || !!jumpTarget.value || overlayActive.value || isTransitioning.value,
+  () => routeCurtainBlocked.value || !!jumpTarget.value || isTransitioning.value,
 )
 provide(
   referenceIntroductionGate,

@@ -82,6 +82,7 @@ import {
   isCompletePersonalPortfolio as isPersonalPortfolio,
 } from '../data/personalPortfolio'
 import { visualById } from '../data/visualPortfolio'
+import { motionScrollBehavior } from '../utils/motion'
 import colorFrame from '../assets/color-frames/frame-07.jpg'
 
 type Destination = 'about' | 'edit' | 'video' | 'color' | 'news' | 'creative' | 'poster' | 'photo'
@@ -177,7 +178,7 @@ const nextTo = computed(() => ({ path: work.value.path, query: { from: source.va
 function toTop() {
   window.scrollTo({
     top: 0,
-    behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+    behavior: motionScrollBehavior(),
   })
 }
 </script>

@@ -349,7 +349,7 @@ export const posters: readonly VisualAsset[] = personalSiteValue('visualPortfoli
 ])
 
 /** 保留精选的合并集合，供既有组件 / 开发期结构自检使用，不替代完整专题清单。 */
-export const ALL_VISUALS: readonly VisualAsset[] = personalSiteValue(
+const ALL_VISUALS: readonly VisualAsset[] = personalSiteValue(
   'visualPortfolio',
   'ALL_VISUALS',
   [...photography, ...editorial, ...posters],

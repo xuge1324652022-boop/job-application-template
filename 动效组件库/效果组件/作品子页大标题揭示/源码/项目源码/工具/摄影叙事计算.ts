@@ -11,4 +11,3 @@ export function chapterSchedule(distances: readonly number[], height: number) {
     return { enter, start, end, finish: cursor, wipe: index ? wipe : 0 }
   })
 }
-export const unit = (value: number) => Math.max(0, Math.min(1, value))

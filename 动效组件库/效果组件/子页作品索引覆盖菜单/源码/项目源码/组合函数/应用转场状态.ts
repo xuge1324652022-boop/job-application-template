@@ -4,21 +4,17 @@ import { ref } from 'vue'
  * 转场系统的共享状态。
  *
  * 画廊的聚焦卡号、点击锁和历史恢复面包屑跨路由保存。
- * App.vue 消费 jumpTarget，实际幕布状态由 usePageCurtain 管理；
- * 本文件保留旧交互入口的兼容标记，避免画廊与新路由系统各自发起一次转场。
+ * App.vue 消费 jumpTarget，实际幕布状态由 usePageCurtain 管理。
+ *
+ * ⚠️ 这里曾经还导出 `overlayActive`（旧卡片交互的遮罩兼容标记）和
+ *    `OVERLAY_COVER_MS` / `OVERLAY_REVEAL_MS`（旧遮罩时长）。它们从来没被
+ *    赋过 true，各页却把它们算进 `covered` 门禁里 —— 一个恒假的开关混在
+ *    真门禁中间，读代码时无法判断它是不是有意留着。弧形幕接管后这三项
+ *    全部删除，时长真相只在 PageCurtain.vue。
  */
-
-/** 旧卡片交互的遮罩兼容标记；实际 PageCurtain 可见性由 routeCurtainActive 驱动。 */
-export const overlayActive = ref(false)
 
 /** 转场进行中标志 —— 约束 7：转场期间忽略新的点击，处理快速连点。 */
 export const isTransitioning = ref(false)
-
-/** 旧遮罩覆盖时长的兼容导出（ms）；现行弧形幕时长定义在 PageCurtain.vue。 */
-export const OVERLAY_COVER_MS = 300
-
-/** 旧遮罩揭幕时长的兼容导出（ms），不参与现行路由揭幕计时。 */
-export const OVERLAY_REVEAL_MS = 400
 
 /**
  * 跳转目标卡编号（'01'..'06'）。非 null 表示画廊发起的导航尚未交接完毕。
@@ -67,7 +63,7 @@ export const inAppNavigation = ref(false)
  * 后退回 `/` 时当前条目必然排在子页条目**之前**，而程序化 push 到 `/`
  * 会拿到更大的 position。这条判据不依赖任何浏览器语义，刷新也照样成立。
  */
-export type SubpageVisit = { id: string; position: number | null }
+type SubpageVisit = { id: string; position: number | null }
 
 /**
  * 「本次会话里，上一个显示过的页面是某个卡片子页」的面包屑。

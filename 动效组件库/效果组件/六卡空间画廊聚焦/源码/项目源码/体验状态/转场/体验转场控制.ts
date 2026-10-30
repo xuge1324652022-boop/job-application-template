@@ -32,7 +32,7 @@ import { focusEase, type GalleryState } from '../../工具/画廊动画控制'
 import { createChapterMachine } from '../体验状态'
 
 /** 宿主需要提供给转场模块的接口 */
-export interface TransitionHost {
+interface TransitionHost {
   /** ⚠️ 必须是同一个对象引用：GSAP 原地修改它，宿主每帧也从它读值 */
   state: GalleryState
   pointer(): { x: number; y: number }

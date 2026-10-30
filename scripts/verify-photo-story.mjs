@@ -16,9 +16,16 @@
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import ts from 'typescript'
-const source = fs.readFileSync(new URL('../src/utils/photoStory.ts', import.meta.url), 'utf8')
-const js = ts.transpile(source, { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext })
-const { chapterSchedule, unit } = await import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`)
+const transpile = path => ts.transpile(
+  fs.readFileSync(new URL(path, import.meta.url), 'utf8'),
+  { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
+)
+const load = async path => import(
+  `data:text/javascript;base64,${Buffer.from(transpile(path)).toString('base64')}`,
+)
+const { chapterSchedule } = await load('../src/utils/photoStory.ts')
+// photoStory 不再自带 unit 副本，统一用 utils/clamp 的真实现来做期望值。
+const { clamp } = await load('../src/utils/clamp.ts')
 for (const height of [480, 720, 900]) {
   for (const distances of [[3500, 2600, 1800, 3200, 300], [0, 0], [400]]) {
     const chapters = chapterSchedule(distances, height)
@@ -29,11 +36,11 @@ for (const height of [480, 720, 900]) {
       if (i) {
         assert.equal(chapter.enter, chapters[i - 1].finish)
         assert.ok(chapter.enter > chapters[i - 1].end, 'next mask starts only after final photo')
-        assert.equal(unit((chapters[i - 1].end - chapter.enter) / chapter.wipe), 0)
-        assert.equal(unit((chapter.start - chapter.enter) / chapter.wipe), 1)
+        assert.equal(clamp((chapters[i - 1].end - chapter.enter) / chapter.wipe), 0)
+        assert.equal(clamp((chapter.start - chapter.enter) / chapter.wipe), 1)
       }
     })
   }
 }
-assert.deepEqual([-1, 0, .5, 1, 2].map(unit), [0, 0, .5, 1, 1])
+assert.deepEqual([-1, 0, .5, 1, 2].map(v => clamp(v)), [0, 0, .5, 1, 1])
 console.log('PASS: chapter completion, mask ordering, zero overflow, viewport sizes and clamp boundaries')

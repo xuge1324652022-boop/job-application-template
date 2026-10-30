@@ -5,6 +5,8 @@
  */
 // 相比上一版 1.3 的节奏，实际入场、收拢与擦入行程延长约 46%。
 // 阅读距离放在每张完整落位之后，末张仅保留正常停留，不为旧中点约束补空等。
+import { clamp } from '../../utils/clamp'
+
 const STACK_PACE = 1.9
 export const STACK_ENTER_END = .42 * STACK_PACE
 export const STACK_FOLD_START = .18 * STACK_PACE
@@ -16,14 +18,13 @@ const PAGE_READING_HOLD = .28
 export const STACK_PAGE_STEP = STACK_WIPE_LENGTH + PAGE_READING_HOLD
 const LAST_PAGE_HOLD = .56
 
-export const clamp01 = (value: number) => Math.max(0, Math.min(1, value))
 // 两端速度、加速度均为零；遮罩越过章节边界时不突然改变速度。
 const ease = (value: number) => {
-  const p = clamp01(value)
-  return clamp01(p * p * p * (p * (p * 6 - 15) + 10))
+  const p = clamp(value)
+  return clamp(p * p * p * (p * (p * 6 - 15) + 10))
 }
 // 正弦减速的起始速度小于原三次减速，避免前几格滚轮就把透视叠层迅速压平。
-const easeOut = (value: number) => Math.sin(clamp01(value) * Math.PI / 2)
+const easeOut = (value: number) => Math.sin(clamp(value) * Math.PI / 2)
 
 /** 返回按钮跳转的阅读停留点，避开该页尚未展开完的遮罩段。 */
 export function stackPagePosition(index: number, count: number) {

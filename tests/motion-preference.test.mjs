@@ -22,7 +22,12 @@ test('卡内减少动态完成显影，重复play/restart不能恢复环境循�
   const base = {}
   vm.runInNewContext(compile(read('src/cardAnimations/base.ts')), {
     exports: base,
-    require: () => ({ __esModule: true, default: gsap }),
+    // base.ts 现在从 utils/motion 取「减少动态」判据（惰性单例）。
+    // 这里按模块路径分流：动画库给 gsap，偏好查询交给本用例的 reduced 开关。
+    require: (id) =>
+      String(id).includes('utils/motion')
+        ? { prefersReduced: () => reduced }
+        : { __esModule: true, default: gsap },
     window: { matchMedia: () => ({ matches: reduced }) },
   })
   class Probe extends base.BaseAnimation {
@@ -122,7 +127,9 @@ test('ABOUT实际入场补间在中途resize后清除自身样式，保留父级
   }
   const gsapModule = { __esModule: true, default: animationGsap }
   vm.runInNewContext(compile(read('src/cardAnimations/base.ts')), {
-    exports: base, require: () => gsapModule,
+    exports: base,
+    // 同前一个用例：base.ts 的 reduced() 走 utils/motion 的惰性单例。
+    require: (id) => (String(id).includes('utils/motion') ? { prefersReduced: () => false } : gsapModule),
     window: { matchMedia: () => ({ matches: false }) },
   })
   vm.runInNewContext(compile(read('src/cardAnimations/about.ts')), {
@@ -242,7 +249,9 @@ test('ABOUT独立三层指针视差实时回到基线，恢复偏好可重用，
       addEventListener: (name, fn) => documentListeners.set(name, fn),
       removeEventListener: name => documentListeners.delete(name),
     },
-    require: () => ({ __esModule: true, default: { quickTo(node, property) {
+    require: (id) => String(id).includes('utils/motion')
+      ? { prefersReduced: () => media.matches }
+      : ({ __esModule: true, default: { quickTo(node, property) {
       const update = value => { node[property] = value }
       update.tween = { progress() { return this }, pause() { return this }, kill() { killed++ } }
       return update

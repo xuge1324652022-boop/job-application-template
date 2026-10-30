@@ -8,7 +8,7 @@
   },
   "category": "scroll",
   "status": "active",
-  "summary": "关于页滚动叙事：姓名巨字与可选人物插画开场，主张逐行点亮，三层身份标题向内裁切后缩小，纵向身份列表末词从实心笔画放大。纸底简介、两条反向倾斜作品图带、完整经历、成果、能力、横向履历、真实实践场景和联系区依次展开。手机合并作品图带并使用原生横滚，减少动态时静态阅读。个人素材和电话均由可选本机内容包提供，缺包保持公开模板回退。",
+  "summary": "关于页滚动叙事：姓名巨字与可选人物插画开场，主张逐行点亮，三层身份标题向内裁切后缩小，纵向身份列表末词从实心笔画放大。纸底简介、两条倾斜图带、卡片直接扩展至全屏并接入连续横向简历长卷、成果、能力、横向履历、真实实践场景和联系区依次展开。手机图带使用原生横滚，简历纵向完整阅读，减少动态时静态阅读。个人素材和电话均由可选本机内容包提供，缺包保持公开模板回退。",
   "entryFiles": [
     "src/components/about/AboutMotionHero.vue",
     "src/components/about/AboutCollageStage.vue",
@@ -178,7 +178,7 @@
       "purpose": "作品图带与原创实习卡双排；实习卡抽出铺满后，以黑底横向交替展示素材和居中履历，手机及减弱动态使用自然文档流。"
     },
     {
-      "file": "src/components/about/AboutInternshipCards.vue",
+      "file": "src/components/about/useInternshipStoryMotion.ts",
       "symbols": [
         "about-internship-story",
         "geometry",
@@ -186,6 +186,23 @@
         "matchMedia"
       ],
       "purpose": "第二排原创履历卡抽出为全屏，滚动驱动图片与居中履历横向交替；断点清理恢复自然流，深链定位到阅读停顿。"
+    },
+    {
+      "file": "src/components/about/useInternshipStoryMotion.ts",
+      "symbols": [
+        "renderFlight",
+        "measureStops",
+        "syncSchedule",
+        "updateAnchors"
+      ],
+      "purpose": "第二排自制卡片直接归正并覆盖舞台，在完全相同的首格几何处交接；卡片与简历正文由单条线性横移保持空间连续。无逐页停顿、产品全屏裁图或产品切换器。"
+    },
+    {
+      "file": "src/components/about/useInternshipTextMotion.ts",
+      "symbols": [
+        "useInternshipTextMotion"
+      ],
+      "purpose": "实习简历沿用调色页的无衬线字体与真实视觉行入场：公司名向上揭示，正文按行错峰。加载幕撤掉后才播放；快滚、回滚、切语言和减少动态保持可读并清理分行节点。"
     }
   ],
   "mechanism": {
@@ -381,7 +398,8 @@
       "src/data/resumeEmphasis.ts",
       "src/data/visualPortfolio.ts",
       "src/data/personalPortfolio.ts",
-      "src/styles/aboutPortrait.css"
+      "src/styles/aboutPortrait.css",
+      "gsap/SplitText"
     ],
     "assets": [
       "默认公开人像/about/portrait-{400,900,1448}.webp及visualPortfolio登记的合成素材",
@@ -416,11 +434,13 @@
     ]
   },
   "agentNotes": [
+    "本效果定义同时打包当前/about所用场景与可单独挂载的历史场景。AboutCollageStage、AboutScrollChapter、AboutIdentityScene、AboutObservationRail、AboutExperienceReveal是库入口，当前AboutView不挂载它们；不要把登记为库入口误写成当前页面正在运行，也不要仅按main.ts不可达删除这些源码。",
     "章节互补裁切必须使用同一单词和一致字体尺寸；装饰副本不应重复暴露给屏幕阅读器。",
     "containerAnimation要求主轨道ease:none；第一幅已在固定起点可见，不能套用从视口右侧进入的子触发器。",
     "所有滚动场景都使用原生文档滚动；不要给/about附加第二套滚轮拦截或平滑滚动器。",
     "字形放大是独立于三行标题缩小的场景，不用整屏奶油矩形代替真实字形。",
-    "源代码副本只能包含类型、读取逻辑和公开模板回退，不能把本机内容包的JSON、简历、个人联系方式或私有媒体复制进组件库。"
+    "源代码副本只能包含类型、读取逻辑和公开模板回退，不能把本机内容包的JSON、简历、个人联系方式或私有媒体复制进组件库。",
+    "实习正文按简历版式：时间左、公司右，岗位独立一行，职责依原文单列；个人项目素材与简历文本来自本机内容包，不写入公共模板。"
   ],
   "relatedEffects": [
     "motion-layout-scheduler",
@@ -508,6 +528,12 @@
       "locked": "3.15.0"
     },
     {
+      "specifier": "gsap/SplitText",
+      "package": "gsap",
+      "requested": "^3.15.0",
+      "locked": "3.15.0"
+    },
+    {
       "specifier": "vue",
       "package": "vue",
       "requested": "^3.5.32",
@@ -561,10 +587,10 @@
       "original": "src/components/about/AboutInternshipCards.vue",
       "path": "源码/项目源码/组件/人物与作品/实习叙事卡片.vue",
       "role": "dependency",
-      "originalSha256": "3cdda4acb8a44ffe5a4c4a3c802231e07b291000d159abeae38649c735a15618",
-      "originalBytes": 27705,
-      "sha256": "bebca3e5396d4705fe5e1dff926240ef4c4bae27025e488fb6c951a3f377895d",
-      "bytes": 27727
+      "originalSha256": "9fa486ef766d29022ef14d31099a0ac004c178d0795d32765bb900e24d4cabc7",
+      "originalBytes": 12015,
+      "sha256": "0ae314cf821d18f7c61dbf047e7846656811f9d46866120c58014371d93e3f92",
+      "bytes": 12025
     },
     {
       "original": "src/components/about/AboutInternshipCover.vue",
@@ -579,10 +605,10 @@
       "original": "src/components/about/AboutMotionHero.vue",
       "path": "源码/项目源码/组件/人物与作品/人物动态首屏.vue",
       "role": "entry",
-      "originalSha256": "6e41763a976ddee383dc83c44e9efa9fabef739ba1f725ec5a7c4c0ac77cbda5",
-      "originalBytes": 11797,
-      "sha256": "6703a74496aef2f7871a9d41e7c90dba012f28132e0d44fb89c6a2c0f25326fe",
-      "bytes": 11825
+      "originalSha256": "30a569fba102f7990a8e598561075d67585fb4b90b1ebaed80bc86530000af6b",
+      "originalBytes": 11040,
+      "sha256": "d43371c70a2175aef2c2275228993a56cad9bd926577762aeeb5b2b3f31c25e9",
+      "bytes": 11068
     },
     {
       "original": "src/components/about/AboutObservationRail.vue",
@@ -597,10 +623,10 @@
       "original": "src/components/about/AboutQuoteScene.vue",
       "path": "源码/项目源码/组件/人物与作品/人物引言场景.vue",
       "role": "entry",
-      "originalSha256": "452a2cb85fface6d7b2dc6e720b65f506b8f250ea6be082d5ffacf556faac108",
-      "originalBytes": 5573,
-      "sha256": "7e5144eebcfb62f89b07ea0b11a0f4330763e26f0e7b6397506d60a93b50dd2c",
-      "bytes": 5587
+      "originalSha256": "1836632b21ae35a32c16fb85da9f2cb615ba442db6f4ced51c10b7711ad44d14",
+      "originalBytes": 5411,
+      "sha256": "5d8ec70201c65243d238995627e1393d0b273d02faef74d44d3694e5d0f2d506",
+      "bytes": 5425
     },
     {
       "original": "src/components/about/AboutScrollChapter.vue",
@@ -615,28 +641,28 @@
       "original": "src/components/about/AboutSideRail.vue",
       "path": "源码/项目源码/组件/人物与作品/竖排章节导航.vue",
       "role": "entry",
-      "originalSha256": "f48118df719ca9232a9f9c60e5ff15f97e75ed7855493de593684054d5016038",
-      "originalBytes": 9158,
-      "sha256": "6ef3c25a40aeb7b3e69eb9ec36325eb819e2ec2b14cf6106b4b6ec78e04fb1b1",
-      "bytes": 9167
+      "originalSha256": "333577c52473b1b1c23d295edc1ceff95a45a72d731511bba576f4bf8a0dfc3f",
+      "originalBytes": 9151,
+      "sha256": "ac41e08a5fd5e2f645047f27bb5f9258adb1103c0745077fc6c06a67e1183081",
+      "bytes": 9160
     },
     {
       "original": "src/components/about/AboutStudioContact.vue",
       "path": "源码/项目源码/组件/人物与作品/工作室联系.vue",
       "role": "entry",
-      "originalSha256": "2927b7474a62703e540b74f7ab91043bd786f97bdbf98151cf8ec04db540ff6a",
-      "originalBytes": 7697,
-      "sha256": "2f3686fb69446993a5785e3839d70b20a585aadbb8b56d4d0cbd280d5819d76f",
-      "bytes": 7718
+      "originalSha256": "210c52aa0c9c9022cfb7573e581b5bdf744982bb6a17b66b2edcaac5caff3105",
+      "originalBytes": 3794,
+      "sha256": "8cdc3e20ce89c92b2de08a9a1e6fbc4e10efe6152b3503c455461a651382af0b",
+      "bytes": 3817
     },
     {
       "original": "src/components/about/AboutStudioStory.vue",
       "path": "源码/项目源码/组件/人物与作品/工作室故事.vue",
       "role": "entry",
-      "originalSha256": "80ff632f7a1c3d6d775cba7ab59351883c7392f1994d3ce0f15b12c2c43766cc",
-      "originalBytes": 15731,
-      "sha256": "a124bb76bfd2d6fda1e06086c8d46ef768bc56ffcc961c86cef3b772bba0ec6b",
-      "bytes": 15753
+      "originalSha256": "72c091155350c90aa25b485237b1e43a7bf89566d6045111b59980d632367fae",
+      "originalBytes": 12205,
+      "sha256": "638f8ddf0138858bb1630cb6b9c5fd12d8fcb2a37279b8090216a7daf6e72a6a",
+      "bytes": 12227
     },
     {
       "original": "src/components/about/AboutWordMarquee.vue",
@@ -657,6 +683,15 @@
       "bytes": 5719
     },
     {
+      "original": "src/components/about/ContactEnd.vue",
+      "path": "源码/项目源码/组件/人物与作品/结尾联系球.vue",
+      "role": "dependency",
+      "originalSha256": "7f14e03aaded9009256dc7790b28d3438e3e7c79311568044a3304aeee15f08f",
+      "originalBytes": 20271,
+      "sha256": "a8c3e9b8a1a442740b8d6e984e8f59fb42199af7a1b246467de4c7143b276fba",
+      "bytes": 20296
+    },
+    {
       "original": "src/components/about/aboutTextFocus.ts",
       "path": "源码/项目源码/组件/人物与作品/字形实心焦点.ts",
       "role": "dependency",
@@ -666,6 +701,33 @@
       "bytes": 1189
     },
     {
+      "original": "src/components/about/internshipStorySchedule.ts",
+      "path": "源码/项目源码/组件/人物与作品/实习叙事节奏.ts",
+      "role": "dependency",
+      "originalSha256": "af03bc3fa3dd3dbd73c7d562e87adf853b72b89dad7cc345ee2a22e0834cea36",
+      "originalBytes": 796,
+      "sha256": "af03bc3fa3dd3dbd73c7d562e87adf853b72b89dad7cc345ee2a22e0834cea36",
+      "bytes": 796
+    },
+    {
+      "original": "src/components/about/useInternshipStoryMotion.ts",
+      "path": "源码/项目源码/组件/人物与作品/实习叙事动效.ts",
+      "role": "dependency",
+      "originalSha256": "ed1984317c2f524800ddefee99a04815d6974130b696df79e4d3d6237e99b580",
+      "originalBytes": 10454,
+      "sha256": "72bc9c7974f3320c2fb73de1f4aceb22d778252a9503afc1b7453742a389d859",
+      "bytes": 10458
+    },
+    {
+      "original": "src/components/about/useInternshipTextMotion.ts",
+      "path": "源码/项目源码/组件/人物与作品/实习正文文字揭示.ts",
+      "role": "dependency",
+      "originalSha256": "1e979515b4687cec96ca997f270ea5ce46c61dbfe3d3eac6470fd72b28751c54",
+      "originalBytes": 8491,
+      "sha256": "bd4549596a867aea693a04419f39559cdab93e5094e88dec0ed5da3b2e357e01",
+      "bytes": 8503
+    },
+    {
       "original": "src/composables/useFitText.ts",
       "path": "源码/项目源码/组合函数/标题字号拟合.ts",
       "role": "dependency",
@@ -673,6 +735,15 @@
       "originalBytes": 9688,
       "sha256": "edad878356b7b675d22cbc66c77540990f708b5185b179bba965ee4212d63d9d",
       "bytes": 9688
+    },
+    {
+      "original": "src/composables/usePageCurtain.ts",
+      "path": "源码/项目源码/组合函数/页面幕布控制.ts",
+      "role": "dependency",
+      "originalSha256": "c3a4e2b07723684ac7d06ecb2fea597ab245f6cc23ceb7c42c530099e4111355",
+      "originalBytes": 1568,
+      "sha256": "d06c2f3f3e20dab8560e47a9827ebe98d84c9a842b7ea57c775419aac908e422",
+      "bytes": 1570
     },
     {
       "original": "src/data/aboutProfile.ts",
@@ -687,19 +758,19 @@
       "original": "src/data/aiTools.ts",
       "path": "源码/项目源码/数据/智能工具资料.ts",
       "role": "dependency",
-      "originalSha256": "8a98022acb0d9e716c0d393684f0b731cd987301d970068ad15f9fae76690996",
-      "originalBytes": 6703,
-      "sha256": "8a98022acb0d9e716c0d393684f0b731cd987301d970068ad15f9fae76690996",
-      "bytes": 6703
+      "originalSha256": "bc5396f9f15b8718f0cb53328ee17db7a1d96b7737acbadc82ca53280a742838",
+      "originalBytes": 6644,
+      "sha256": "bc5396f9f15b8718f0cb53328ee17db7a1d96b7737acbadc82ca53280a742838",
+      "bytes": 6644
     },
     {
       "original": "src/data/imageVariants.json",
       "path": "源码/项目源码/数据/图片实际尺寸.json",
       "role": "dependency",
-      "originalSha256": "14e09713c5eeaf886e5070e91559145fc6914b67b25a97d86af51351bc40482a",
-      "originalBytes": 12605,
-      "sha256": "14e09713c5eeaf886e5070e91559145fc6914b67b25a97d86af51351bc40482a",
-      "bytes": 12605
+      "originalSha256": "404dc65cf4cf7454237aa42b35530d97a6567f4d9f21d6a4592def2a911a39fc",
+      "originalBytes": 13300,
+      "sha256": "404dc65cf4cf7454237aa42b35530d97a6567f4d9f21d6a4592def2a911a39fc",
+      "bytes": 13300
     },
     {
       "original": "src/data/personalPortfolio.ts",
@@ -714,28 +785,28 @@
       "original": "src/data/resumeEmphasis.ts",
       "path": "源码/项目源码/数据/简历强调内容.ts",
       "role": "dependency",
-      "originalSha256": "804206a1a3d32c536726f3e58038afa5aa064d5e64ef40c430ceff98dc5751a2",
-      "originalBytes": 5340,
-      "sha256": "80c36d69143d5cfeaec45660e47f0d3b4871d1b861942d5ebe8ca50c738c1c65",
-      "bytes": 5340
+      "originalSha256": "b9d5a3278ebcbefa40c4fffdf942455a6ee906ead716743840fab3814b80b292",
+      "originalBytes": 3413,
+      "sha256": "aac8ce5b6ffe5797e10287986f5b63c2f91b4cd151df51a745d563dbf32c803f",
+      "bytes": 3413
     },
     {
       "original": "src/data/visualPortfolio.ts",
       "path": "源码/项目源码/数据/视觉作品资料.ts",
       "role": "dependency",
-      "originalSha256": "fc1f99d02c7d9b2885275e4a8361e1ee570132b656a3c9c2a598b0e1b62bc4be",
-      "originalBytes": 22963,
-      "sha256": "910ee9502b04b9c56e5301e2be13da3046af61e528e18339b81a674d67e37b54",
-      "bytes": 22970
+      "originalSha256": "e0276ef3f86a80d1277489f07d105f72340f7981e35b8026986c7a6e84f76a83",
+      "originalBytes": 22956,
+      "sha256": "59ae9bc184bfec36a9459d23eb07e17832c3042105639305c294647d720628e0",
+      "bytes": 22963
     },
     {
       "original": "src/style.css",
       "path": "源码/项目源码/全局样式.css",
       "role": "global-style",
-      "originalSha256": "d17284112f7cd7ce1dc7f7e48847895d2086b25cd404079d5b5a5647475ec2ca",
-      "originalBytes": 4142,
-      "sha256": "d17284112f7cd7ce1dc7f7e48847895d2086b25cd404079d5b5a5647475ec2ca",
-      "bytes": 4142
+      "originalSha256": "4d8434037404ff51386849082a9113c2fdb60bce4e5741ca8801f15d85c10a9b",
+      "originalBytes": 4144,
+      "sha256": "4d8434037404ff51386849082a9113c2fdb60bce4e5741ca8801f15d85c10a9b",
+      "bytes": 4144
     },
     {
       "original": "src/styles/aboutPortrait.css",
@@ -745,6 +816,15 @@
       "originalBytes": 768,
       "sha256": "c862729ebb711e003d0fef8b46c77bac46bce1bc6ef6ea2105f9de4e6426ae81",
       "bytes": 768
+    },
+    {
+      "original": "src/utils/motion.ts",
+      "path": "源码/项目源码/工具/动态偏好.ts",
+      "role": "dependency",
+      "originalSha256": "1aab18bfa6b543554c9d088b927256de18b10d77b98b03729fd3890e6428c3cf",
+      "originalBytes": 1720,
+      "sha256": "1aab18bfa6b543554c9d088b927256de18b10d77b98b03729fd3890e6428c3cf",
+      "bytes": 1720
     },
     {
       "original": "src/utils/motionLayout.ts",
@@ -759,19 +839,19 @@
       "original": "src/utils/responsiveImage.ts",
       "path": "源码/项目源码/工具/响应式图片.ts",
       "role": "dependency",
-      "originalSha256": "1da57df0406457b4b0ace433f4ff8eaa330817e1d46a2dcd5eb2c45ae8ab51e1",
-      "originalBytes": 1262,
-      "sha256": "634aba5c953aabbdcfa92ba65947be8f969631136d16122f89cd228050daa9bc",
-      "bytes": 1278
+      "originalSha256": "ebd1551b1eb5802141ec3de15876aac44a424f31dc23a1cfbc970582a3ddf178",
+      "originalBytes": 2147,
+      "sha256": "b6dcb38d0d01366412a19f5b556be65b357bf0f24951079a521d4d3331051bdc",
+      "bytes": 2163
     },
     {
       "original": "src/views/AboutView.vue",
       "path": "集成示例/项目源码/页面/人物介绍页.vue",
       "role": "integration-context",
-      "originalSha256": "2fffecf6220c30a0d229e792e5420f41c83855a6ec2da4209bf6b178cc86b5bc",
-      "originalBytes": 10951,
-      "sha256": "7933a23e1e7503175a0caded62161bc8f9a74b6c515926487cd905babb0f32eb",
-      "bytes": 11050
+      "originalSha256": "608202edea918ec14d117614455973d61836d18b0a4bcbce6b77e9658e1c3930",
+      "originalBytes": 10900,
+      "sha256": "2db8f50a360c14fa86cbcda82b990b32996302af5f3703f1665673233da9cfee",
+      "bytes": 10999
     },
     {
       "original": "src/components/LazySection.vue",

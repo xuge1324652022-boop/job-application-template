@@ -133,7 +133,6 @@ import {
   isTransitioning,
   jumpTarget,
   markSubpageVisit,
-  overlayActive,
 } from '../组合函数/应用转场状态'
 import { routeCurtainBlocked } from '../组合函数/页面幕布控制'
 
@@ -179,8 +178,7 @@ let disposed = false
 let reveal: AboutRevealHandle | null = null
 
 const covered = computed(
-  () =>
-    routeCurtainBlocked.value || !!jumpTarget.value || overlayActive.value || isTransitioning.value,
+  () => routeCurtainBlocked.value || !!jumpTarget.value || isTransitioning.value,
 )
 provide(
   referenceIntroductionGate,

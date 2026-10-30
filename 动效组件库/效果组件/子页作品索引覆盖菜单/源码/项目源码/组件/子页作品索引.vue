@@ -1,21 +1,65 @@
 <template>
   <Teleport to="body">
-    <button ref="trigger" class="subpage-index" :class="{ 'is-visible': visible || open, 'is-about': route.path === '/about' }"
-      type="button" :aria-label="subpageLanguage === 'zh' ? '打开作品索引' : 'Open works index'" aria-controls="subpage-index-menu" :aria-expanded="open" :tabindex="open || routeCurtainActive ? -1 : 0"
-      @click="show" @mouseenter="hold = true" @mouseleave="release" @focus="visible = true" @blur="release">
+    <button
+      ref="trigger"
+      class="subpage-index"
+      :class="{ 'is-visible': visible || open }"
+      type="button"
+      :aria-label="subpageLanguage === 'zh' ? '打开作品索引' : 'Open works index'"
+      aria-controls="subpage-index-menu"
+      :aria-expanded="open"
+      :tabindex="open || routeCurtainActive ? -1 : 0"
+      @click="show"
+      @mouseenter="hold = true"
+      @mouseleave="release"
+      @focus="visible = true"
+      @blur="release"
+    >
       <span>{{ subpageLanguage === 'zh' ? '索引' : 'Index' }}</span>
     </button>
-    <Transition :css="false" @before-enter="preparePanel" @enter="enterPanel" @leave="leavePanel" @after-enter="focusPanel" @after-leave="finishClose">
-      <div v-if="open" id="subpage-index-menu" ref="panel" class="subpage-menu" role="dialog" aria-modal="true"
-        aria-labelledby="subpage-index-title" @keydown="onKeydown">
+    <Transition
+      :css="false"
+      @before-enter="preparePanel"
+      @enter="enterPanel"
+      @leave="leavePanel"
+      @after-enter="focusPanel"
+      @after-leave="finishClose"
+    >
+      <div
+        v-if="open"
+        id="subpage-index-menu"
+        ref="panel"
+        class="subpage-menu"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="subpage-index-title"
+        @keydown="onKeydown"
+      >
         <header class="subpage-menu__header">
-          <h2 id="subpage-index-title" class="subpage-menu__label">{{ subpageLanguage === 'zh' ? '作品索引' : 'Works index' }}</h2>
-          <button ref="closeButton" type="button" :aria-label="subpageLanguage === 'zh' ? '关闭作品索引' : 'Close works index'" @click="close()">{{ subpageLanguage === 'zh' ? '关闭' : 'Close' }}</button>
+          <h2 id="subpage-index-title" class="subpage-menu__label">
+            {{ subpageLanguage === 'zh' ? '作品索引' : 'Works index' }}
+          </h2>
+          <button
+            ref="closeButton"
+            type="button"
+            :aria-label="subpageLanguage === 'zh' ? '关闭作品索引' : 'Close works index'"
+            @click="close()"
+          >
+            {{ subpageLanguage === 'zh' ? '关闭' : 'Close' }}
+          </button>
         </header>
-        <nav :aria-label="subpageLanguage === 'zh' ? '作品章节' : 'Work chapters'" class="subpage-menu__chapters">
-          <RouterLink v-for="(chapter, i) in CHAPTERS" :key="chapter.key" :style="{ '--order': i }"
+        <nav
+          :aria-label="subpageLanguage === 'zh' ? '作品章节' : 'Work chapters'"
+          class="subpage-menu__chapters"
+        >
+          <RouterLink
+            v-for="(chapter, i) in CHAPTERS"
+            :key="chapter.key"
+            :style="{ '--order': i }"
             :to="{ path: jumpPathFor(chapter.number), query: { from: source } }"
-            :aria-current="route.path === jumpPathFor(chapter.number) ? 'page' : undefined" @click="close(false)">
+            :aria-current="route.path === jumpPathFor(chapter.number) ? 'page' : undefined"
+            @click="close(false)"
+          >
             <span class="subpage-menu__line">
               <span class="subpage-menu__number">{{ chapter.number }}</span>
               <span class="subpage-menu__title">{{ titles[chapter.key] }}</span>
@@ -24,11 +68,31 @@
           </RouterLink>
         </nav>
         <footer class="subpage-menu__footer">
-          <RouterLink class="subpage-menu__home" :to="backTo" @click="close(false)">{{ backLabel }}</RouterLink>
-          <div class="subpage-menu__language" :aria-label="subpageLanguage === 'zh' ? '界面语言' : 'Interface language'" role="group">
-            <button type="button" :aria-pressed="subpageLanguage === 'zh'" aria-label="使用中文" @click="subpageLanguage = 'zh'">中文</button>
+          <RouterLink class="subpage-menu__home" :to="backTo" @click="close(false)">{{
+            backLabel
+          }}</RouterLink>
+          <div
+            class="subpage-menu__language"
+            :aria-label="subpageLanguage === 'zh' ? '界面语言' : 'Interface language'"
+            role="group"
+          >
+            <button
+              type="button"
+              :aria-pressed="subpageLanguage === 'zh'"
+              aria-label="使用中文"
+              @click="subpageLanguage = 'zh'"
+            >
+              中文
+            </button>
             <span aria-hidden="true">/</span>
-            <button type="button" :aria-pressed="subpageLanguage === 'en'" aria-label="Read in English" @click="subpageLanguage = 'en'">EN</button>
+            <button
+              type="button"
+              :aria-pressed="subpageLanguage === 'en'"
+              aria-label="Read in English"
+              @click="subpageLanguage = 'en'"
+            >
+              EN
+            </button>
           </div>
         </footer>
       </div>
@@ -52,13 +116,30 @@ import gsap from 'gsap'
 import { guardOverlayTouchScroll } from '../工具/覆盖层触摸保护'
 
 const route = useRoute()
-const titles = { about: 'About', edit: 'Edit', color: 'Color', news: 'News', poster: 'Poster', photo: 'Photography' }
-const source = computed(() => route.query.from === 'cards' ||
-  (route.path.startsWith('/card/') && route.query.from !== 'gallery') ? 'cards' : 'gallery')
-const backTo = computed(() => source.value === 'cards' ? '/cards' : '/')
-const backLabel = computed(() => subpageLanguage.value === 'zh'
-  ? (source.value === 'cards' ? '返回列表' : '返回作品集')
-  : (source.value === 'cards' ? 'Back to list' : 'Back to works'))
+const titles = {
+  about: 'About',
+  edit: 'Edit',
+  color: 'Color',
+  news: 'News',
+  poster: 'Poster',
+  photo: 'Photography',
+}
+const source = computed(() =>
+  route.query.from === 'cards' ||
+  (route.path.startsWith('/card/') && route.query.from !== 'gallery')
+    ? 'cards'
+    : 'gallery',
+)
+const backTo = computed(() => (source.value === 'cards' ? '/cards' : '/'))
+const backLabel = computed(() =>
+  subpageLanguage.value === 'zh'
+    ? source.value === 'cards'
+      ? '返回列表'
+      : '返回作品集'
+    : source.value === 'cards'
+      ? 'Back to list'
+      : 'Back to works',
+)
 const trigger = ref<HTMLButtonElement | null>(null)
 const panel = ref<HTMLElement | null>(null)
 const closeButton = ref<HTMLButtonElement | null>(null)
@@ -72,7 +153,7 @@ let hadInert = false
 let closing = false
 let menuAnimation: gsap.core.Timeline | undefined
 const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-const touchQuery = window.matchMedia('(hover: none), (pointer: coarse)')
+const touchQuery = window.matchMedia('(max-width: 760px), (hover: none), (pointer: coarse)')
 let releaseTouchGuard: (() => void) | undefined
 
 function preparePanel(element: Element) {
@@ -82,20 +163,35 @@ function preparePanel(element: Element) {
   gsap.set(lines, { yPercent: motionQuery.matches ? 0 : 100 })
 }
 function enterPanel(element: Element, done: () => void) {
-  if (motionQuery.matches) { done(); return }
-  menuAnimation = gsap.timeline({ onComplete: done })
-    .to(element, { opacity: 1, duration: .6, ease: 'power2.out' }, 0)
-    .to(element.querySelectorAll('.subpage-menu__line'), {
-      yPercent: 0, duration: .8, stagger: .04, ease: 'power3.out',
-    }, .15)
+  if (motionQuery.matches) {
+    done()
+    return
+  }
+  menuAnimation = gsap
+    .timeline({ onComplete: done })
+    .to(element, { opacity: 1, duration: 0.6, ease: 'power2.out' }, 0)
+    .to(
+      element.querySelectorAll('.subpage-menu__line'),
+      {
+        yPercent: 0,
+        duration: 0.8,
+        stagger: 0.04,
+        ease: 'power3.out',
+      },
+      0.15,
+    )
 }
 function leavePanel(element: Element, done: () => void) {
   menuAnimation?.kill()
   ;(element as HTMLElement).inert = true
   gsap.set(element, { pointerEvents: 'none' })
-  if (motionQuery.matches) { done(); return }
-  menuAnimation = gsap.timeline({ onComplete: done })
-    .to(element, { opacity: 0, duration: .4, ease: 'power2.in' })
+  if (motionQuery.matches) {
+    done()
+    return
+  }
+  menuAnimation = gsap
+    .timeline({ onComplete: done })
+    .to(element, { opacity: 0, duration: 0.4, ease: 'power2.in' })
 }
 
 // 正反向滚动共用一个闲置计时器，不依赖 delta 正负，也不建立常驻 RAF。
@@ -103,18 +199,29 @@ function wake() {
   if (document.hidden) return
   visible.value = true
   window.clearTimeout(idleTimer)
-  // 触屏没有悬停，隐藏唯一导航入口后很难再次发现；桌面仍保留原来的闲置退场。
+  // 触屏及窄屏保留入口；宽屏鼠标设备仍使用闲置退场。
   if (open.value || touchQuery.matches) return
   idleTimer = window.setTimeout(() => {
     if (!hold && !open.value && !trigger.value?.matches(':focus-visible')) visible.value = false
   }, 1600)
 }
-function release() { hold = false; wake() }
-function focusPanel() { closeButton.value?.focus({ preventScroll: true }) }
+function release() {
+  hold = false
+  wake()
+}
+function focusPanel() {
+  closeButton.value?.focus({ preventScroll: true })
+}
 async function show() {
   // 现有查看器或加载幕拥有滚动锁时，不再叠加第二个对话框。
-  if (open.value || closing || routeCurtainActive.value || document.documentElement.classList.contains('no-scroll') ||
-      document.querySelector('.vv, .wv, .page-loader, .pp__intro, .pv__intro, .foundation__curtain')) return
+  if (
+    open.value ||
+    closing ||
+    routeCurtainActive.value ||
+    document.documentElement.classList.contains('no-scroll') ||
+    document.querySelector('[aria-modal="true"]')
+  )
+    return
   open.value = true
   window.clearTimeout(idleTimer)
   background = document.getElementById('app')
@@ -142,17 +249,36 @@ function finishClose() {
 }
 function onKeydown(event: KeyboardEvent) {
   // 对话框内循环 Tab 焦点，Escape 关闭；关闭时不改变页面原来的滚动位置。
-  if (event.key === 'Escape') { event.preventDefault(); close(); return }
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    close()
+    return
+  }
   if (event.key !== 'Tab') return
   const controls = [...(panel.value?.querySelectorAll<HTMLElement>('a[href], button') ?? [])]
-  const first = controls[0], last = controls[controls.length - 1]
-  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
-  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
+  const first = controls[0],
+    last = controls[controls.length - 1]
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault()
+    last?.focus()
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault()
+    first?.focus()
+  }
 }
-watch(() => route.fullPath, () => { close(false); hold = false })
+watch(
+  () => route.fullPath,
+  () => {
+    close(false)
+    hold = false
+  },
+)
 onMounted(() => {
   wake()
-  releaseTouchGuard = guardOverlayTouchScroll(() => panel.value, () => open.value || closing)
+  releaseTouchGuard = guardOverlayTouchScroll(
+    () => panel.value,
+    () => open.value || closing,
+  )
   touchQuery.addEventListener('change', wake)
   window.addEventListener('scroll', wake, { passive: true })
   window.addEventListener('wheel', wake, { passive: true })
@@ -173,8 +299,13 @@ onBeforeUnmount(() => {
 </script>
 
 <style>
-html.has-subpage-index { overflow: hidden; }
-html.page-turn-lock .subpage-index { opacity:0; pointer-events:none; }
+html.has-subpage-index {
+  overflow: hidden;
+}
+html.page-turn-lock .subpage-index {
+  opacity: 0;
+  pointer-events: none;
+}
 .subpage-index {
   position: fixed;
   top: clamp(20px, 2.10625vw, 44px);
@@ -197,32 +328,39 @@ html.page-turn-lock .subpage-index { opacity:0; pointer-events:none; }
   opacity: 0;
   transform: translateY(-10px);
   pointer-events: none;
-  transition: opacity .2s ease-in, transform .2s ease-in;
+  transition:
+    opacity 0.2s ease-in,
+    transform 0.2s ease-in;
 }
 .subpage-index.is-visible,
 .subpage-index:focus-visible {
   opacity: 1;
   transform: none;
   pointer-events: auto;
-  transition-duration: .5s;
-  transition-timing-function: cubic-bezier(.215, .61, .355, 1);
+  transition-duration: 0.5s;
+  transition-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
 }
 .subpage-index::before,
-.subpage-menu__header button::before { content: ''; position: absolute; inset: -10px -4px; }
+.subpage-menu__header button::before {
+  content: '';
+  position: absolute;
+  inset: -10px -4px;
+}
 .subpage-menu {
-  --index-size: clamp(32px, min(5.903vw, calc(var(--stable-viewport-height) * .105)), 114px);
+  --index-size: clamp(32px, min(5.903vw, calc(var(--stable-viewport-height) * 0.105)), 114px);
   position: fixed;
   inset: 0;
   height: var(--dynamic-viewport-height);
   z-index: 9997;
   display: flex;
   flex-direction: column;
-  padding: max(clamp(20px, 2.10625vw, 44px), env(safe-area-inset-top, 0px)) max(clamp(20px, 2.78vw, 64px), env(safe-area-inset-right, 0px)) max(18px, env(safe-area-inset-bottom, 0px)) max(clamp(20px, 2.78vw, 64px), env(safe-area-inset-left, 0px));
+  padding: max(clamp(20px, 2.10625vw, 44px), env(safe-area-inset-top, 0px))
+    max(clamp(20px, 2.78vw, 64px), env(safe-area-inset-right, 0px))
+    max(18px, env(safe-area-inset-bottom, 0px))
+    max(clamp(20px, 2.78vw, 64px), env(safe-area-inset-left, 0px));
   overflow-y: auto;
   overscroll-behavior: contain;
-  background: rgb(245 241 232 / .8);
-  -webkit-backdrop-filter: blur(40px);
-  backdrop-filter: blur(40px);
+  background: #f5f1e8;
   color: #252525;
 }
 .subpage-menu__header {
@@ -243,6 +381,8 @@ html.page-turn-lock .subpage-index { opacity:0; pointer-events:none; }
 }
 .subpage-menu__header button {
   position: relative;
+  min-width: 44px;
+  min-height: 44px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -257,7 +397,7 @@ html.page-turn-lock .subpage-index { opacity:0; pointer-events:none; }
 .subpage-menu__chapters {
   flex: 0 0 auto;
   width: 100%;
-  margin-top: clamp(26px, calc(var(--stable-viewport-height) * .0575), 57px);
+  margin-top: clamp(26px, calc(var(--stable-viewport-height) * 0.0575), 57px);
   padding-bottom: 12px;
 }
 .subpage-menu__chapters a {
@@ -268,27 +408,26 @@ html.page-turn-lock .subpage-index { opacity:0; pointer-events:none; }
   color: inherit;
   text-decoration: none;
   opacity: 1;
-  transition: opacity .5s ease;
 }
 .subpage-menu__line {
   display: flex;
   align-items: baseline;
   gap: clamp(12px, 1.1vw, 22px);
-  transition: translate .5s cubic-bezier(.215, .61, .355, 1);
+  transition: translate 0.5s cubic-bezier(0.215, 0.61, 0.355, 1);
 }
-.subpage-menu__chapters:has(a:focus-visible) a { opacity: .3; }
-.subpage-menu__chapters a:focus-visible { opacity: 1; }
-.subpage-menu__chapters a:focus-visible .subpage-menu__line { translate: clamp(18px, 2.78vw, 40px) 0; }
+.subpage-menu__chapters a:focus-visible .subpage-menu__line {
+  translate: clamp(18px, 2.78vw, 40px) 0;
+}
 @media (hover: hover) and (pointer: fine) {
-  .subpage-menu__chapters:has(a:hover) a { opacity:.3; }
-  .subpage-menu__chapters a:hover { opacity:1; }
-  .subpage-menu__chapters a:hover .subpage-menu__line { translate:clamp(18px,2.78vw,40px) 0; }
+  .subpage-menu__chapters a:hover .subpage-menu__line {
+    translate: clamp(18px, 2.78vw, 40px) 0;
+  }
 }
 .subpage-menu__number {
   align-self: flex-start;
   flex: 0 0 auto;
-  margin-top: .6em;
-  font-size: clamp(10px, .9vw, 16px);
+  margin-top: 0.6em;
+  font-size: clamp(10px, 0.9vw, 16px);
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
@@ -296,11 +435,11 @@ html.page-turn-lock .subpage-index { opacity:0; pointer-events:none; }
   font-size: var(--index-size);
   font-weight: 400;
   line-height: 1.17;
-  letter-spacing: -.025em;
+  letter-spacing: -0.025em;
 }
 .subpage-menu__zh {
   margin-left: clamp(4px, 1vw, 20px);
-  font-size: clamp(10px, .95vw, 16px);
+  font-size: clamp(10px, 0.95vw, 16px);
   line-height: 1.4;
   white-space: nowrap;
 }
@@ -318,8 +457,15 @@ html.page-turn-lock .subpage-index { opacity:0; pointer-events:none; }
   font-size: 12px;
   text-decoration: none;
 }
-.subpage-menu__language { display: flex; align-items: center; gap: 8px; }
-.subpage-menu__language span { font-size: 12px; opacity: .32; }
+.subpage-menu__language {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.subpage-menu__language span {
+  font-size: 12px;
+  opacity: 0.32;
+}
 .subpage-menu__language button {
   min-height: 44px;
   padding: 12px 2px;
@@ -329,36 +475,49 @@ html.page-turn-lock .subpage-index { opacity:0; pointer-events:none; }
   font: inherit;
   font-size: 12px;
   cursor: pointer;
-  opacity: .32;
-  transition: opacity .25s ease;
+  opacity: 0.32;
+  transition: opacity 0.25s ease;
 }
 .subpage-menu__language button:hover,
 .subpage-menu__language button:focus-visible,
-.subpage-menu__language button[aria-pressed=true] { opacity: 1; }
+.subpage-menu__language button[aria-pressed='true'] {
+  opacity: 1;
+}
 .subpage-menu button:focus-visible,
 .subpage-menu a:focus-visible,
-.subpage-index:focus-visible { outline: 2px solid currentColor; outline-offset: 5px; }
+.subpage-index:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 5px;
+}
 @media (max-width: 600px) {
-  .subpage-index { top: max(20px, env(safe-area-inset-top, 0px)); right: max(20px, env(safe-area-inset-right, 0px)); min-height:44px; min-width:44px; }
-  .subpage-menu { --index-size: clamp(32px, 10.5vw, 58px); padding-top: max(20px, env(safe-area-inset-top, 0px)); }
-  .subpage-menu__header button { min-height:44px; min-width:44px; }
-  .subpage-menu__line { gap: 10px; }
-  .subpage-menu__zh { margin-left: 0; font-size: 10px; }
+  .subpage-index {
+    top: max(20px, env(safe-area-inset-top, 0px));
+    right: max(20px, env(safe-area-inset-right, 0px));
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .subpage-menu {
+    --index-size: clamp(32px, 10.5vw, 58px);
+    padding-top: max(20px, env(safe-area-inset-top, 0px));
+  }
+  .subpage-menu__header button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .subpage-menu__line {
+    gap: 10px;
+  }
+  .subpage-menu__zh {
+    margin-left: 0;
+    font-size: 10px;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .subpage-index,
   .subpage-menu__line,
   .subpage-menu__chapters a,
-  .subpage-menu__language button { transition: none; }
-}
-@media (min-width: 981px) and (min-height: 620px) {
-  .subpage-index.is-about { top: 48px; left: 0; right: auto; width: 48px; height: 48px; opacity: 1; transform: none; pointer-events: auto; }
-  .subpage-index.is-about span { position: absolute; width: 1px; height: 1px; clip-path: inset(50%); overflow: hidden; }
-  .subpage-index.is-about::before { inset: 0; }
-  .subpage-index.is-about::after { content: ''; width: 18px; height: 1px; background: currentColor; box-shadow: 0 6px currentColor; transform: translateY(-3px); }
-}
-@media (max-width: 760px) {
-  .subpage-index.is-about { min-width: 44px; min-height: 44px; padding: 10px 12px; border-radius: 999px; background: #12140F; color: #EFE9DC; box-shadow: inset 0 0 0 1px #C6D2AE; mix-blend-mode: normal; top: max(12px, env(safe-area-inset-top, 0px)); right: max(12px, env(safe-area-inset-right, 0px)); }
-  .subpage-index.is-about::before { inset: 0; }
+  .subpage-menu__language button {
+    transition: none;
+  }
 }
 </style>

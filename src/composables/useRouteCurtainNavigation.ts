@@ -8,7 +8,7 @@ import {
   routeCurtainActive,
   routeCurtainBlocked,
 } from './usePageCurtain'
-import { endJump, isTransitioning, jumpPathFor, jumpTarget, overlayActive } from './useTransition'
+import { endJump, isTransitioning, jumpPathFor, jumpTarget } from './useTransition'
 import {
   beginNavigation,
   createNavigationOwnership,
@@ -19,13 +19,13 @@ import {
 } from '../utils/navigationOwnership'
 
 /** 视觉层的可等待接口；协调器不依赖 PageCurtain 的内部 GSAP 实现。 */
-export interface RouteCurtainHandle {
+interface RouteCurtainHandle {
   cover(entry?: boolean): Promise<void>
   reveal(): Promise<void>
   reset(): void
 }
 
-export interface RouteCurtainNavigationOptions {
+interface RouteCurtainNavigationOptions {
   router: Router
   curtain: Readonly<Ref<RouteCurtainHandle | null>>
 }
@@ -142,7 +142,6 @@ export function useRouteCurtainNavigation({ router, curtain }: RouteCurtainNavig
     routeCurtainActive.value = true
     routeCurtainBlocked.value = true
     isTransitioning.value = true
-    overlayActive.value = false
     document.documentElement.classList.add('page-turn-lock')
     // 历史导航可能打断揭幕；先完成当前短退场，再开始覆盖，避免两条时间线争写同一幕。
     if (revealWork) {
@@ -174,9 +173,8 @@ export function useRouteCurtainNavigation({ router, curtain }: RouteCurtainNavig
     // 弧形边缘移动时同步放行正文入场，输入仍由 active 锁住，避免文字在幕下播完。
     routeCurtainBlocked.value = false
     isTransitioning.value = false
-    overlayActive.value = false
     endJump()
-    document.documentElement.classList.remove('is-jumping', 'no-scroll')
+    document.documentElement.classList.remove('is-jumping')
     revealWork = curtain.value?.reveal() ?? Promise.resolve()
     await revealWork
     if (version !== ownership.version) return
@@ -195,6 +193,7 @@ export function useRouteCurtainNavigation({ router, curtain }: RouteCurtainNavig
     routeCurtainActive.value = false
     routeCurtainBlocked.value = false
     document.documentElement.classList.remove('page-turn-lock')
+    // no-scroll belongs to the visual viewer; cancelling a route must not unlock another owner.
   }
 
   const removeBeforeNavigation = router.beforeEach(async (to, from) => {
@@ -206,9 +205,8 @@ export function useRouteCurtainNavigation({ router, curtain }: RouteCurtainNavig
         clearWatchdog()
         cancelCurtain()
         endJump()
-        overlayActive.value = false
         isTransitioning.value = false
-        document.documentElement.classList.remove('is-jumping', 'no-scroll')
+        document.documentElement.classList.remove('is-jumping')
       }
       return true
     }
@@ -409,9 +407,8 @@ export function useRouteCurtainNavigation({ router, curtain }: RouteCurtainNavig
    */
   function restoreCurrentPage(): void {
     endJump()
-    overlayActive.value = false
     isTransitioning.value = false
-    document.documentElement.classList.remove('is-jumping', 'no-scroll')
+    document.documentElement.classList.remove('is-jumping')
     // 替代导航可能已经拥有幕布，不能因旧任务失败而取消新页面的成功退场。
     if (routeCurtainActive.value && ownership.target !== router.currentRoute.value.fullPath)
       cancelCurtain()

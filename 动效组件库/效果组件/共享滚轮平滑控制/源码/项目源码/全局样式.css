@@ -27,7 +27,7 @@
   /*
       ==================== /about 页面色板 ====================
       为什么放在 `:root` 而不是 `.about-page` 上：
-      ⚠️ 作品查看器（`WorkViewer.vue`）用 `<Teleport to="body">` 挂到 body 下 ——
+      ⚠️ 作品查看器（`VisualViewer.vue`）用 `<Teleport to="body">` 挂到 body 下 ——
          它**不在** `.about-page` 子树里，定义在页面根容器上的变量继承不到它，
          只能到处写 `var(--ab-accent, #d6f34a)` 这样的兜底字面量，
          于是同一套颜色有两个来源，改一处忘一处。

@@ -1,5 +1,5 @@
 /** 无浏览器依赖的导航决策；fullPath 包含 query/hash，不能只比较页面路径。 */
-export interface NavigationOwnership {
+interface NavigationOwnership {
   readonly version: number
   readonly target: string
   readonly latestTarget: string

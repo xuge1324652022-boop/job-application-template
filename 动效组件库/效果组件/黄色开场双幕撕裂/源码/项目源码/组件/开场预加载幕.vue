@@ -35,6 +35,7 @@
  */
 import { onBeforeUnmount, onMounted, ref, nextTick } from 'vue'
 import gsap from 'gsap'
+import { prefersReduced } from '../工具/动态偏好'
 
 const emit = defineEmits(['complete'])
 const rootRef = ref(null)
@@ -88,7 +89,7 @@ onMounted(async () => {
    *    index.html 里那层静态黄幕（#boot-splash）。只 emit('complete') 的话
    *    黄幕会一直盖到 8s 硬兜底才撤 —— 那 8 秒里用户看到的是一片纯黄。
    */
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  if (prefersReduced()) {
     finish()
     return
   }
@@ -126,7 +127,14 @@ onMounted(async () => {
       span.style.overflow = 'hidden'
       // 空格换成不换行空格，否则会被 HTML 折叠掉。
       // inner span 也写 inline display：它要靠 gsap 改 transform 做位移。
-      span.innerHTML = `<span style="display:inline-block">${char === ' ' ? '\u00A0' : char}</span>`
+      //
+      // 用 createElement + textContent 而不是拼 innerHTML：字符来自站点文案
+      // （`SELECTED WORKS` 之类），本身不构成注入风险，但拼字符串意味着将来
+      // 谁把标题换成用户可控内容就会直接变成注入点。文本节点没有这个问题。
+      const inner = document.createElement('span')
+      inner.style.display = 'inline-block'
+      inner.textContent = char === ' ' ? '\u00A0' : char
+      span.appendChild(inner)
       el.appendChild(span)
     })
   })

@@ -186,7 +186,7 @@
   },
   "agentNotes": [
     "此包的 entryFiles 只指向视觉组件与状态；App/router 是 integrationFiles，避免将全应用当组件依赖复制。",
-    "useTransition 中 OVERLAY_COVER_MS=300、OVERLAY_REVEAL_MS=400 属旧兼容导出，不是现行幕布时长。",
+    "幕布时长只在 PageCurtain.vue 定义；useTransition 不再导出 OVERLAY_COVER_MS / OVERLAY_REVEAL_MS 这类旧兼容常量。",
     "verification.commands 是建议运行的现有仓库命令，不表示本 JSON 编写时已经执行。"
   ],
   "relatedEffects": [

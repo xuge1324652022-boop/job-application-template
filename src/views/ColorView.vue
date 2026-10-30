@@ -89,7 +89,7 @@
         class="cview__hero-sub"
         :text="COLOR_INTRO"
         :label="INTRO_LABEL"
-        :active="!covered && !overlayActive && !isTransitioning"
+        :active="!covered && !isTransitioning"
       />
     </section>
 
@@ -202,7 +202,6 @@ import {
   isTransitioning,
   jumpTarget,
   markSubpageVisit,
-  overlayActive,
 } from '../composables/useTransition'
 import { routeCurtainActive, routeCurtainBlocked } from '../composables/usePageCurtain'
 
@@ -246,12 +245,11 @@ markSubpageVisit(COLOR_PAGE_ID)
  * 用户只看到一个到位的静态标题。
  */
 const covered = computed(
-  () =>
-    routeCurtainBlocked.value || !!jumpTarget.value || overlayActive.value || isTransitioning.value,
+  () => routeCurtainBlocked.value || !!jumpTarget.value || isTransitioning.value,
 )
 provide(
   referenceIntroductionGate,
-  computed(() => !covered.value && !overlayActive.value && !isTransitioning.value),
+  computed(() => !covered.value && !isTransitioning.value),
 )
 
 const introRef = ref<HTMLElement | null>(null)
@@ -435,7 +433,6 @@ function onTouchMove(e: TouchEvent): void {
     Math.abs(dx) > Math.abs(dy) ||
     routeCurtainActive.value ||
     covered.value ||
-    overlayActive.value ||
     isTransitioning.value ||
     html.classList.contains('has-subpage-index') ||
     html.classList.contains('no-scroll')

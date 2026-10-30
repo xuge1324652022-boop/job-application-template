@@ -209,10 +209,10 @@
       "original": "src/cardAnimations/base.ts",
       "path": "源码/项目源码/卡片动画/卡片动画基础.ts",
       "role": "dependency",
-      "originalSha256": "0fcbd5c74a13f457e8b6437ff95451dd84149375e1fc20f728ad997f53666c5c",
-      "originalBytes": 8024,
-      "sha256": "29fc1bb6bad826f880b3079690f741d4b1796eac6bd1ca5625d0c47e965e819e",
-      "bytes": 8037
+      "originalSha256": "e9dbd9442ea7f30680e51b10538c52d5274ed3e07f192e3e4f5cf2cf70041734",
+      "originalBytes": 8121,
+      "sha256": "57e54d6aefc71f79454e4b7be86f70883da1c9ffbee8860cffea140a5bd7c4f6",
+      "bytes": 8141
     },
     {
       "original": "src/cardAnimations/poster.ts",
@@ -236,10 +236,19 @@
       "original": "src/style.css",
       "path": "源码/项目源码/全局样式.css",
       "role": "global-style",
-      "originalSha256": "d17284112f7cd7ce1dc7f7e48847895d2086b25cd404079d5b5a5647475ec2ca",
-      "originalBytes": 4142,
-      "sha256": "d17284112f7cd7ce1dc7f7e48847895d2086b25cd404079d5b5a5647475ec2ca",
-      "bytes": 4142
+      "originalSha256": "4d8434037404ff51386849082a9113c2fdb60bce4e5741ca8801f15d85c10a9b",
+      "originalBytes": 4144,
+      "sha256": "4d8434037404ff51386849082a9113c2fdb60bce4e5741ca8801f15d85c10a9b",
+      "bytes": 4144
+    },
+    {
+      "original": "src/utils/motion.ts",
+      "path": "源码/项目源码/工具/动态偏好.ts",
+      "role": "dependency",
+      "originalSha256": "1aab18bfa6b543554c9d088b927256de18b10d77b98b03729fd3890e6428c3cf",
+      "originalBytes": 1720,
+      "sha256": "1aab18bfa6b543554c9d088b927256de18b10d77b98b03729fd3890e6428c3cf",
+      "bytes": 1720
     },
     {
       "original": "src/components/CardVisual.vue",
@@ -254,10 +263,10 @@
       "original": "src/components/ThreeHome.vue",
       "path": "集成示例/项目源码/组件/六卡空间首页.vue",
       "role": "integration-context",
-      "originalSha256": "3fbaeb346202507902151ea85d94ec0b01ca937a44e2ee2fa47e9b10a50beb56",
-      "originalBytes": 56928,
-      "sha256": "dbd707eab8311b4020c920f898ef91d7c6b67996b1df00beca04251727d7f336",
-      "bytes": 56993
+      "originalSha256": "084e602cafc4eedcd2eb663e88159d56dfbeceddb6631c8bbe064bff6cd4d205",
+      "originalBytes": 57010,
+      "sha256": "4329c7e2d1f797d87bbb8e3beec8e6c20dfd997a2e7339888b35095d82e1d7c3",
+      "bytes": 57083
     },
     {
       "original": "src/cardAnimations/index.ts",

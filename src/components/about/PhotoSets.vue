@@ -139,7 +139,8 @@ import { pick, type Lang } from '../../data/aboutProfile'
 import type { PhotoSet } from '../../data/photoPage'
 import type { VisualAsset } from '../../data/visualPortfolio'
 import { usePhotoDrag } from '../../composables/usePhotoDrag'
-import { chapterSchedule, unit } from '../../utils/photoStory'
+import { chapterSchedule } from '../../utils/photoStory'
+import { clamp } from '../../utils/clamp'
 const props = defineProps<{ sets: readonly PhotoSet[]; lang: Lang }>()
 const emit = defineEmits<{ open: [item: VisualAsset, trigger: HTMLElement] }>()
 /**
@@ -235,7 +236,7 @@ function render() {
   const y = window.scrollY - origin
   let selected = 0
   schedule.forEach((time, group) => {
-    const curtain = group === 0 ? 1 : unit((y - time.enter) / time.wipe)
+    const curtain = group === 0 ? 1 : clamp((y - time.enter) / time.wipe)
     if (curtain >= 0.5) selected = group
     const position = Math.max(0, Math.min(steps.value[group]! - 1, (y - time.start) / stride))
     const next = schedule[group + 1]
@@ -266,7 +267,7 @@ function render() {
       //    `.ps__slot` 从来没有人写过 transform，清它是空操作。
       const local = Math.min(position, Math.max(0, lane.length - 1))
       lane.forEach((slot, i) => {
-        const reveal = i === 0 ? 1 : unit(local - i + 1)
+        const reveal = i === 0 ? 1 : clamp(local - i + 1)
         const hidden = (1 - reveal) * 100
         slot.style.clipPath = column === 0 ? `inset(${hidden}% 0 0)` : `inset(0 0 ${hidden}%)`
         // 只保留当前底图与正在揭开的新图，避免几十张大图同时参与绘制。

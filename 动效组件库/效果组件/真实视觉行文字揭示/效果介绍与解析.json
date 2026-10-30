@@ -287,19 +287,19 @@
       "original": "src/data/visualPortfolio.ts",
       "path": "源码/项目源码/数据/视觉作品资料.ts",
       "role": "dependency",
-      "originalSha256": "fc1f99d02c7d9b2885275e4a8361e1ee570132b656a3c9c2a598b0e1b62bc4be",
-      "originalBytes": 22963,
-      "sha256": "910ee9502b04b9c56e5301e2be13da3046af61e528e18339b81a674d67e37b54",
-      "bytes": 22970
+      "originalSha256": "e0276ef3f86a80d1277489f07d105f72340f7981e35b8026986c7a6e84f76a83",
+      "originalBytes": 22956,
+      "sha256": "59ae9bc184bfec36a9459d23eb07e17832c3042105639305c294647d720628e0",
+      "bytes": 22963
     },
     {
       "original": "src/style.css",
       "path": "源码/项目源码/全局样式.css",
       "role": "global-style",
-      "originalSha256": "d17284112f7cd7ce1dc7f7e48847895d2086b25cd404079d5b5a5647475ec2ca",
-      "originalBytes": 4142,
-      "sha256": "d17284112f7cd7ce1dc7f7e48847895d2086b25cd404079d5b5a5647475ec2ca",
-      "bytes": 4142
+      "originalSha256": "4d8434037404ff51386849082a9113c2fdb60bce4e5741ca8801f15d85c10a9b",
+      "originalBytes": 4144,
+      "sha256": "4d8434037404ff51386849082a9113c2fdb60bce4e5741ca8801f15d85c10a9b",
+      "bytes": 4144
     },
     {
       "original": "src/utils/motionLayout.ts",
@@ -323,46 +323,46 @@
       "original": "src/views/AboutView.vue",
       "path": "集成示例/项目源码/页面/人物介绍页.vue",
       "role": "integration-context",
-      "originalSha256": "2fffecf6220c30a0d229e792e5420f41c83855a6ec2da4209bf6b178cc86b5bc",
-      "originalBytes": 10951,
-      "sha256": "7933a23e1e7503175a0caded62161bc8f9a74b6c515926487cd905babb0f32eb",
-      "bytes": 11050
+      "originalSha256": "608202edea918ec14d117614455973d61836d18b0a4bcbce6b77e9658e1c3930",
+      "originalBytes": 10900,
+      "sha256": "2db8f50a360c14fa86cbcda82b990b32996302af5f3703f1665673233da9cfee",
+      "bytes": 10999
     },
     {
       "original": "src/views/PosterView.vue",
       "path": "集成示例/项目源码/页面/海报作品页.vue",
       "role": "integration-context",
-      "originalSha256": "cde3006689c28afb231442de9af48289388d34361fbc06e7f6e3240dafc86872",
-      "originalBytes": 13578,
-      "sha256": "b5f15a5b27700fcea59da8a09c53afea01abe68417fe83e6019c366cee68669d",
-      "bytes": 13681
+      "originalSha256": "81e4b70a7b38b8d328b9ce23fb7453929f03500f11c14d5d89826d9705cf9f26",
+      "originalBytes": 13534,
+      "sha256": "1d622a44f6dbb8ea673fbd69ce8bbf11d85eb995b000dabb58d3c885d36f3fd5",
+      "bytes": 13637
     },
     {
       "original": "src/views/PhotoView.vue",
       "path": "集成示例/项目源码/页面/摄影作品页.vue",
       "role": "integration-context",
-      "originalSha256": "cbf8d00718cc3729fea54bd580cad474346c4f254a96b5b8038fad630bd3fcc3",
-      "originalBytes": 19255,
-      "sha256": "4b287ffe2b3372dc46caad873a85a185898cf5673cc4a9579c37249167dfeabf",
-      "bytes": 19343
+      "originalSha256": "1ae48a48f090978419b349290dcf6d83132700770e9cd3790d49f0d260b58c55",
+      "originalBytes": 19215,
+      "sha256": "cee56c4d213c02a4ddd5cd330e058628d2e3b9d438e1aa9c8f541cd3f59c1ae6",
+      "bytes": 19303
     },
     {
       "original": "src/views/ColorView.vue",
       "path": "集成示例/项目源码/页面/调色作品页.vue",
       "role": "integration-context",
-      "originalSha256": "81f0a79138132528c4fac07d2ce4fc9c81b3fe35c0e71e83e93b51f443fb2a39",
-      "originalBytes": 43080,
-      "sha256": "e6b4ede380e8f5c22e001626181a5bc1e04d999aed6057a2b5ce9e309496fdc7",
-      "bytes": 43095
+      "originalSha256": "6c35187bf25cb4c6107235c9679f65ee55d0b3724da9f74f6db1755958980235",
+      "originalBytes": 42967,
+      "sha256": "8528745df9c514454f263a09066cc5a31d4368dc8caffdddc39318dfe1e3cf79",
+      "bytes": 42982
     },
     {
       "original": "src/views/FoundationView.vue",
       "path": "集成示例/项目源码/页面/基础作品页.vue",
       "role": "integration-context",
-      "originalSha256": "b790bce24b3a394712bb0e0e7d401e54816b8de8fef3e853e1cf3646edc9f675",
-      "originalBytes": 19360,
-      "sha256": "1d7a34970e009656251e655e6a2e8ce5882713bb79bfa7ff4d7e91e6014da695",
-      "bytes": 19379
+      "originalSha256": "ea85d7caf8ec24df33843291dba08048263999268cdf1ace88335afd6ab51d20",
+      "originalBytes": 39646,
+      "sha256": "de0668a79df015c82e9a5686e355e46208a1ec5df1117f7938328203cc47ba5f",
+      "bytes": 39665
     },
     {
       "original": "src/components/about/AboutSection.vue",

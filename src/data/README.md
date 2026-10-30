@@ -9,9 +9,6 @@
 | `chapters.ts` | 六张首页卡片的编号、标题、顺序与环境动画相位。实际路径集中在 `useTransition.ts`。 |
 | `aboutProfile.ts` | 虚构求职者的身份、经历、技能、示例联系信息及兼容案例接口。 |
 | `resumeEmphasis.ts` | 示例正文的加粗片段映射，不改写正文或自动把所有数字加粗。 |
-| `aboutDividers.ts` | 各区间之间的双语过渡文案。 |
-| `aboutCampaign.ts` | 模板定位及六步方法示例；当前五个交互页签使用 `creativeProcess.ts`。 |
-| `creativeProcess.ts` | 虚构工作流的判断、工具辅助与交付形式，不陈述维护者的个人经历。 |
 | `aiTools.ts` | 六个工具的图标路径、一般用途和资料来源，不表示技能认证或实际业绩。 |
 | `foundationPages.ts` | 剪辑、新闻页的虚构主题与阅读结构，不含真实客户、报道或采访。 |
 | `visualPortfolio.ts` | 26 张合成图像与 10 张合成海报的编号标题、比例、替代文本与路径。 |

@@ -197,7 +197,7 @@ onBeforeUnmount(() => {
 .about-rail__chapters {
   list-style: none;
   padding: 0;
-  margin: 48px 0 0;
+  margin: 0;
 }
 .about-rail__chapter {
   position: relative;

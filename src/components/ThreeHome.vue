@@ -153,13 +153,13 @@
  * 此处统一协调拖拽、滚轮、键盘、索引与后退恢复；只写各自持有的变换层，避免相互覆盖。
  * 指针视差按需唤醒 ticker，尺寸变化去重；卸载统一撤销监听、计时器、观察器与动画。
  */
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { ComponentPublicInstance } from 'vue'
 import gsap from 'gsap'
+import { clamp } from '../utils/clamp'
 import {
   CARD_COUNT,
   INTRO_DURATION,
-  clamp,
   entranceEase,
   layoutGallery,
   normalizeIndex,
@@ -1273,8 +1273,8 @@ onMounted(() => {
   }
 })
 
-/** 卸载：清理所有监听与时间线 */
-onUnmounted(() => {
+/** 在模板 ref 清空前注销本地监听，同时停止全局监听与时间线。 */
+onBeforeUnmount(() => {
   destroyed = true
   motionMedia.removeEventListener('change', onMotionChange)
   // 离开画廊：把「拖拽 / 锁定」状态交还给全局光标，避免它卡在 drag/locked。

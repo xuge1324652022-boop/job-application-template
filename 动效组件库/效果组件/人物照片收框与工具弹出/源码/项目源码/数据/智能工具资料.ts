@@ -1,9 +1,9 @@
 /**
  * 六个 AI 工具的展示资料与本地图标；职责描述创作方法，不代表认证等级或量化业绩。
  * 图标与产品介绍来源见 docs/AI工具图标来源.md；不在运行时请求远端图标。
- * id 是头像浮层与工作流选择的共享键，creativeProcess.tools 也必须引用这些稳定 id。
+ * id 是动效库人物照片浮层使用的稳定键。
  */
-export interface AiTool {
+interface AiTool {
   id: string
   name: string
   english: string

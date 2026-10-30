@@ -206,7 +206,6 @@ function onKey(e: KeyboardEvent): void {
   /*
    * ⚠️ `role="dialog"` + `aria-modal="true"` 只是**声明**，浏览器不会因此把 Tab
    *    关在弹层里。这里自己圈住：到两端绕回另一端，落在弹层外就拉回第一个。
-   *    （与 `WorkViewer.vue` 同一套做法，两处都要各自圈 —— 它们不是同一个实例。）
    */
   const list = focusables()
   if (!list.length) {

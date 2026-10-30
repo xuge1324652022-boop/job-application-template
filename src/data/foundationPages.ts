@@ -6,7 +6,7 @@ import { personalSiteValue } from './personalPortfolio'
 import type { Bi } from './aboutProfile'
 
 export type FoundationKind = 'edit' | 'news'
-export type FoundationTheme = {
+type FoundationTheme = {
   /** 同时用于页签 id 与内容锚点，改名需检查深链接。 */
   key: string
   title: Bi
@@ -15,7 +15,7 @@ export type FoundationTheme = {
   description: Bi
   detail: Bi
 }
-export type FoundationPage = {
+type FoundationPage = {
   id: string
   heading: string
   title: Bi

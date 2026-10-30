@@ -187,7 +187,7 @@
   },
   "agentNotes": [
     "此包的 entryFiles 只指向视觉组件与状态；App/router 是 integrationFiles，避免将全应用当组件依赖复制。",
-    "useTransition 中 OVERLAY_COVER_MS=300、OVERLAY_REVEAL_MS=400 属旧兼容导出，不是现行幕布时长。",
+    "幕布时长只在 PageCurtain.vue 定义；useTransition 不再导出 OVERLAY_COVER_MS / OVERLAY_REVEAL_MS 这类旧兼容常量。",
     "verification.commands 是建议运行的现有仓库命令，不表示本 JSON 编写时已经执行。"
   ],
   "relatedEffects": [
@@ -291,28 +291,28 @@
       "original": "src/data/visualPortfolio.ts",
       "path": "源码/项目源码/数据/视觉作品资料.ts",
       "role": "dependency",
-      "originalSha256": "fc1f99d02c7d9b2885275e4a8361e1ee570132b656a3c9c2a598b0e1b62bc4be",
-      "originalBytes": 22963,
-      "sha256": "910ee9502b04b9c56e5301e2be13da3046af61e528e18339b81a674d67e37b54",
-      "bytes": 22970
+      "originalSha256": "e0276ef3f86a80d1277489f07d105f72340f7981e35b8026986c7a6e84f76a83",
+      "originalBytes": 22956,
+      "sha256": "59ae9bc184bfec36a9459d23eb07e17832c3042105639305c294647d720628e0",
+      "bytes": 22963
     },
     {
       "original": "src/style.css",
       "path": "源码/项目源码/全局样式.css",
       "role": "global-style",
-      "originalSha256": "d17284112f7cd7ce1dc7f7e48847895d2086b25cd404079d5b5a5647475ec2ca",
-      "originalBytes": 4142,
-      "sha256": "d17284112f7cd7ce1dc7f7e48847895d2086b25cd404079d5b5a5647475ec2ca",
-      "bytes": 4142
+      "originalSha256": "4d8434037404ff51386849082a9113c2fdb60bce4e5741ca8801f15d85c10a9b",
+      "originalBytes": 4144,
+      "sha256": "4d8434037404ff51386849082a9113c2fdb60bce4e5741ca8801f15d85c10a9b",
+      "bytes": 4144
     },
     {
       "original": "src/utils/overlayTouchGuard.ts",
       "path": "源码/项目源码/工具/覆盖层触摸保护.ts",
       "role": "dependency",
-      "originalSha256": "f125cfd08f646dfe84ac0320414f37d3716d2b01bafee2c9d4bc433a15ccbc85",
-      "originalBytes": 2717,
-      "sha256": "f125cfd08f646dfe84ac0320414f37d3716d2b01bafee2c9d4bc433a15ccbc85",
-      "bytes": 2717
+      "originalSha256": "d32b7273e1da8388c13503434d2df83a9b689acd866c6d40f02690379a4be55f",
+      "originalBytes": 2797,
+      "sha256": "d32b7273e1da8388c13503434d2df83a9b689acd866c6d40f02690379a4be55f",
+      "bytes": 2797
     },
     {
       "original": "src/App.vue",
@@ -327,10 +327,10 @@
       "original": "src/composables/useTransition.ts",
       "path": "集成示例/项目源码/组合函数/应用转场状态.ts",
       "role": "integration-context",
-      "originalSha256": "f32a8ef8548dc3e79690e0e68f3d763844eed96f876ac2aa00499376cab70247",
-      "originalBytes": 8511,
-      "sha256": "f32a8ef8548dc3e79690e0e68f3d763844eed96f876ac2aa00499376cab70247",
-      "bytes": 8511
+      "originalSha256": "b6e9d99df5bd576dbcc5cb3d7e9046b576fcd4af435908ae5912316b386f4cef",
+      "originalBytes": 8424,
+      "sha256": "b6e9d99df5bd576dbcc5cb3d7e9046b576fcd4af435908ae5912316b386f4cef",
+      "bytes": 8424
     },
     {
       "original": "src/router/index.ts",
@@ -354,19 +354,19 @@
       "original": "src/composables/useRouteCurtainNavigation.ts",
       "path": "集成示例/项目源码/组合函数/路由幕布导航.ts",
       "role": "integration-context",
-      "originalSha256": "ad8c63f73f83152dbc09424c0f2f23af79cff6fe54849c887b34c59fadce522a",
-      "originalBytes": 16966,
-      "sha256": "27d1fefba57d0a2d212cfb04510e0bca01529765b982ce5bdbbf7b3620165d96",
-      "bytes": 16972
+      "originalSha256": "3d46753ca9c119ac3c977a1a4e961ca995124d318a83c6ced48beed5eb826843",
+      "originalBytes": 16863,
+      "sha256": "7285146030015b850dfdc381f36eba4233cc021641325406da8cd5b8eb682926",
+      "bytes": 16869
     },
     {
       "original": "src/utils/navigationOwnership.ts",
       "path": "集成示例/项目源码/工具/导航所有权.ts",
       "role": "integration-context",
-      "originalSha256": "40a0e4e7406967c1bf2acfdc44408b477c3e60e11dfaa20d0aa11d040adfb63f",
-      "originalBytes": 1940,
-      "sha256": "40a0e4e7406967c1bf2acfdc44408b477c3e60e11dfaa20d0aa11d040adfb63f",
-      "bytes": 1940
+      "originalSha256": "773e7087aeeb6398dcea877c057f1860510af74b4babcefff05448fcc8cdd713",
+      "originalBytes": 1933,
+      "sha256": "773e7087aeeb6398dcea877c057f1860510af74b4babcefff05448fcc8cdd713",
+      "bytes": 1933
     }
   ]
 }

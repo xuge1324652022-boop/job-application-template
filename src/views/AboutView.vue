@@ -16,7 +16,7 @@
       <AboutStudioStory :lang="lang" @open="onOpenVisual" />
       <AboutIndustries :lang="lang" />
       <LazySection ref="contactSection" min-height="100vh" :eager="eagerAll"
-        ><ContactEnd :lang="lang"
+        ><StudioContact :lang="lang"
       /></LazySection>
     </main>
     <VisualViewer v-if="viewerItem" :item="viewerItem" :lang="lang" @close="closeViewer" />
@@ -53,7 +53,7 @@ import AboutWordMarquee from '../components/about/AboutWordMarquee.vue'
 import AboutWordZoom from '../components/about/AboutWordZoom.vue'
 import LazySection from '../components/LazySection.vue'
 // 首屏以下重区块拆成独立 chunk，随 LazySection 按需加载；查看器打开时才加载。
-const ContactEnd = defineAsyncComponent(() => import('../components/about/AboutStudioContact.vue'))
+const StudioContact = defineAsyncComponent(() => import('../components/about/AboutStudioContact.vue'))
 const VisualViewer = defineAsyncComponent(() => import('../components/about/VisualViewer.vue'))
 import { WORKS, assertParity } from '../data/aboutProfile'
 import { assertVisuals, type VisualAsset } from '../data/visualPortfolio'
@@ -64,7 +64,6 @@ import {
   isTransitioning,
   jumpTarget,
   markSubpageVisit,
-  overlayActive,
 } from '../composables/useTransition'
 import { routeCurtainBlocked } from '../composables/usePageCurtain'
 
@@ -86,11 +85,7 @@ onBeforeUnmount(resetViewer)
 markSubpageVisit(ABOUT_PAGE_ID)
 // blocked 在全局幕布开始揭开时解除；不等幕布彻底离场，首屏文字才能接上转场节奏。
 const heroActive = computed(
-  () =>
-    !routeCurtainBlocked.value &&
-    !jumpTarget.value &&
-    !overlayActive.value &&
-    !isTransitioning.value,
+  () => !routeCurtainBlocked.value && !jumpTarget.value && !isTransitioning.value,
 )
 provide(referenceIntroductionGate, heroActive)
 const aboutRouter = useRouter()

@@ -3,9 +3,18 @@ import { readFile } from 'node:fs/promises'
 import ts from 'typescript'
 
 // 不启动浏览器、不生成 dist；直接验证滚动编排的观看顺序与离场边界。
-const source = await readFile(new URL('../src/components/about/internshipStackMotion.ts', import.meta.url), 'utf8')
+const readSource = file => readFile(new URL(file, import.meta.url), 'utf8')
+const toDataURL = text => `data:text/javascript;base64,${Buffer.from(text).toString('base64')}`
+const transpile = text => ts.transpileModule(text, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 } }).outputText
+
+// 模块现在从 utils/clamp 取钳制函数。data: URL 解析不了相对路径，
+// 所以先把 clamp 单独转译成一个 data: URL，再把源码里的相对路径换成它 ——
+// 这样测的仍是真实实现，不是脚本里另写一份副本。
+const clampURL = toDataURL(transpile(await readSource('../src/utils/clamp.ts')))
+const source = (await readSource('../src/components/about/internshipStackMotion.ts'))
+  .replaceAll("'../../utils/clamp'", JSON.stringify(clampURL))
 // 只转译纯数学模块：此用例不依赖 DOM，也不能替代实际图片清晰度/滚动帧率验收。
-const { outputText } = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 } })
+const { outputText } = { outputText: transpile(source) }
 const { stackState, stackTravel, stackPagePosition, stackLastPagePosition,
   STACK_ENTER_END, STACK_FOLD_START, STACK_FOLD_END, STACK_GALLERY_START, STACK_PAGE_STEP,
   STACK_WIPE_LENGTH } = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`)

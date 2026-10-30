@@ -8,7 +8,8 @@ export function guardOverlayTouchScroll(
   events: EventTarget = document,
 ): () => void {
   let previous: { x: number; y: number } | undefined
-  const zoomed = () => typeof window !== 'undefined' && (window.visualViewport?.scale ?? 1) > 1.01
+  // 纯静态 SPA，window 恒在；visualViewport 才是需要降级判断的能力（老 WebView 没有）。
+  const zoomed = () => (window.visualViewport?.scale ?? 1) > 1.01
 
   function start(event: Event): void {
     const touch = event as TouchEvent

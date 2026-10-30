@@ -175,13 +175,6 @@ onBeforeUnmount(() => {
   line-height: 1.7;
   color: var(--ab-soft);
 }
-.quote-scene__cue {
-  position: absolute;
-  left: 50%;
-  bottom: 26px;
-  color: var(--ab-soft);
-  font-size: 22px;
-}
 @media (max-width: 760px), (max-height: 619px), (prefers-reduced-motion: reduce) {
   .quote-scene__stage {
     height: auto;
@@ -194,9 +187,6 @@ onBeforeUnmount(() => {
   }
   .quote-scene__statement {
     font-size: clamp(24px, 6.4vw, 40px);
-  }
-  .quote-scene__cue {
-    display: none;
   }
 }
 </style>

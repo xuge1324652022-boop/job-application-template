@@ -1,4 +1,5 @@
 import gsap from 'gsap'
+import { prefersReduced } from '../utils/motion'
 import type { CardAnimation, CardMedia } from './types'
 
 /** GSAP 时间线类型，转出来好让子类不必再自己 import gsap */
@@ -191,13 +192,12 @@ export abstract class BaseAnimation implements CardAnimation {
    * 仅仅暂停环境循环是不够的：一张跟随鼠标的卡仍在运动，而这恰恰就是
    * 该项无障碍设置想要消除的那类运动。子类据此**干脆不注册**鼠标监听，
    * 让构图停在它被设计好的位置上。
+   *
+   * 查询走 `utils/motion` 的惰性单例 —— 这个方法在 pause / play / 聚焦切换
+   * 时都会被调，每次新建一个 MediaQueryList 是白花钱。
    */
   protected reduced(): boolean {
-    return (
-      typeof window !== 'undefined' &&
-      !!window.matchMedia &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    )
+    return prefersReduced()
   }
 
   /** 给子类提供的快捷查询：只在自己子树内找单个元素 */

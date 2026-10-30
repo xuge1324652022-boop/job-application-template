@@ -9,6 +9,11 @@ const component = path => parse(fs.readFileSync(path, 'utf8')).descriptor
 const compile = source => ts.transpileModule(source, { compilerOptions: {
   target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS,
 } }).outputText
+// 组件源码里 `clamp` 是 import 进来的；这里把真实实现取出来注入 vm 上下文。
+const clampESM = ts.transpileModule(fs.readFileSync('src/utils/clamp.ts', 'utf8'), {
+  compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
+}).outputText
+const { clamp } = await import(`data:text/javascript;base64,${Buffer.from(clampESM).toString('base64')}`)
 
 // 执行实际render，而非复制其算法；验证切换两端与倒滚时可见层的真实样式输出。
 const photo = component('src/components/about/PhotoSets.vue')
@@ -26,7 +31,8 @@ const scene = {
   chapters: Array.from({ length: 3 }, () => ({ style: {} })),
   bars: Array.from({ length: 3 }, () => ({ style: {} })),
   slots: Array.from({ length: 3 }, () => [[{ style: {} }, { style: {} }], [{ style: {} }, { style: {} }]]),
-  unit: value => Math.max(0, Math.min(1, value)),
+  // PhotoSets 的进度钳制现在来自 utils/clamp，注入真实实现而不是脚本里再写一份。
+  clamp,
 }
 vm.createContext(scene)
 vm.runInContext(compile(render), scene)

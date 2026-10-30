@@ -52,13 +52,10 @@
 
 <script setup lang="ts">
 /** /cards 作品索引：卡片保留独立 CSS 放大，再交给全局幕布完成导航。 */
-import { onBeforeUnmount, ref } from 'vue'
+import { onBeforeUnmount, ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { routeCurtainActive } from '../composables/usePageCurtain'
-import {
-  isTransitioning,
-  jumpPathFor,
-} from '../composables/useTransition'
+import { isTransitioning, jumpPathFor } from '../composables/useTransition'
 
 /** 单张卡片的独立动画参数 */
 interface CardAnimation {
@@ -88,17 +85,94 @@ interface CardAnimation {
  * CSS 里一律用 var(--card-*)，不得出现任何写死的数值。
  */
 const cardAnimations: CardAnimation[] = [
-  { id: '01', title: '关于我', label: 'About',  scale: 1.4,  rotate: -8,  duration: 0.5,  easing: 'cubic-bezier(0.16, 1, 0.3, 1)',    origin: 'left center' },
-  { id: '02', title: '剪辑', label: 'Editing',   scale: 1.2,  rotate: 6,   duration: 0.6,  easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)', origin: 'center' },
-  { id: '03', title: '调色', label: 'Colour grading',  scale: 1.6,  rotate: -12, duration: 0.45, easing: 'cubic-bezier(0.22, 1, 0.36, 1)',   origin: 'right center' },
-  { id: '04', title: '新闻影像', label: 'News',   scale: 1.35, rotate: 10,  duration: 0.55, easing: 'cubic-bezier(0.16, 1, 0.3, 1)',    origin: 'center left' },
-  { id: '05', title: '海报设计', label: 'Poster design', scale: 1.5,  rotate: -5,  duration: 0.5,  easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)', origin: 'center right' },
-  { id: '06', title: '摄影', label: 'Photography',  scale: 1.25, rotate: 14,  duration: 0.65, easing: 'cubic-bezier(0.22, 1, 0.36, 1)',   origin: 'center' },
+  {
+    id: '01',
+    title: '关于我',
+    label: 'About',
+    scale: 1.4,
+    rotate: -8,
+    duration: 0.5,
+    easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+    origin: 'left center',
+  },
+  {
+    id: '02',
+    title: '剪辑',
+    label: 'Editing',
+    scale: 1.2,
+    rotate: 6,
+    duration: 0.6,
+    easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+    origin: 'center',
+  },
+  {
+    id: '03',
+    title: '调色',
+    label: 'Colour grading',
+    scale: 1.6,
+    rotate: -12,
+    duration: 0.45,
+    easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+    origin: 'right center',
+  },
+  {
+    id: '04',
+    title: '新闻影像',
+    label: 'News',
+    scale: 1.35,
+    rotate: 10,
+    duration: 0.55,
+    easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+    origin: 'center left',
+  },
+  {
+    id: '05',
+    title: '海报设计',
+    label: 'Poster design',
+    scale: 1.5,
+    rotate: -5,
+    duration: 0.5,
+    easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+    origin: 'center right',
+  },
+  {
+    id: '06',
+    title: '摄影',
+    label: 'Photography',
+    scale: 1.25,
+    rotate: 14,
+    duration: 0.65,
+    easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+    origin: 'center',
+  },
 ]
 
 const expandingId = ref<string | null>(null)
 const router = useRouter()
 let expansionTimer = 0
+let expansionGeneration = 0
+function cancelExpansionDelay(): void {
+  window.clearTimeout(expansionTimer)
+  expansionTimer = 0
+  document.documentElement.classList.remove('card-expansion-lock')
+}
+function resetExpansion(version = expansionGeneration): void {
+  if (version !== expansionGeneration) return
+  expansionGeneration++
+  cancelExpansionDelay()
+  expandingId.value = null
+}
+function onCurtainChange(active: boolean): void {
+  if (active) {
+    // The route now owns input. Keep the expanded card visible until the curtain covers it.
+    expansionGeneration++
+    cancelExpansionDelay()
+  } else {
+    // If navigation was cancelled, the still-mounted list becomes interactive again.
+    resetExpansion()
+  }
+}
+watch(routeCurtainActive, onCurtainChange)
 
 /**
  * 点击卡片：完整的转场时序。
@@ -110,13 +184,13 @@ let expansionTimer = 0
  */
 function onCardClick(cfg: CardAnimation, event: Event): void {
   // 约束 7：转场进行中，直接吞掉这次点击
-  if (isTransitioning.value || routeCurtainActive.value) return
+  if (expandingId.value || isTransitioning.value || routeCurtainActive.value) return
 
   // currentTarget 就是被点的那张卡，不依赖任何下标
   const el = event.currentTarget as HTMLElement | null
   if (!el) return
 
-  isTransitioning.value = true
+  const version = ++expansionGeneration
   expandingId.value = cfg.id
 
   // ★★ 卡片动画参数注入位置 ★★
@@ -129,27 +203,42 @@ function onCardClick(cfg: CardAnimation, event: Event): void {
   el.style.setProperty('--card-origin', cfg.origin)
 
   // 约束 5：转场期间锁掉滚动
-  document.documentElement.classList.add('no-scroll')
+  document.documentElement.classList.add('card-expansion-lock')
 
   // 时序 2 → 3：放大动画跑完（时长取该卡自己的配置）后，遮罩开始覆盖
   const duration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : cfg.duration
   expansionTimer = window.setTimeout(() => {
-      if (routeCurtainActive.value) return // 更新的返回 / 历史导航已接管幕布，旧定时器不能再跳页。
-      /*
-       * ⚠️ 必须走 `jumpPathFor` 分流，**不能**自己拼 `/card/${id}`：
-       *    六张卡的专属页与兼容路径在同一处登记，避免两个入口指向不同页面。
-       * ⚠️ `from=cards` 让子页的返回按钮指回卡片列表而不是作品集；
-       *    全局 App 守卫负责遮罩与失败恢复；子页不再维护自己的页面装载幕。
-       */
-      void router.push({ path: jumpPathFor(cfg.id), query: { from: 'cards' } }).catch(() => { /* 可见错误提示与重试出口由 App 持有。 */ })
+    if (version !== expansionGeneration) return
+    expansionTimer = 0
+    if (routeCurtainActive.value) {
+      onCurtainChange(true)
+      return
+    } // 更新的导航已接管。
+    /*
+     * ⚠️ 必须走 `jumpPathFor` 分流，**不能**自己拼 `/card/${id}`：
+     *    六张卡的专属页与兼容路径在同一处登记，避免两个入口指向不同页面。
+     * ⚠️ `from=cards` 让子页的返回按钮指回卡片列表而不是作品集；
+     *    全局 App 守卫负责遮罩与失败恢复；子页不再维护自己的页面装载幕。
+     */
+    void router
+      .push({ path: jumpPathFor(cfg.id), query: { from: 'cards' } })
+      .catch(() => {
+        /* 可见错误提示与重试出口由 App 持有。 */
+      })
+      .finally(() => {
+        if (!routeCurtainActive.value) resetExpansion(version)
+      })
   }, duration * 1000)
 }
 
 // 路由在放大结束前被历史导航打断时，不允许已卸载页面的定时器再次触发导航。
-onBeforeUnmount(() => window.clearTimeout(expansionTimer))
+onBeforeUnmount(() => resetExpansion())
 </script>
 
 <style scoped>
+:global(html.card-expansion-lock) {
+  overflow: hidden;
+}
 .list-page {
   min-height: 100vh;
   background: #0a0a0a;
@@ -206,8 +295,8 @@ onBeforeUnmount(() => window.clearTimeout(expansionTimer))
   所以整摞牌的视觉高度刚好等于容器高度，不会被裁掉。
 */
 .stack {
-  --fan-x: clamp(20px, 4vw, 44px);   /* 每往后一张，横向偏移 */
-  --fan-y: clamp(40px, 8vh, 72px);   /* 每往后一张，纵向偏移 */
+  --fan-x: clamp(20px, 4vw, 44px); /* 每往后一张，横向偏移 */
+  --fan-y: clamp(40px, 8vh, 72px); /* 每往后一张，纵向偏移 */
   --card-h: clamp(190px, 31vh, 260px);
 
   position: relative;
@@ -255,18 +344,16 @@ onBeforeUnmount(() => window.clearTimeout(expansionTimer))
     会出现「看到卡 03 但点中了卡 04」。
     保留 rotateX(6deg) 的倾斜，扇开位移做深度暗示，避免这个坑。
   */
-  transform: translate3d(
-      calc(var(--i) * var(--fan-x)),
-      calc(var(--i) * var(--fan-y)),
-      0
-    )
+  transform: translate3d(calc(var(--i) * var(--fan-x)), calc(var(--i) * var(--fan-y)), 0)
     rotateX(6deg);
   /* 越靠前的卡层级越高，保证「看到哪张点哪张」 */
   z-index: calc(10 - var(--i));
 
   transform-origin: var(--card-origin);
-  transition: transform var(--card-duration) var(--card-easing),
-    box-shadow 0.3s ease, border-color 0.3s ease;
+  transition:
+    transform var(--card-duration) var(--card-easing),
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
   will-change: transform;
 }
 
@@ -315,18 +402,60 @@ onBeforeUnmount(() => window.clearTimeout(expansionTimer))
 
 /* 扇牌至少需要约880px高的桌面首屏；不足时让六个入口按文档流完整呈现。 */
 @media (max-width: 1024px), (max-height: 880px) {
-  .hero { height:auto; min-height:100vh; min-height:100svh; }
-  .hero__head { padding:90px 20px 0; }
-  .stage { flex:none; overflow:visible; padding:30px 20px 52px; }
-  .stack { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; width:100%; height:auto; perspective:none; transform:none; }
-  .card { position:relative; left:auto; top:auto; width:100%; height:170px; padding:20px; transform:none; }
-  .card--expanding { transform:rotate(var(--card-rotate)) scale(var(--card-scale)); }
-  .card__label { font-size:11px; letter-spacing:.14em; }
-  .card__meta { font-size:10px; }
-  .list-page__tail { height:auto; min-height:120px; padding:24px 20px; text-align:center; }
+  .hero {
+    height: auto;
+    min-height: 100vh;
+    min-height: 100svh;
+  }
+  .hero__head {
+    padding: 90px 20px 0;
+  }
+  .stage {
+    flex: none;
+    overflow: visible;
+    padding: 30px 20px 52px;
+  }
+  .stack {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    width: 100%;
+    height: auto;
+    perspective: none;
+    transform: none;
+  }
+  .card {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: 100%;
+    height: 170px;
+    padding: 20px;
+    transform: none;
+  }
+  .card--expanding {
+    transform: rotate(var(--card-rotate)) scale(var(--card-scale));
+  }
+  .card__label {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+  }
+  .card__meta {
+    font-size: 10px;
+  }
+  .list-page__tail {
+    height: auto;
+    min-height: 120px;
+    padding: 24px 20px;
+    text-align: center;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .card { transition:none; }
-  .card--expanding { transform:none; }
+  .card {
+    transition: none;
+  }
+  .card--expanding {
+    transform: none;
+  }
 }
 </style>

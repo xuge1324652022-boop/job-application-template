@@ -1,0 +1,20 @@
+#!/bin/sh
+#
+# 提交前唯一必跑的检查：动效组件库镜像是否仍与 src 同步。
+#
+# 为什么需要它：`src/` 里有 125 个文件被逐字镜像进 `动效组件库/效果组件/*/…`，
+# 只要改了其中任何一个（FoundationView.vue、useTransition.ts、AboutStudioStory.vue…），
+# 561 个生成文件就会静默过期。此时 typecheck / lint / test:unit / build 全绿，
+# 直到 `npm run build:cloudflare` 跑 `check:motion` 才报 `Motion catalog is stale` ——
+# 而那时候已经不知道是哪次改动造成的了。
+#
+# 为什么**不**跑 `check:privacy`：它的 `index-worktree-mismatch` 判据就是
+# `git diff --name-only`，只要有未暂存改动就必然失败。放在 pre-commit 里等于
+# 每次提交都红，只会被 `--no-verify` 绕过，反而训练出坏习惯。
+#
+# 启用方式（每台机器一次）：
+#   git config core.hooksPath .githooks
+#
+set -e
+cd "$(git rev-parse --show-toplevel)"
+npm run --silent check:motion

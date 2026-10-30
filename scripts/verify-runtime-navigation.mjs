@@ -121,6 +121,8 @@ async function preloaderCase(completeNormally) {
     require(name) {
       if (name === 'vue') return { ref: () => ({ value: refs[i++] }), nextTick: () => Promise.resolve(), onMounted: fn => { mount = fn }, onBeforeUnmount: fn => { unmount = fn } }
       if (name === 'gsap') return { __esModule: true, default: { context(fn, scope) { assert.equal(scope, root); fn(); return { ignore(work) { work() }, revert() { reverted++ } } }, set() {}, timeline: () => tl } }
+      // Preloader 的「减少动态」判据改由 utils/motion 提供（惰性单例）。
+      if (name === '../utils/motion') return { prefersReduced: () => false }
       throw Error(name)
     },
   })
@@ -183,7 +185,7 @@ vm.runInNewContext(compile(`
   let touchX = 0, touchY = 0, touchId = null, reduceMotion = false
   const introRef = { value: { contains: () => inside(), offsetHeight: 800 } }
   const gateFed = { value: 0 }, gateOpen = { value: false }, gateTravel = { value: 800 }, scrollP = { value: 0 }
-  const covered = { value: false }, overlayActive = { value: false }, isTransitioning = { value: false }, routeCurtainActive = { value: false }
+  const covered = { value: false }, isTransitioning = { value: false }, routeCurtainActive = { value: false }
   ${functions(color, ['feedGate', 'updateProgress', 'onTouchStart', 'onTouchMove'])}
   export { onTouchStart, onTouchMove, updateProgress, gateFed, gateOpen, routeCurtainActive }
 `), { exports, Element, inside: () => inside, document: { documentElement: html }, window: colorWindow })

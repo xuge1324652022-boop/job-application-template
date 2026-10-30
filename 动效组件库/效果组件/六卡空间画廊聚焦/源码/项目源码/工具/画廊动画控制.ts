@@ -3,6 +3,8 @@
 // 本文件是纯数学层：所有尺寸都根据视口实时重算，因此改变窗口大小
 // 永远不会重置已经走完的动画进度。
 
+import { clamp } from './数值钳制'
+
 /** 卡片数量：六张，与六个章节一一对应 */
 export const CARD_COUNT = 6
 /** 开场动画总时长（秒），ThreeHome.vue 的 intro 时间线用它做 duration */
@@ -14,10 +16,8 @@ export const INTRO_DURATION = 3.6
 // 全视口卡片的移动距离较长，沿用单一进度轨并在 1.4s 内落定。
 export const FOCUS_DURATION = 1.4
 /** 每张卡静止时的 rotateY 角度，正负交替，营造环上的错落朝向 */
-export const ROTATIONS = [40, -45, 40, -45, 40, -45]
+const ROTATIONS = [40, -45, 40, -45, 40, -45]
 
-/** 把数值限制在 [min, max] 区间内，默认 [0, 1] */
-export const clamp = (value: number, min = 0, max = 1) => Math.max(min, Math.min(max, value))
 /** 线性插值：t=0 返回 a，t=1 返回 b */
 export const mix = (a: number, b: number, t: number) => a + (b - a) * t
 /** 把任意整数下标规整到 0..CARD_COUNT-1，支持负数（用于环上的前后翻页） */
@@ -122,8 +122,6 @@ export function layoutGallery(width: number, height: number, state: GalleryState
       opacity:
         Math.min(1, entrance * 5) *
         (isSelected ? 1 : (1 - clamp(focus / 0.65)) * dim),
-      // 卡片内容（文字等）要等到 focus 快走完才浮现，避免铺满过程中文字糊在一起
-      contentOpacity: isSelected ? clamp((focus - 0.88) / 0.12) : 0,
     }
   })
   return { width: w, height: h, radius, tilt, poses }

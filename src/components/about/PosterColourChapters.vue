@@ -92,6 +92,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { pick, type Lang } from '../../data/aboutProfile'
 import type { VisualAsset } from '../../data/visualPortfolio'
 import { prepareMotionLayout, requestMotionLayoutRefresh } from '../../utils/motionLayout'
+import { clamp } from '../../utils/clamp'
 const props = defineProps<{ items: readonly VisualAsset[]; lang: Lang }>()
 const emit = defineEmits<{ open: [index: number, trigger: HTMLElement] }>()
 // 按画面环境归组，使用稳定 id，避免素材排序改变时把作品配到错误颜色。
@@ -217,7 +218,6 @@ let cancelRefresh: (() => void) | undefined
 let dead = false
 let nearViewport = false
 let groupChanges: boolean[] = []
-const clamp = (v: number) => Math.max(0, Math.min(1, v))
 gsap.registerPlugin(CustomEase)
 // 与 CSS cubic-bezier(.42,0,.3,1) 同义：缓起、推进、缓停，不越过遮罩终点。
 const revealEase = CustomEase.create('', '.42,0,.3,1')

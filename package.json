@@ -1,7 +1,7 @@
 {
   "name": "portfolio-vue",
   "private": true,
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "求职应聘模板与动效源码包，包含 Vue 3、TypeScript、GSAP 遮罩、转场与滚动动效。",
   "license": "MIT",
   "type": "module",
@@ -22,7 +22,8 @@
     "format:check": "prettier --check \"src/**/*.{js,ts,vue,css}\" \"scripts/*.mjs\" \"deploy/*.mjs\" \"tests/**/*.mjs\" \"*.config.{js,mjs}\" .prettierrc.json",
     "test:unit": "node --experimental-strip-types --test tests/*.test.mjs scripts/verify-navigation-state.mjs scripts/verify-route-head.mjs scripts/verify-responsive-images.mjs",
     "check:images": "node scripts/生成响应式图片清单.mjs --check",
-    "check:privacy": "node scripts/检查公开隐私.mjs"
+    "check:privacy": "node scripts/检查公开隐私.mjs",
+    "check:unused": "node scripts/audit-source-usage.mjs"
   },
   "dependencies": {
     "gsap": "^3.15.0",

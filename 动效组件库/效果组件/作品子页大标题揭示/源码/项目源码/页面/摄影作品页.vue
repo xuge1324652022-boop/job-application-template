@@ -146,7 +146,6 @@ import {
   isTransitioning,
   jumpTarget,
   markSubpageVisit,
-  overlayActive,
 } from '../组合函数/应用转场状态'
 import { routeCurtainBlocked } from '../组合函数/页面幕布控制'
 
@@ -211,7 +210,7 @@ useFitText(titleRef, { min: 28, max: 240 })
 
 /** 全局遮罩开始揭幕时，放行页面自己的标题 */
 const covered = computed(
-  () => routeCurtainBlocked.value || !!jumpTarget.value || overlayActive.value || isTransitioning.value,
+  () => routeCurtainBlocked.value || !!jumpTarget.value || isTransitioning.value,
 )
 provide(referenceIntroductionGate, computed(() => introGone.value && !covered.value))
 

@@ -175,19 +175,28 @@
       "original": "src/composables/useSmoothScroll.ts",
       "path": "源码/项目源码/组合函数/平滑滚动控制.ts",
       "role": "entry",
-      "originalSha256": "87e885b95054644460c2b57d782145ed904a8ea29073fac3089ece48714f9fae",
-      "originalBytes": 4384,
-      "sha256": "1243deebb1c283cc722dd90c8c3ecaaf1b66d921833c354e34e33be868a6e6c3",
-      "bytes": 4398
+      "originalSha256": "936e900dd441d03576ee747333cda3b5081fd8d2e6cf8dad6c067abe981acf1d",
+      "originalBytes": 4605,
+      "sha256": "edc0a9908831e8c8f792baa2398dcac4f5e7ec9e9a6ecec732b5dc73c80dd562",
+      "bytes": 4627
     },
     {
       "original": "src/style.css",
       "path": "源码/项目源码/全局样式.css",
       "role": "global-style",
-      "originalSha256": "d17284112f7cd7ce1dc7f7e48847895d2086b25cd404079d5b5a5647475ec2ca",
-      "originalBytes": 4142,
-      "sha256": "d17284112f7cd7ce1dc7f7e48847895d2086b25cd404079d5b5a5647475ec2ca",
-      "bytes": 4142
+      "originalSha256": "4d8434037404ff51386849082a9113c2fdb60bce4e5741ca8801f15d85c10a9b",
+      "originalBytes": 4144,
+      "sha256": "4d8434037404ff51386849082a9113c2fdb60bce4e5741ca8801f15d85c10a9b",
+      "bytes": 4144
+    },
+    {
+      "original": "src/utils/clamp.ts",
+      "path": "源码/项目源码/工具/数值钳制.ts",
+      "role": "dependency",
+      "originalSha256": "80a5af82ad7b6872211f1f69c56f0d854be9a6ac393ab964b50dc61a34e7eb5a",
+      "originalBytes": 856,
+      "sha256": "80a5af82ad7b6872211f1f69c56f0d854be9a6ac393ab964b50dc61a34e7eb5a",
+      "bytes": 856
     },
     {
       "original": "src/utils/wheel.ts",
@@ -211,10 +220,10 @@
       "original": "src/views/ColorView.vue",
       "path": "集成示例/项目源码/页面/调色作品页.vue",
       "role": "integration-context",
-      "originalSha256": "81f0a79138132528c4fac07d2ce4fc9c81b3fe35c0e71e83e93b51f443fb2a39",
-      "originalBytes": 43080,
-      "sha256": "e6b4ede380e8f5c22e001626181a5bc1e04d999aed6057a2b5ce9e309496fdc7",
-      "bytes": 43095
+      "originalSha256": "6c35187bf25cb4c6107235c9679f65ee55d0b3724da9f74f6db1755958980235",
+      "originalBytes": 42967,
+      "sha256": "8528745df9c514454f263a09066cc5a31d4368dc8caffdddc39318dfe1e3cf79",
+      "bytes": 42982
     }
   ]
 }

@@ -7,7 +7,7 @@
   },
   "category": "scroll",
   "status": "active",
-  "summary": "关于页滚动叙事：姓名巨字与可选人物插画开场，主张逐行点亮，三层身份标题向内裁切后缩小，纵向身份列表末词从实心笔画放大。纸底简介、两条反向倾斜作品图带、完整经历、成果、能力、横向履历、真实实践场景和联系区依次展开。手机合并作品图带并使用原生横滚，减少动态时静态阅读。个人素材和电话均由可选本机内容包提供，缺包保持公开模板回退。",
+  "summary": "关于页滚动叙事：姓名巨字与可选人物插画开场，主张逐行点亮，三层身份标题向内裁切后缩小，纵向身份列表末词从实心笔画放大。纸底简介、两条倾斜图带、卡片直接扩展至全屏并接入连续横向简历长卷、成果、能力、横向履历、真实实践场景和联系区依次展开。手机图带使用原生横滚，简历纵向完整阅读，减少动态时静态阅读。个人素材和电话均由可选本机内容包提供，缺包保持公开模板回退。",
   "entryFiles": [
     "src/components/about/AboutMotionHero.vue",
     "src/components/about/AboutCollageStage.vue",
@@ -177,7 +177,7 @@
       "purpose": "作品图带与原创实习卡双排；实习卡抽出铺满后，以黑底横向交替展示素材和居中履历，手机及减弱动态使用自然文档流。"
     },
     {
-      "file": "src/components/about/AboutInternshipCards.vue",
+      "file": "src/components/about/useInternshipStoryMotion.ts",
       "symbols": [
         "about-internship-story",
         "geometry",
@@ -185,6 +185,23 @@
         "matchMedia"
       ],
       "purpose": "第二排原创履历卡抽出为全屏，滚动驱动图片与居中履历横向交替；断点清理恢复自然流，深链定位到阅读停顿。"
+    },
+    {
+      "file": "src/components/about/useInternshipStoryMotion.ts",
+      "symbols": [
+        "renderFlight",
+        "measureStops",
+        "syncSchedule",
+        "updateAnchors"
+      ],
+      "purpose": "第二排自制卡片直接归正并覆盖舞台，在完全相同的首格几何处交接；卡片与简历正文由单条线性横移保持空间连续。无逐页停顿、产品全屏裁图或产品切换器。"
+    },
+    {
+      "file": "src/components/about/useInternshipTextMotion.ts",
+      "symbols": [
+        "useInternshipTextMotion"
+      ],
+      "purpose": "实习简历沿用调色页的无衬线字体与真实视觉行入场：公司名向上揭示，正文按行错峰。加载幕撤掉后才播放；快滚、回滚、切语言和减少动态保持可读并清理分行节点。"
     }
   ],
   "mechanism": {
@@ -380,7 +397,8 @@
       "src/data/resumeEmphasis.ts",
       "src/data/visualPortfolio.ts",
       "src/data/personalPortfolio.ts",
-      "src/styles/aboutPortrait.css"
+      "src/styles/aboutPortrait.css",
+      "gsap/SplitText"
     ],
     "assets": [
       "默认公开人像/about/portrait-{400,900,1448}.webp及visualPortfolio登记的合成素材",
@@ -415,11 +433,13 @@
     ]
   },
   "agentNotes": [
+    "本效果定义同时打包当前/about所用场景与可单独挂载的历史场景。AboutCollageStage、AboutScrollChapter、AboutIdentityScene、AboutObservationRail、AboutExperienceReveal是库入口，当前AboutView不挂载它们；不要把登记为库入口误写成当前页面正在运行，也不要仅按main.ts不可达删除这些源码。",
     "章节互补裁切必须使用同一单词和一致字体尺寸；装饰副本不应重复暴露给屏幕阅读器。",
     "containerAnimation要求主轨道ease:none；第一幅已在固定起点可见，不能套用从视口右侧进入的子触发器。",
     "所有滚动场景都使用原生文档滚动；不要给/about附加第二套滚轮拦截或平滑滚动器。",
     "字形放大是独立于三行标题缩小的场景，不用整屏奶油矩形代替真实字形。",
-    "源代码副本只能包含类型、读取逻辑和公开模板回退，不能把本机内容包的JSON、简历、个人联系方式或私有媒体复制进组件库。"
+    "源代码副本只能包含类型、读取逻辑和公开模板回退，不能把本机内容包的JSON、简历、个人联系方式或私有媒体复制进组件库。",
+    "实习正文按简历版式：时间左、公司右，岗位独立一行，职责依原文单列；个人项目素材与简历文本来自本机内容包，不写入公共模板。"
   ],
   "relatedEffects": [
     "motion-layout-scheduler",

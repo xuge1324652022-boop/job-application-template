@@ -214,19 +214,28 @@
       "original": "src/components/Preloader.vue",
       "path": "源码/项目源码/组件/开场预加载幕.vue",
       "role": "entry",
-      "originalSha256": "214142eddda59e63eb69b605d075af05e1ee5b5e33c36f4d318fac1d51d61efa",
-      "originalBytes": 12627,
-      "sha256": "214142eddda59e63eb69b605d075af05e1ee5b5e33c36f4d318fac1d51d61efa",
-      "bytes": 12627
+      "originalSha256": "f4f7c1945381525d1cf3e60223b199542e93a1517898d738e23796400f3b8507",
+      "originalBytes": 13022,
+      "sha256": "808c0a44810e17dc244777c8d1de1fcdb0e0f467c7dcac247348431cec78b0de",
+      "bytes": 13029
     },
     {
       "original": "src/style.css",
       "path": "源码/项目源码/全局样式.css",
       "role": "global-style",
-      "originalSha256": "d17284112f7cd7ce1dc7f7e48847895d2086b25cd404079d5b5a5647475ec2ca",
-      "originalBytes": 4142,
-      "sha256": "d17284112f7cd7ce1dc7f7e48847895d2086b25cd404079d5b5a5647475ec2ca",
-      "bytes": 4142
+      "originalSha256": "4d8434037404ff51386849082a9113c2fdb60bce4e5741ca8801f15d85c10a9b",
+      "originalBytes": 4144,
+      "sha256": "4d8434037404ff51386849082a9113c2fdb60bce4e5741ca8801f15d85c10a9b",
+      "bytes": 4144
+    },
+    {
+      "original": "src/utils/motion.ts",
+      "path": "源码/项目源码/工具/动态偏好.ts",
+      "role": "dependency",
+      "originalSha256": "1aab18bfa6b543554c9d088b927256de18b10d77b98b03729fd3890e6428c3cf",
+      "originalBytes": 1720,
+      "sha256": "1aab18bfa6b543554c9d088b927256de18b10d77b98b03729fd3890e6428c3cf",
+      "bytes": 1720
     },
     {
       "original": "src/views/GalleryView.vue",
@@ -241,10 +250,10 @@
       "original": "src/components/ThreeHome.vue",
       "path": "集成示例/项目源码/组件/六卡空间首页.vue",
       "role": "integration-context",
-      "originalSha256": "3fbaeb346202507902151ea85d94ec0b01ca937a44e2ee2fa47e9b10a50beb56",
-      "originalBytes": 56928,
-      "sha256": "dbd707eab8311b4020c920f898ef91d7c6b67996b1df00beca04251727d7f336",
-      "bytes": 56993
+      "originalSha256": "084e602cafc4eedcd2eb663e88159d56dfbeceddb6631c8bbe064bff6cd4d205",
+      "originalBytes": 57010,
+      "sha256": "4329c7e2d1f797d87bbb8e3beec8e6c20dfd997a2e7339888b35095d82e1d7c3",
+      "bytes": 57083
     },
     {
       "original": "src/main.ts",

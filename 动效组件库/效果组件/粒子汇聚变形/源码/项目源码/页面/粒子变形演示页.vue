@@ -616,6 +616,8 @@ onBeforeUnmount(() => {
 .morph-grid__foot {
   display: flex;
   flex-wrap: wrap;
+  /* 链接抬到 44px 命中高之后，两列改按垂直居中对齐，避免文字基线错位 */
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
   margin-top: clamp(40px, 7vh, 80px);
@@ -624,7 +626,17 @@ onBeforeUnmount(() => {
   font-size: 12px;
   color: var(--mp-dim);
 }
+/*
+ * 「返回首页」原本是 12px 行内文本，命中高只有 39px —— 手机上和左侧说明文字
+ * 挤在同一行，手指容易点偏。改成 inline-flex + 44px 最小高度：文字位置不变，
+ * 命中区抬到 44；左右各给 4px 再用负边距收回，观感与原来一致。
+ */
 .morph-grid__foot a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 4px;
+  margin-inline: -4px;
   color: var(--mp-ink);
   text-decoration: none;
 }

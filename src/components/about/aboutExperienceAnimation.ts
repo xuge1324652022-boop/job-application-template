@@ -1,4 +1,5 @@
 import gsap from 'gsap'
+import { prefersReduced } from '../../utils/motion'
 
 /**
  * 01 / ABOUT —— 首页画廊「关于我」卡片内部的指针视差。
@@ -60,8 +61,7 @@ export interface AboutExperienceHandle {
 
 /** 当前是否开启了「减少动态效果」——决定要不要注册指针监听 */
 function prefersReducedMotion(): boolean {
-  return typeof window.matchMedia === 'function'
-    && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  return prefersReduced()
 }
 
 /**

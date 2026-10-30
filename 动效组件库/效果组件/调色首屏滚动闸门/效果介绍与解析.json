@@ -264,10 +264,10 @@
       "original": "src/components/WorkContinuation.vue",
       "path": "源码/项目源码/组件/作品续读导航.vue",
       "role": "dependency",
-      "originalSha256": "f1906ec9bcc105786ba1243800a16acc5197d6e2f873bc62f29bb1c3a0346b2b",
-      "originalBytes": 10691,
-      "sha256": "03a9a46058c4bafa5d3b54c152f31f12d1266f7a2ef5652eeed1c31635189412",
-      "bytes": 10708
+      "originalSha256": "1a31bed58199a2f4ea52fa7008c3b4cf8177389a1f6c4f286009085e187d3d44",
+      "originalBytes": 10687,
+      "sha256": "e6dcd09b7cd3036d379c211212b54c9fced6ec9b2d361d7c6e9d1bf2db2ca3f9",
+      "bytes": 10711
     },
     {
       "original": "src/components/color/ColorWave.vue",
@@ -300,28 +300,28 @@
       "original": "src/composables/useSmoothScroll.ts",
       "path": "源码/项目源码/组合函数/平滑滚动控制.ts",
       "role": "dependency",
-      "originalSha256": "87e885b95054644460c2b57d782145ed904a8ea29073fac3089ece48714f9fae",
-      "originalBytes": 4384,
-      "sha256": "1243deebb1c283cc722dd90c8c3ecaaf1b66d921833c354e34e33be868a6e6c3",
-      "bytes": 4398
+      "originalSha256": "936e900dd441d03576ee747333cda3b5081fd8d2e6cf8dad6c067abe981acf1d",
+      "originalBytes": 4605,
+      "sha256": "edc0a9908831e8c8f792baa2398dcac4f5e7ec9e9a6ecec732b5dc73c80dd562",
+      "bytes": 4627
     },
     {
       "original": "src/composables/useSubpageLanguage.ts",
       "path": "源码/项目源码/组合函数/子页语言状态.ts",
       "role": "dependency",
-      "originalSha256": "12e12aceae8fbfce2b97266e839c0ea8a05aaa0fc2a4d18f1801ba3596e216a2",
-      "originalBytes": 930,
-      "sha256": "2efc21b0891fd7c28a7b1cda9371e0ca5b76393a2c01d86c1dd4ecbadd749635",
-      "bytes": 932
+      "originalSha256": "6936883e58ded96f4f409e332b04529577b034b240c883fbc7e368012f3aabbe",
+      "originalBytes": 978,
+      "sha256": "e729f8cd3aab2b82cf8d1e831c0b24aa8c5bb095b9064d1d216809bb3aa96152",
+      "bytes": 980
     },
     {
       "original": "src/composables/useTransition.ts",
       "path": "源码/项目源码/组合函数/应用转场状态.ts",
       "role": "dependency",
-      "originalSha256": "f32a8ef8548dc3e79690e0e68f3d763844eed96f876ac2aa00499376cab70247",
-      "originalBytes": 8511,
-      "sha256": "f32a8ef8548dc3e79690e0e68f3d763844eed96f876ac2aa00499376cab70247",
-      "bytes": 8511
+      "originalSha256": "b6e9d99df5bd576dbcc5cb3d7e9046b576fcd4af435908ae5912316b386f4cef",
+      "originalBytes": 8424,
+      "sha256": "b6e9d99df5bd576dbcc5cb3d7e9046b576fcd4af435908ae5912316b386f4cef",
+      "bytes": 8424
     },
     {
       "original": "src/data/aboutProfile.ts",
@@ -354,19 +354,37 @@
       "original": "src/data/visualPortfolio.ts",
       "path": "源码/项目源码/数据/视觉作品资料.ts",
       "role": "dependency",
-      "originalSha256": "fc1f99d02c7d9b2885275e4a8361e1ee570132b656a3c9c2a598b0e1b62bc4be",
-      "originalBytes": 22963,
-      "sha256": "910ee9502b04b9c56e5301e2be13da3046af61e528e18339b81a674d67e37b54",
-      "bytes": 22970
+      "originalSha256": "e0276ef3f86a80d1277489f07d105f72340f7981e35b8026986c7a6e84f76a83",
+      "originalBytes": 22956,
+      "sha256": "59ae9bc184bfec36a9459d23eb07e17832c3042105639305c294647d720628e0",
+      "bytes": 22963
     },
     {
       "original": "src/style.css",
       "path": "源码/项目源码/全局样式.css",
       "role": "global-style",
-      "originalSha256": "d17284112f7cd7ce1dc7f7e48847895d2086b25cd404079d5b5a5647475ec2ca",
-      "originalBytes": 4142,
-      "sha256": "d17284112f7cd7ce1dc7f7e48847895d2086b25cd404079d5b5a5647475ec2ca",
-      "bytes": 4142
+      "originalSha256": "4d8434037404ff51386849082a9113c2fdb60bce4e5741ca8801f15d85c10a9b",
+      "originalBytes": 4144,
+      "sha256": "4d8434037404ff51386849082a9113c2fdb60bce4e5741ca8801f15d85c10a9b",
+      "bytes": 4144
+    },
+    {
+      "original": "src/utils/clamp.ts",
+      "path": "源码/项目源码/工具/数值钳制.ts",
+      "role": "dependency",
+      "originalSha256": "80a5af82ad7b6872211f1f69c56f0d854be9a6ac393ab964b50dc61a34e7eb5a",
+      "originalBytes": 856,
+      "sha256": "80a5af82ad7b6872211f1f69c56f0d854be9a6ac393ab964b50dc61a34e7eb5a",
+      "bytes": 856
+    },
+    {
+      "original": "src/utils/motion.ts",
+      "path": "源码/项目源码/工具/动态偏好.ts",
+      "role": "dependency",
+      "originalSha256": "1aab18bfa6b543554c9d088b927256de18b10d77b98b03729fd3890e6428c3cf",
+      "originalBytes": 1720,
+      "sha256": "1aab18bfa6b543554c9d088b927256de18b10d77b98b03729fd3890e6428c3cf",
+      "bytes": 1720
     },
     {
       "original": "src/utils/motionLayout.ts",
@@ -399,10 +417,10 @@
       "original": "src/views/ColorView.vue",
       "path": "源码/项目源码/页面/调色作品页.vue",
       "role": "entry",
-      "originalSha256": "81f0a79138132528c4fac07d2ce4fc9c81b3fe35c0e71e83e93b51f443fb2a39",
-      "originalBytes": 43080,
-      "sha256": "e6b4ede380e8f5c22e001626181a5bc1e04d999aed6057a2b5ce9e309496fdc7",
-      "bytes": 43095
+      "originalSha256": "6c35187bf25cb4c6107235c9679f65ee55d0b3724da9f74f6db1755958980235",
+      "originalBytes": 42967,
+      "sha256": "8528745df9c514454f263a09066cc5a31d4368dc8caffdddc39318dfe1e3cf79",
+      "bytes": 42982
     }
   ]
 }

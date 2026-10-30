@@ -63,11 +63,12 @@ export const internshipGroups: readonly InternshipPosterGroup[] = personalSiteVa
   templateInternshipGroups,
 )
 
-export const internshipPages = personalSiteValue(
-  'internshipPosters',
-  'internshipPages',
-  internshipGroups.flatMap((group) => group.items),
-)
+/*
+ * 这里原本还有一个 `internshipPages`（把 internshipGroups 全部 items 摊平）。
+ * 展示区直接用 internshipGroups 分组渲染，开场叠层只用 internshipFeatured，
+ * 它在同文件和文件外都没有读者 —— 每次模块求值都白算一遍摊平结果，已删。
+ */
+
 // 开场叠层只使用当前保留的海报；筛选后的海报在下方展示区直接展开。
 const FEATURED_IDS = ['demo-guidance-01', 'demo-measure-01', 'demo-garden-01']
 // 稳定内部 id 连接公开合成素材、页面编排与动效映射。

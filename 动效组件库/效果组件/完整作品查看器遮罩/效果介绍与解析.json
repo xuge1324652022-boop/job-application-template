@@ -223,10 +223,10 @@
       "original": "src/components/about/VisualViewer.vue",
       "path": "源码/项目源码/组件/人物与作品/完整作品查看器.vue",
       "role": "entry",
-      "originalSha256": "603e23430f62a2807049656bcd0a9fd66806ea5df38835168a7ebf2be107aaca",
-      "originalBytes": 20255,
-      "sha256": "32358d156a8a77863c510afaf1337561e467ea4f501a70bdb6c9f165d988256c",
-      "bytes": 20268
+      "originalSha256": "52340363a3d8e2cc762d11ea8e5c37e7c07f34dbf9888daf76d54d6ae346227a",
+      "originalBytes": 20142,
+      "sha256": "59f3d3f6753494ebbfbec05a90b2af956a96d78f8ba3925b8c8fef33c6ab6400",
+      "bytes": 20155
     },
     {
       "original": "src/composables/useVisualViewer.ts",
@@ -250,10 +250,10 @@
       "original": "src/data/imageVariants.json",
       "path": "源码/项目源码/数据/图片实际尺寸.json",
       "role": "dependency",
-      "originalSha256": "14e09713c5eeaf886e5070e91559145fc6914b67b25a97d86af51351bc40482a",
-      "originalBytes": 12605,
-      "sha256": "14e09713c5eeaf886e5070e91559145fc6914b67b25a97d86af51351bc40482a",
-      "bytes": 12605
+      "originalSha256": "404dc65cf4cf7454237aa42b35530d97a6567f4d9f21d6a4592def2a911a39fc",
+      "originalBytes": 13300,
+      "sha256": "404dc65cf4cf7454237aa42b35530d97a6567f4d9f21d6a4592def2a911a39fc",
+      "bytes": 13300
     },
     {
       "original": "src/data/personalPortfolio.ts",
@@ -268,64 +268,64 @@
       "original": "src/data/visualPortfolio.ts",
       "path": "源码/项目源码/数据/视觉作品资料.ts",
       "role": "dependency",
-      "originalSha256": "fc1f99d02c7d9b2885275e4a8361e1ee570132b656a3c9c2a598b0e1b62bc4be",
-      "originalBytes": 22963,
-      "sha256": "910ee9502b04b9c56e5301e2be13da3046af61e528e18339b81a674d67e37b54",
-      "bytes": 22970
+      "originalSha256": "e0276ef3f86a80d1277489f07d105f72340f7981e35b8026986c7a6e84f76a83",
+      "originalBytes": 22956,
+      "sha256": "59ae9bc184bfec36a9459d23eb07e17832c3042105639305c294647d720628e0",
+      "bytes": 22963
     },
     {
       "original": "src/style.css",
       "path": "源码/项目源码/全局样式.css",
       "role": "global-style",
-      "originalSha256": "d17284112f7cd7ce1dc7f7e48847895d2086b25cd404079d5b5a5647475ec2ca",
-      "originalBytes": 4142,
-      "sha256": "d17284112f7cd7ce1dc7f7e48847895d2086b25cd404079d5b5a5647475ec2ca",
-      "bytes": 4142
+      "originalSha256": "4d8434037404ff51386849082a9113c2fdb60bce4e5741ca8801f15d85c10a9b",
+      "originalBytes": 4144,
+      "sha256": "4d8434037404ff51386849082a9113c2fdb60bce4e5741ca8801f15d85c10a9b",
+      "bytes": 4144
     },
     {
       "original": "src/utils/overlayTouchGuard.ts",
       "path": "源码/项目源码/工具/覆盖层触摸保护.ts",
       "role": "dependency",
-      "originalSha256": "f125cfd08f646dfe84ac0320414f37d3716d2b01bafee2c9d4bc433a15ccbc85",
-      "originalBytes": 2717,
-      "sha256": "f125cfd08f646dfe84ac0320414f37d3716d2b01bafee2c9d4bc433a15ccbc85",
-      "bytes": 2717
+      "originalSha256": "d32b7273e1da8388c13503434d2df83a9b689acd866c6d40f02690379a4be55f",
+      "originalBytes": 2797,
+      "sha256": "d32b7273e1da8388c13503434d2df83a9b689acd866c6d40f02690379a4be55f",
+      "bytes": 2797
     },
     {
       "original": "src/utils/responsiveImage.ts",
       "path": "源码/项目源码/工具/响应式图片.ts",
       "role": "dependency",
-      "originalSha256": "1da57df0406457b4b0ace433f4ff8eaa330817e1d46a2dcd5eb2c45ae8ab51e1",
-      "originalBytes": 1262,
-      "sha256": "634aba5c953aabbdcfa92ba65947be8f969631136d16122f89cd228050daa9bc",
-      "bytes": 1278
+      "originalSha256": "ebd1551b1eb5802141ec3de15876aac44a424f31dc23a1cfbc970582a3ddf178",
+      "originalBytes": 2147,
+      "sha256": "b6dcb38d0d01366412a19f5b556be65b357bf0f24951079a521d4d3331051bdc",
+      "bytes": 2163
     },
     {
       "original": "src/views/AboutView.vue",
       "path": "集成示例/项目源码/页面/人物介绍页.vue",
       "role": "integration-context",
-      "originalSha256": "2fffecf6220c30a0d229e792e5420f41c83855a6ec2da4209bf6b178cc86b5bc",
-      "originalBytes": 10951,
-      "sha256": "7933a23e1e7503175a0caded62161bc8f9a74b6c515926487cd905babb0f32eb",
-      "bytes": 11050
+      "originalSha256": "608202edea918ec14d117614455973d61836d18b0a4bcbce6b77e9658e1c3930",
+      "originalBytes": 10900,
+      "sha256": "2db8f50a360c14fa86cbcda82b990b32996302af5f3703f1665673233da9cfee",
+      "bytes": 10999
     },
     {
       "original": "src/views/PhotoView.vue",
       "path": "集成示例/项目源码/页面/摄影作品页.vue",
       "role": "integration-context",
-      "originalSha256": "cbf8d00718cc3729fea54bd580cad474346c4f254a96b5b8038fad630bd3fcc3",
-      "originalBytes": 19255,
-      "sha256": "4b287ffe2b3372dc46caad873a85a185898cf5673cc4a9579c37249167dfeabf",
-      "bytes": 19343
+      "originalSha256": "1ae48a48f090978419b349290dcf6d83132700770e9cd3790d49f0d260b58c55",
+      "originalBytes": 19215,
+      "sha256": "cee56c4d213c02a4ddd5cd330e058628d2e3b9d438e1aa9c8f541cd3f59c1ae6",
+      "bytes": 19303
     },
     {
       "original": "src/views/PosterView.vue",
       "path": "集成示例/项目源码/页面/海报作品页.vue",
       "role": "integration-context",
-      "originalSha256": "cde3006689c28afb231442de9af48289388d34361fbc06e7f6e3240dafc86872",
-      "originalBytes": 13578,
-      "sha256": "b5f15a5b27700fcea59da8a09c53afea01abe68417fe83e6019c366cee68669d",
-      "bytes": 13681
+      "originalSha256": "81e4b70a7b38b8d328b9ce23fb7453929f03500f11c14d5d89826d9705cf9f26",
+      "originalBytes": 13534,
+      "sha256": "1d622a44f6dbb8ea673fbd69ce8bbf11d85eb995b000dabb58d3c885d36f3fd5",
+      "bytes": 13637
     }
   ]
 }

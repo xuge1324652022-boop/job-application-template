@@ -278,10 +278,10 @@
       "original": "src/cardAnimations/base.ts",
       "path": "源码/项目源码/卡片动画/卡片动画基础.ts",
       "role": "dependency",
-      "originalSha256": "0fcbd5c74a13f457e8b6437ff95451dd84149375e1fc20f728ad997f53666c5c",
-      "originalBytes": 8024,
-      "sha256": "29fc1bb6bad826f880b3079690f741d4b1796eac6bd1ca5625d0c47e965e819e",
-      "bytes": 8037
+      "originalSha256": "e9dbd9442ea7f30680e51b10538c52d5274ed3e07f192e3e4f5cf2cf70041734",
+      "originalBytes": 8121,
+      "sha256": "57e54d6aefc71f79454e4b7be86f70883da1c9ffbee8860cffea140a5bd7c4f6",
+      "bytes": 8141
     },
     {
       "original": "src/cardAnimations/color.ts",
@@ -359,10 +359,10 @@
       "original": "src/components/ThreeHome.vue",
       "path": "源码/项目源码/组件/六卡空间首页.vue",
       "role": "entry",
-      "originalSha256": "3fbaeb346202507902151ea85d94ec0b01ca937a44e2ee2fa47e9b10a50beb56",
-      "originalBytes": 56928,
-      "sha256": "dbd707eab8311b4020c920f898ef91d7c6b67996b1df00beca04251727d7f336",
-      "bytes": 56993
+      "originalSha256": "084e602cafc4eedcd2eb663e88159d56dfbeceddb6631c8bbe064bff6cd4d205",
+      "originalBytes": 57010,
+      "sha256": "4329c7e2d1f797d87bbb8e3beec8e6c20dfd997a2e7339888b35095d82e1d7c3",
+      "bytes": 57083
     },
     {
       "original": "src/components/about/AboutExperience.vue",
@@ -395,10 +395,10 @@
       "original": "src/components/about/aboutExperienceAnimation.ts",
       "path": "源码/项目源码/组件/人物与作品/人物经历动画.ts",
       "role": "dependency",
-      "originalSha256": "c503ebc08c0df94d1f5251e255b89f7fb02f34c7a1007de0dfa9989cc7f57e63",
-      "originalBytes": 5381,
-      "sha256": "c503ebc08c0df94d1f5251e255b89f7fb02f34c7a1007de0dfa9989cc7f57e63",
-      "bytes": 5381
+      "originalSha256": "1aedb59fd40a53a0e2b2513456bc0cf412d1c947f4de04b39d4957e167a0c76d",
+      "originalBytes": 5341,
+      "sha256": "601fb26f43a0ca744caee059a7da67722c1cc2e86ae8fc99b20fe576729f807e",
+      "bytes": 5348
     },
     {
       "original": "src/components/cards/ColorCardVisual.vue",
@@ -476,10 +476,10 @@
       "original": "src/composables/useTransition.ts",
       "path": "源码/项目源码/组合函数/应用转场状态.ts",
       "role": "dependency",
-      "originalSha256": "f32a8ef8548dc3e79690e0e68f3d763844eed96f876ac2aa00499376cab70247",
-      "originalBytes": 8511,
-      "sha256": "f32a8ef8548dc3e79690e0e68f3d763844eed96f876ac2aa00499376cab70247",
-      "bytes": 8511
+      "originalSha256": "b6e9d99df5bd576dbcc5cb3d7e9046b576fcd4af435908ae5912316b386f4cef",
+      "originalBytes": 8424,
+      "sha256": "b6e9d99df5bd576dbcc5cb3d7e9046b576fcd4af435908ae5912316b386f4cef",
+      "bytes": 8424
     },
     {
       "original": "src/data/aboutProfile.ts",
@@ -512,19 +512,19 @@
       "original": "src/data/visualPortfolio.ts",
       "path": "源码/项目源码/数据/视觉作品资料.ts",
       "role": "dependency",
-      "originalSha256": "fc1f99d02c7d9b2885275e4a8361e1ee570132b656a3c9c2a598b0e1b62bc4be",
-      "originalBytes": 22963,
-      "sha256": "910ee9502b04b9c56e5301e2be13da3046af61e528e18339b81a674d67e37b54",
-      "bytes": 22970
+      "originalSha256": "e0276ef3f86a80d1277489f07d105f72340f7981e35b8026986c7a6e84f76a83",
+      "originalBytes": 22956,
+      "sha256": "59ae9bc184bfec36a9459d23eb07e17832c3042105639305c294647d720628e0",
+      "bytes": 22963
     },
     {
       "original": "src/experience/galleryRenderer.ts",
       "path": "源码/项目源码/体验状态/画廊姿态渲染器.ts",
       "role": "dependency",
-      "originalSha256": "64867ca07574473e64c783efaaaa9e8c84422f4a0c511b9d9449ccb0b62cc9c5",
-      "originalBytes": 6903,
-      "sha256": "715847ba6b3e57a336c6d97088a13a504a8050251855256b34952fc4377130f3",
-      "bytes": 6915
+      "originalSha256": "de455210337f22395cfadeb0cfc0a272f1c2d1402f50d018fa833d7f1fa0c6bd",
+      "originalBytes": 6935,
+      "sha256": "19844ccbff2cd408a0004fad1c05e2ed8d06ce601be16cfc911b6347550a988f",
+      "bytes": 6955
     },
     {
       "original": "src/experience/state.ts",
@@ -539,28 +539,46 @@
       "original": "src/experience/transitions/index.ts",
       "path": "源码/项目源码/体验状态/转场/体验转场控制.ts",
       "role": "entry",
-      "originalSha256": "ced8ce5a3eafd07399c20ecf157d74ece3f032f0fd0850629aac9e24fb4291d2",
-      "originalBytes": 5630,
-      "sha256": "e84cc04b52ed8c892432c3c58109990383672a66536e51feebbd7e77bbbd07f6",
-      "bytes": 5643
+      "originalSha256": "974a025ff54bb94bc4e1dcfd4e8150098461635d2c91834095e2eb1e90404148",
+      "originalBytes": 5623,
+      "sha256": "90ff8713be4edc421be5c255f593edb233ba7f0838bf1eef1dac7c67e011e3d6",
+      "bytes": 5636
     },
     {
       "original": "src/style.css",
       "path": "源码/项目源码/全局样式.css",
       "role": "global-style",
-      "originalSha256": "d17284112f7cd7ce1dc7f7e48847895d2086b25cd404079d5b5a5647475ec2ca",
-      "originalBytes": 4142,
-      "sha256": "d17284112f7cd7ce1dc7f7e48847895d2086b25cd404079d5b5a5647475ec2ca",
-      "bytes": 4142
+      "originalSha256": "4d8434037404ff51386849082a9113c2fdb60bce4e5741ca8801f15d85c10a9b",
+      "originalBytes": 4144,
+      "sha256": "4d8434037404ff51386849082a9113c2fdb60bce4e5741ca8801f15d85c10a9b",
+      "bytes": 4144
+    },
+    {
+      "original": "src/utils/clamp.ts",
+      "path": "源码/项目源码/工具/数值钳制.ts",
+      "role": "dependency",
+      "originalSha256": "80a5af82ad7b6872211f1f69c56f0d854be9a6ac393ab964b50dc61a34e7eb5a",
+      "originalBytes": 856,
+      "sha256": "80a5af82ad7b6872211f1f69c56f0d854be9a6ac393ab964b50dc61a34e7eb5a",
+      "bytes": 856
     },
     {
       "original": "src/utils/galleryMotion.ts",
       "path": "源码/项目源码/工具/画廊动画控制.ts",
       "role": "entry",
-      "originalSha256": "70a430bcc7de15635880aa899b260b3e541c535ca9029f6549f15cdc8a5978cf",
-      "originalBytes": 8458,
-      "sha256": "70a430bcc7de15635880aa899b260b3e541c535ca9029f6549f15cdc8a5978cf",
-      "bytes": 8458
+      "originalSha256": "771928486aa8640cb359ce0a9fcc7d82723058fe033e2fe3cdd8ac294736116f",
+      "originalBytes": 8145,
+      "sha256": "bdc3b2fa72819e223bbb09e7e630c9fb34874ab5c8af9f82cec5a821cbf8379a",
+      "bytes": 8152
+    },
+    {
+      "original": "src/utils/motion.ts",
+      "path": "源码/项目源码/工具/动态偏好.ts",
+      "role": "dependency",
+      "originalSha256": "1aab18bfa6b543554c9d088b927256de18b10d77b98b03729fd3890e6428c3cf",
+      "originalBytes": 1720,
+      "sha256": "1aab18bfa6b543554c9d088b927256de18b10d77b98b03729fd3890e6428c3cf",
+      "bytes": 1720
     },
     {
       "original": "src/views/GalleryView.vue",
