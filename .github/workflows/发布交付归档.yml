@@ -1,0 +1,54 @@
+name: 发布交付归档
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.repository == 'xuge1324652022-boop/job-application-template'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: 验证版本与公开源码
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          node --input-type=module -e "import fs from 'node:fs'; if (process.env.RELEASE_TAG !== 'v' + JSON.parse(fs.readFileSync('package.json')).version) throw Error('Tag and package version differ')"
+          git merge-base --is-ancestor HEAD origin/main
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run check:privacy
+          npm run check:motion
+          npm run typecheck
+          npm run test:unit
+      - name: 生成并逐文件核验交付 ZIP
+        run: node scripts/打包发布版本.mjs --output tmp/发布/actions
+      - name: 发布已核验的匿名交付包
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          cat > "$RUNNER_TEMP/release-notes.md" <<'NOTES'
+          同步双排作品、实习卡抽出全屏、连续横向简历和分行文字动效。
+          包含 40 个动效及其中文源码、集成示例与解析；附完整模板 ZIP、动效库 ZIP、发布元数据与 SHA-256 校验表。
+          公开内容使用虚构资料与已审核合成素材，不包含个人内容包和私人素材。
+          NOTES
+          gh release create "$RELEASE_TAG" tmp/发布/actions/* --verify-tag --title "$RELEASE_TAG" --notes-file "$RUNNER_TEMP/release-notes.md"
