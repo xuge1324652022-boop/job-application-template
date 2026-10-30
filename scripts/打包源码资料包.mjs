@@ -8,6 +8,7 @@ import { lstatSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from '
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { gunzipSync } from 'node:zlib'
+import { validateEffectCatalog } from './source-catalog.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const normalize = value => value.split(path.sep).join('/')
@@ -95,7 +96,7 @@ for (const relative of libraryFiles) {
   if ((/\.(?:md|json|js|ts|vue|css|html)$/u.test(relative) || relative === '.gitattributes') && readFileSync(checkedPath(library, relative)).includes(Buffer.from('\r\n'))) throw new Error(`组件库文本应按 .gitattributes 保存为 LF 后再打包：${relative}`)
 }
 const catalog = readJSON(checkedPath(library, '组件索引.json'))
-if (!Array.isArray(catalog.effects) || catalog.effects.length !== catalog.effectCount || catalog.effectCount !== 38) throw new Error('组件索引的效果数量不正确')
+validateEffectCatalog(catalog, libraryFiles.filter(file => /^效果定义\/[^/]+\.json$/u.test(file)).map(file => readJSON(checkedPath(library, file))))
 if (!catalog.generatedFiles || typeof catalog.generatedFiles !== 'object' || !Object.keys(catalog.generatedFiles).length) throw new Error('组件索引缺少生成文件校验记录')
 
 const generatedPaths = new Set(Object.keys(catalog.generatedFiles))
