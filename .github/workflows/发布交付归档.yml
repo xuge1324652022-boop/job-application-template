@@ -1,8 +1,11 @@
 name: 发布交付归档
 
 on:
+  workflow_dispatch:
   push:
+    branches: [main]
     tags: ['v*']
+    paths: ['.github/workflows/发布交付归档.yml']
 
 permissions:
   contents: read
@@ -27,9 +30,16 @@ jobs:
         with:
           node-version: '24'
           package-manager-cache: false
+      - name: 选择已有版本标签
+        id: version
+        run: |
+          tag="v$(node -p "JSON.parse(require('fs').readFileSync('package.json')).version")"
+          git show-ref --verify "refs/tags/$tag"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          git checkout --detach "$tag"
       - name: 验证版本与公开源码
         env:
-          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
         run: |
           node --input-type=module -e "import fs from 'node:fs'; if (process.env.RELEASE_TAG !== 'v' + JSON.parse(fs.readFileSync('package.json')).version) throw Error('Tag and package version differ')"
           git merge-base --is-ancestor HEAD origin/main
@@ -39,16 +49,40 @@ jobs:
           npm run typecheck
           npm run test:unit
       - name: 生成并逐文件核验交付 ZIP
-        run: node scripts/打包发布版本.mjs --output tmp/发布/actions
+        run: |
+          node scripts/打包发布版本.mjs --output tmp/发布/actions
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs'
+          import { createHash } from 'node:crypto'
+          const source = 'tmp/发布/actions'
+          const output = 'tmp/release-assets'
+          const manifest = JSON.parse(fs.readFileSync(`${source}/发布资源.json`, 'utf8'))
+          fs.mkdirSync(output, { recursive: true })
+          const names = [`website-source-${manifest.version}.zip`, `motion-components-${manifest.version}.zip`]
+          for (const [index, archive] of manifest.archives.entries()) {
+            const bytes = fs.readFileSync(`${source}/${archive.file}`)
+            if (createHash('sha256').update(bytes).digest('hex') !== archive.sha256) throw Error('Archive changed after verification')
+            fs.writeFileSync(`${output}/${names[index]}`, bytes)
+            archive.file = names[index]
+          }
+          manifest.outputDirectory = output
+          fs.writeFileSync(`${output}/release-assets.json`, JSON.stringify(manifest, null, 2) + '\n')
+          const namesToHash = [...names, 'release-assets.json']
+          fs.writeFileSync(`${output}/SHA256SUMS.sha256`, namesToHash.map(name => `${createHash('sha256').update(fs.readFileSync(`${output}/${name}`)).digest('hex')}  ${name}`).join('\n') + '\n')
+          NODE
       - name: 发布已核验的匿名交付包
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
         run: |
           cat > "$RUNNER_TEMP/release-notes.md" <<'NOTES'
           同步双排作品、实习卡抽出全屏、连续横向简历和分行文字动效。
           包含 40 个动效及其中文源码、集成示例与解析；附完整模板 ZIP、动效库 ZIP、发布元数据与 SHA-256 校验表。
           公开内容使用虚构资料与已审核合成素材，不包含个人内容包和私人素材。
           NOTES
-          gh release create "$RELEASE_TAG" tmp/发布/actions/* --verify-tag --title "$RELEASE_TAG" --notes-file "$RUNNER_TEMP/release-notes.md"
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" --verify-tag --title "$RELEASE_TAG" --notes-file "$RUNNER_TEMP/release-notes.md" --draft
+          fi
+          gh release upload "$RELEASE_TAG" tmp/release-assets/* --clobber
+          gh release edit "$RELEASE_TAG" --draft=false
