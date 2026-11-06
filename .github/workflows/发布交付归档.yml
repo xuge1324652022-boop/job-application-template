@@ -3,9 +3,7 @@ name: 发布交付归档
 on:
   workflow_dispatch:
   push:
-    branches: [main]
     tags: ['v*']
-    paths: ['.github/workflows/发布交付归档.yml']
 
 permissions:
   contents: read
@@ -76,13 +74,8 @@ jobs:
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ steps.version.outputs.tag }}
         run: |
-          cat > "$RUNNER_TEMP/release-notes.md" <<'NOTES'
-          同步双排作品、实习卡抽出全屏、连续横向简历和分行文字动效。
-          包含 40 个动效及其中文源码、集成示例与解析；附完整模板 ZIP、动效库 ZIP、发布元数据与 SHA-256 校验表。
-          公开内容使用虚构资料与已审核合成素材，不包含个人内容包和私人素材。
-          NOTES
           if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            gh release create "$RELEASE_TAG" --verify-tag --title "$RELEASE_TAG" --notes-file "$RUNNER_TEMP/release-notes.md" --draft
+            gh release create "$RELEASE_TAG" --verify-tag --title "$RELEASE_TAG" --notes-file 发布说明.md --draft
           fi
           gh release upload "$RELEASE_TAG" tmp/release-assets/* --clobber
           gh release edit "$RELEASE_TAG" --draft=false
