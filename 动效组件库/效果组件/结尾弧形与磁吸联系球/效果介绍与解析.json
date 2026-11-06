@@ -292,10 +292,10 @@
       "original": "src/views/AboutView.vue",
       "path": "集成示例/项目源码/页面/人物介绍页.vue",
       "role": "integration-context",
-      "originalSha256": "608202edea918ec14d117614455973d61836d18b0a4bcbce6b77e9658e1c3930",
-      "originalBytes": 10900,
-      "sha256": "2db8f50a360c14fa86cbcda82b990b32996302af5f3703f1665673233da9cfee",
-      "bytes": 10999
+      "originalSha256": "b16a4b5a9bbfdc8f0d34ad7e7f192de23af33cd909a9a12b7221f37d27eff44c",
+      "originalBytes": 5357,
+      "sha256": "28c7420cb7fc590df2bdcf1cb917b68f30c014df7f6e14a64cbbfc25591087da",
+      "bytes": 5456
     }
   ]
 }

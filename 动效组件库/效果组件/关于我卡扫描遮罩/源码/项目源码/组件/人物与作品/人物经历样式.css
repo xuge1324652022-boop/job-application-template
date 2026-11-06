@@ -43,6 +43,11 @@
   user-select: none;
 }
 
+.about-exp__type-inner {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
 /*
  * 第 2 层 —— DEMO 几何图形。
  * 尺度明显小于 ABOUT：它是被 ABOUT 压着的物体，不是和它平起平坐的标识。
@@ -54,6 +59,13 @@
   z-index: 2;
   width: clamp(110px, 26%, 300px);
   user-select: none;
+}
+
+.about-exp__logo-inner {
+  display: block;
+  width: 100%;
+  height: 100%;
+  will-change: transform;
 }
 
 /*
@@ -96,12 +108,32 @@
   color: rgba(241, 241, 236, 0.92);
 }
 
-.about-exp__name {
+.about-exp__name-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4vh;
   margin-bottom: 2.2vh;
+}
+
+.about-exp__name {
+  margin: 0;
   font-size: clamp(15px, 1.9vw, 32px);
   font-weight: 300;
   letter-spacing: 0.11em;
-  color: rgba(241, 241, 236, 0.8);
+  color: rgba(241, 241, 236, 0.85);
+}
+
+.about-exp__char {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+.about-exp__name-en {
+  font-size: clamp(8px, 0.72vw, 11px);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(241, 241, 236, 0.4);
+  will-change: transform, opacity;
 }
 
 .about-exp__role {

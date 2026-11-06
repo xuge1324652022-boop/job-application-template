@@ -388,14 +388,22 @@ if (process.argv.includes('--dist')) {
     }),
   )
   assert.equal(new Set(entries).size, 1)
-  // 直接访问任一路由都并行预载该路由的视图 chunk 及其样式，避免先入口后路由的额外往返。
+  // 独立 404 仅有 Vite 生成的共享预载，可以区分每个页面追加的视图 chunk。
+  const sharedPreloads = new Set(
+    [...html.matchAll(/<link rel="modulepreload" crossorigin href="([^"]+)"/gu)].map(([, href]) => href),
+  )
+  // 直接访问任一路由都并行预载该路由的视图 chunk 及其样式。
   for (const page of routeMetadata.routes) {
     const source = await readFile(new URL(pageFileFor(page.path), root), 'utf8')
     const preloads = [
       ...source.matchAll(/<link rel="(modulepreload|stylesheet)" crossorigin href="([^"]+)"/gu),
     ]
     const module = preloads.filter(([, rel]) => rel === 'modulepreload').map(([, , href]) => href)
-    assert.equal(module.length, 1, `${page.path} 必须恰好预载一个视图 chunk`)
+    assert.equal(new Set(module).size, module.length, `${page.path} 不得重复预载同一 chunk`)
+    for (const href of sharedPreloads) {
+      assert(module.includes(href), `${page.path} 必须保留共享预载 ${href}`)
+    }
+    assert.equal(module.filter((href) => !sharedPreloads.has(href)).length, 1, `${page.path} 必须恰好追加一个视图 chunk`)
     for (const [, , href] of preloads) {
       assert(
         await readFile(new URL(href.slice(1), root), 'utf8').then(

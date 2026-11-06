@@ -26,7 +26,9 @@
   "integrationFiles": [
     "src/views/AboutView.vue",
     "src/components/LazySection.vue",
-    "src/utils/routeScrollPreparation.ts"
+    "src/utils/routeScrollPreparation.ts",
+    "src/composables/useAboutScrollPreparation.ts",
+    "src/utils/abortable.ts"
   ],
   "sourceSections": [
     {
@@ -125,14 +127,13 @@
       "purpose": "固定桌面舞台，将原生纵向滚动映射为三幅构图的横向运动，以 containerAnimation 驱动后两幅的裁切展开；键盘聚焦完全离屏的按钮时定位面板，已部分可见的查看器触发按钮恢复焦点时保持原滚动位置，布局刷新交给共享队列。"
     },
     {
-      "file": "src/views/AboutView.vue",
+      "file": "src/composables/useAboutScrollPreparation.ts",
       "symbols": [
+        "useAboutScrollPreparation",
         "prepareScroll",
         "cancelScrollRequest",
-        "registerRouteScrollPreparation",
-        "ensureReady",
         "waitForCurtain",
-        "routeCurtainBlocked",
+        "ensureReady",
         "ScrollTrigger.refresh"
       ],
       "purpose": "页内锚点与历史恢复先等待延迟组件的Suspense就绪、字体和幕布开始揭开，再刷新固定区域测量，由现有路由scrollBehavior在输入解锁前应用目标坐标；唯一所有者和AbortController取消过期请求。"
@@ -202,6 +203,23 @@
         "useInternshipTextMotion"
       ],
       "purpose": "实习简历沿用调色页的无衬线字体与真实视觉行入场：公司名向上揭示，正文按行错峰。加载幕撤掉后才播放；快滚、回滚、切语言和减少动态保持可读并清理分行节点。"
+    },
+    {
+      "file": "src/views/AboutView.vue",
+      "symbols": [
+        "heroActive",
+        "contactSection",
+        "useAboutScrollPreparation"
+      ],
+      "purpose": "页面只负责组合场景、转场可见状态和图片查看器，将懒加载锚点与取消生命周期交给独立组合函数。"
+    },
+    {
+      "file": "src/utils/abortable.ts",
+      "symbols": [
+        "abortable",
+        "nextFrame"
+      ],
+      "purpose": "统一可取消的异步等待与绘制帧，成功、失败、取消都释放监听，并消费原任务的迟到错误。"
     }
   ],
   "mechanism": {

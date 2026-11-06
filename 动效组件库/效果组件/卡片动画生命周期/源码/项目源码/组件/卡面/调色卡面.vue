@@ -1,23 +1,24 @@
 <template>
   <div class="cv cv-color">
-    <!-- Back layer — auxiliary structure, never the subject (20 / 12 px). -->
-    <div class="cv-color__wheel" />
+    <!-- 后层：色轮辅助构架 (Back layer: 20 / 12 px) -->
+    <div class="cv-color__wheel">
+      <div class="cv-color__wheel-disc" />
+    </div>
 
-    <!-- Mid-back — one graded frame slice, not an image wall (28 / 20 px). -->
-    <div class="cv-color__frames">
-      <div class="cv-color__frame">
-        <div class="cv-color__frame-grade" />
-        <div class="cv-color__divider" />
-        <span class="cv-color__frame-label cv-color__frame-label--before">BEFORE</span>
-        <span class="cv-color__frame-label cv-color__frame-label--after">GRADE</span>
+    <!-- 中后层：代码生成的色彩塑形色场 Canvas 与几何竖条层 (Mid-back: 28 / 20 px) -->
+    <div class="cv-color__field-wrap">
+      <canvas ref="canvasRef" class="cv-color__canvas" width="640" height="420" />
+      <!-- 竖条遮挡切片（10 根等宽竖条，负责抬起高度差与前后物理遮挡） -->
+      <div class="cv-color__strips-grid">
+        <div v-for="i in 10" :key="i" :class="['cv-color__strip-bar', `cv-color__strip-bar--${i}`]" />
       </div>
     </div>
 
-    <!-- Mid — tone curve, drawn once as vector (24 / 17 px). -->
+    <!-- 中层：色调曲线 (Mid: 24 / 17 px) -->
     <div class="cv-color__curves">
       <div class="cv-color__curve-wrap">
         <svg class="cv-color__curve" viewBox="0 0 200 120" aria-hidden="true">
-          <path d="M4 108 C 46 100, 62 74, 86 52 S 138 18, 196 8" />
+          <path class="cv-color__curve-path" d="M4 108 C 46 100, 62 74, 86 52 S 138 18, 196 8" />
           <circle cx="4" cy="108" r="2.4" />
           <circle cx="86" cy="52" r="2.4" />
           <circle cx="196" cy="8" r="2.4" />
@@ -26,7 +27,7 @@
       <span class="cv-color__curve-label">TONE CURVE</span>
     </div>
 
-    <!-- Mid-front — shadow → midtone → highlight (35 / 25 px). -->
+    <!-- 中前层：色阶阶调条 (Mid-front: 35 / 25 px) -->
     <div class="cv-color__strips">
       <div class="cv-color__strip" />
       <div class="cv-color__strip-labels">
@@ -36,27 +37,15 @@
       </div>
     </div>
 
-    <!--
-        素材层已整体退役（2026-09-23）。
-
-        这里原来放着六段真实调色画面：藏在巨型 COLOR 字体后面、静止时完全
-        隐藏，指针逼近某一片才把它从字后面拨出来。机制本身没问题 —— 问题在
-        于**同一批素材在画廊和专属页各出现一次**：03 卡的铺满态与 `/color`
-        首屏用的是同一套「邻近才现身」，于是同一件东西被看到两次，读起来像
-        重复而不是呼应。
-
-        所以素材只留在专属页（`/color`，见 ColorWave.vue）。画廊这一页回
-        归纯粹的卡面构图：巨型 COLOR + 色条 + 胶片框 + 色调曲线 + 色轮，仍然
-        是一幅只有指针才能打扰的构图。`verify-color-media.cjs` 改成断言这层
-        不得复活。
-      -->
-
-    <!-- Front — the subject: giant COLOR (50 / 35 px). -->
+    <!-- 前层：COLOR 标题（镂空与实心无缝切换）(Front: 50 / 35 px) -->
     <div class="cv-color__type">
-      <span class="cv-color__word">COLOR</span>
+      <!-- 镂空态：与几何色场相互咬合 -->
+      <span class="cv-color__word cv-color__word--cutout">COLOR</span>
+      <!-- 实心态：稳定高保真标题排版 -->
+      <span class="cv-color__word cv-color__word--solid">COLOR</span>
     </div>
 
-    <!-- Static — never moves, never animates. -->
+    <!-- 静态参照框：永不移动，永不做动画 (Movement 0) -->
     <div class="cv-color__info">
       <span class="cv-color__eyebrow">03</span>
       <span class="cv-color__title">COLOR</span>
@@ -78,12 +67,68 @@
   </div>
 </template>
 
-<!-- 静态卡面；动画仍由父级 CardVisual 的 cardAnimations 实例在同一后代节点上驱动。 -->
-<style scoped>
-/* ---- 03 / COLOR 调色 — Tone / Color / Grade ---------------------- */
+<script setup lang="ts">
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 
-/* --- 后层：一个非常大、非常淡的圆环。只是辅助结构 ——
-       不发光、不泛光，永远不是主体。 --- */
+const canvasRef = ref<HTMLCanvasElement | null>(null)
+let resizeObserver: ResizeObserver | null = null
+
+function renderStaticField(canvas: HTMLCanvasElement) {
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+  const w = canvas.width
+  const h = canvas.height
+
+  // 绘制中性胶片阶调几何底色
+  const grad = ctx.createLinearGradient(0, 0, w, h)
+  grad.addColorStop(0, '#1c2328')
+  grad.addColorStop(0.5, '#282b2d')
+  grad.addColorStop(1, '#3a332a')
+  ctx.fillStyle = grad
+  ctx.fillRect(0, 0, w, h)
+
+  // 绘制 10 根等宽中性色场带
+  const barW = w / 10
+  for (let i = 0; i < 10; i++) {
+    const alpha = 0.08 + (i % 3) * 0.05
+    ctx.fillStyle = `rgba(241, 241, 236, ${alpha})`
+    ctx.fillRect(i * barW + 1, 0, barW - 2, h)
+  }
+}
+
+function updateResolution() {
+  const canvas = canvasRef.value
+  if (!canvas) return
+  const dpr = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1
+  const scale = Math.min(dpr, 2)
+  const clientW = canvas.clientWidth || 320
+  const clientH = canvas.clientHeight || 210
+
+  canvas.width = Math.round(clientW * scale)
+  canvas.height = Math.round(clientH * scale)
+  renderStaticField(canvas)
+}
+
+onMounted(() => {
+  updateResolution()
+  if (typeof ResizeObserver !== 'undefined' && canvasRef.value) {
+    resizeObserver = new ResizeObserver(() => {
+      updateResolution()
+    })
+    resizeObserver.observe(canvasRef.value)
+  }
+})
+
+onBeforeUnmount(() => {
+  resizeObserver?.disconnect()
+  resizeObserver = null
+})
+</script>
+
+<style scoped>
+/* ---- 03 / COLOR 调色 — 色彩塑形 ---------------------------------- */
+
+/* --- 后层：色轮辅助结构 --- */
 .cv-color__wheel {
   position: absolute;
   left: 50%;
@@ -92,9 +137,12 @@
   height: 54vh;
   margin: -27vh 0 0 -27vh;
   border-radius: 50%;
-  /* 只用胶片级的色相，而且极度去饱和：冷青 → 蓝 →
-     紫 → 暖红 → 琥珀。透明度压在 0.15 左右，读起来是「色调」，
-     而不是「界面颜色」。 */
+  pointer-events: none;
+}
+.cv-color__wheel-disc {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
   background: conic-gradient(
     from 210deg,
     rgba(88, 126, 148, 0.15),
@@ -109,54 +157,41 @@
   opacity: 0.6;
 }
 
-/* --- 中后层：一片调过色的画面切片。是单帧，不是一整面墙。 --- */
-.cv-color__frames {
+/* --- 中后层：色彩塑形 Canvas 与竖条切片 --- */
+.cv-color__field-wrap {
   position: absolute;
-  inset: 0;
-}
-.cv-color__frame {
-  position: absolute;
-  left: 8%;
-  top: 30%;
-  width: 26%;
-  height: 33%;
-  border: 1px solid rgba(241, 241, 236, 0.22);
+  left: 6%;
+  top: 18%;
+  width: 58%;
+  height: 52%;
   overflow: hidden;
+  border: 1px solid rgba(241, 241, 236, 0.16);
+  background: #0f1011;
 }
-.cv-color__frame-grade {
+.cv-color__canvas {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(66, 92, 112, 0.5) 0%,
-    rgba(122, 118, 112, 0.42) 48%,
-    rgba(168, 128, 84, 0.5) 100%
-  );
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.88;
 }
-/* 这条分割线是一个空间记号，不是前后对比滑块 —— 没有拖拽手柄。 */
-.cv-color__divider {
+.cv-color__strips-grid {
   position: absolute;
-  left: 55%;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background: rgba(241, 241, 236, 0.6);
+  inset: 0;
+  display: flex;
+  pointer-events: none;
 }
-.cv-color__frame-label {
-  position: absolute;
-  bottom: 1.1vh;
-  font-size: clamp(7px, 0.62vw, 10px);
-  letter-spacing: 0.24em;
-  color: rgba(241, 241, 236, 0.42);
-}
-.cv-color__frame-label--before {
-  left: 7%;
-}
-.cv-color__frame-label--after {
-  left: 61%;
+.cv-color__strip-bar {
+  flex: 1;
+  height: 100%;
+  border-right: 1px solid rgba(241, 241, 236, 0.08);
+  box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.3);
+  transform-origin: center center;
+  will-change: transform, opacity;
 }
 
-/* --- 中层：色调曲线。矢量图形，只画一次，从不重绘。 --- */
+/* --- 中层：色调曲线 --- */
 .cv-color__curves {
   position: absolute;
   inset: 0;
@@ -192,8 +227,7 @@
   color: rgba(241, 241, 236, 0.34);
 }
 
-/* --- 中前层：暗部 → 中间调 → 高光。这是整张卡唯一
-       被允许带颜色的地方，即便如此也保持胶片感。 --- */
+/* --- 中前层：阶调指示条 --- */
 .cv-color__strips {
   position: absolute;
   inset: 0;
@@ -201,9 +235,9 @@
 .cv-color__strip {
   position: absolute;
   left: 8%;
-  top: 68%;
-  width: 52%;
-  height: 1.4vh;
+  top: 73%;
+  width: 48%;
+  height: 1.2vh;
   background: linear-gradient(
     90deg,
     rgba(72, 108, 132, 0.55) 0%,
@@ -216,8 +250,8 @@
 .cv-color__strip-labels {
   position: absolute;
   left: 8%;
-  top: 71.5%;
-  width: 52%;
+  top: 76%;
+  width: 48%;
   display: flex;
   justify-content: space-between;
   font-size: clamp(7px, 0.62vw, 10px);
@@ -225,7 +259,7 @@
   color: rgba(241, 241, 236, 0.34);
 }
 
-/* --- 前层：巨型 COLOR。向右偏移，好让 R 冲出边缘。 --- */
+/* --- 前层：巨型 COLOR 标题 --- */
 .cv-color__type {
   position: absolute;
   inset: 0;
@@ -239,12 +273,23 @@
   font-size: 24vh;
   line-height: 0.8;
   letter-spacing: -0.02em;
-  color: rgba(241, 241, 236, 0.92);
   user-select: none;
   white-space: nowrap;
+  will-change: transform, opacity;
+}
+/* 镂空字形态：融入中性色场 */
+.cv-color__word--cutout {
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(241, 241, 236, 0.75);
+  opacity: 0.85;
+}
+/* 实心字形态：经典高保真排版 */
+.cv-color__word--solid {
+  color: rgba(241, 241, 236, 0.92);
+  opacity: 0;
 }
 
-/* --- 静态：永不移动，永不做动画。 --- */
+/* --- 静态参照框 --- */
 .cv-color__info {
   position: absolute;
   left: 9%;
@@ -277,7 +322,7 @@
 .cv-color__params {
   position: absolute;
   left: 9%;
-  bottom: 15%;
+  bottom: 13%;
   display: flex;
   flex-direction: column;
   gap: 0.7vh;
@@ -300,11 +345,26 @@
 .cv-color__lut {
   position: absolute;
   left: 9%;
-  bottom: 6%;
+  bottom: 5%;
   display: flex;
   gap: clamp(14px, 1.8vw, 34px);
   font-size: clamp(7px, 0.62vw, 10px);
   letter-spacing: 0.24em;
   color: rgba(241, 241, 236, 0.28);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cv-color__word--cutout {
+    display: none;
+  }
+  .cv-color__word--solid {
+    opacity: 0.92 !important;
+  }
+  .cv-color__field-wrap {
+    opacity: 0.35;
+  }
+  .cv-color__strip-bar {
+    transform: none !important;
+  }
 }
 </style>

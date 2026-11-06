@@ -3,34 +3,44 @@ import { BaseAnimation, type BoundLayer, type CardTimeline } from './卡片动�
 import type { CardMedia } from './卡片动画类型'
 
 /**
- * 05 / POSTER —— Composition / Layout / Graphic Design（构成 / 版式 / 平面设计）。
+ * 05 / POSTER —— “有纵深的动态海报” (Spatial Poster Dynamics) MG 动画。
  *
- * 四个深度图层，各有自己的响应幅度：
+ * 核心设计语言：
+ * 重点参考递进矩形空间，结合粗大窄体字、图形星芒印记与版面层级穿插。
+ * 画面由真实 3D 纵深透视空间驱动，展现清晰的层间距离、遮挡与运动先后。
  *
- *   巨型 POSTER    46 / 30 px   最灵敏
- *   印刷印张       33 / 24 px
- *   裁切标记       22 / 15 px
- *   版式网格       16 / 12 px   最慢 —— 参考线几乎不动
+ * 动作分镜编排（6.0s 严格有限时长主循环）：
  *
- * 网格**故意**滞后于其它一切。正是这个差异，让这张卡读起来像一块
- * 铺了好几层描图纸的设计板，而不是一张被整体推来推去的扁平图片。
+ * 0.0s – 0.8s: 【多层版面空间递进推进】
+ *   远景、主海报、近景三层矩形版面从远处沿 Z 轴向镜头推进，
+ *   层与层之间展现明显空间物理距离与先后差。
  *
- * 说明文字块（05 / POSTER / 海报设计、01-02-03 系列，以及
- * GRAPHIC DESIGN / VISUAL STUDY / 2026 那一行）**完全不动** ——
- * 它是页面的固定边距。
+ * 0.8s – 2.0s: 【镜头穿过版面 & 主海报定格】
+ *   近景版面自镜头前景呼啸掠过出画，中间一层主海报稳健停住成为视觉核心，
+ *   全程保持透视连续与遮挡层次。
  *
- * 这里没有环境循环。没有任何东西呼吸、漂移、旋转或缩放：
- * 一块静置的印刷板就是静止的。`gsap.quickTo` 就是全部机制 ——
- * 每个属性一条可复用的 tween，指针移动时不再反复创建动画，
- * 只是重新设定目标值；缓动滑行本身就是惯性。
+ * 2.0s – 3.2s: 【字母错位落位 & 星芒印记旋转穿出】
+ *   P-O-S-T-E-R 字母沿不同基线进入主版面，短暂错位后精确吸附到统一网格；
+ *   星芒印记徽标从文字后方旋转穿出并定格落位。
+ *
+ * 3.2s – 4.4s: 【主海报转正 & 裁切排版完成】
+ *   主海报由微透视倾斜平滑转正，裁切十字与辅助说明完成精细排版，
+ *   后景版面微透，静止构图仍具深远空间感。
+ *
+ * 4.4s – 6.0s: 【张力停留 & 向远处退去循环】
+ *   海报完整清晰停留；5.2s 后主版面向远处深空退去，平滑衔接下一轮递进。
  */
 export class PosterAnimation extends BaseAnimation {
   readonly name = 'poster'
 
-  /** 每个图层的响应参数，单位是「满偏转时卡片局部坐标的像素数」。 */
+  /** 4.4–5.25s 是海报完整停留，取中段作为减少动态时的定格帧。 */
+  protected holdTime(): number {
+    return 4.8
+  }
+
   private static readonly LAYERS = [
     { selector: '.cv-poster__type', ax: 46, ay: 30, duration: 1.0 },
-    { selector: '.cv-poster__plate', ax: 33, ay: 24, duration: 1.12 },
+    { selector: '.cv-poster__spatial-stage', ax: 35, ay: 24, duration: 1.12 },
     { selector: '.cv-poster__marks', ax: 22, ay: 15, duration: 1.24 },
     { selector: '.cv-poster__grid', ax: 16, ay: 12, duration: 1.38 },
   ] as const
@@ -39,89 +49,169 @@ export class PosterAnimation extends BaseAnimation {
   private active = true
   private onMove: ((e: PointerEvent) => void) | null = null
   private onLeave: (() => void) | null = null
-
-  /** 入场（显影）动画在 0.1s 后开始 */
-  protected introDelay(): number {
-    return 0.1
-  }
-
-  /** 没有环境循环 —— 网格不呼吸、印张不漂移、不自动对齐。 */
-  protected build(_tl: CardTimeline, _host: HTMLElement): void {}
+  private isPointerAttached = false
+  private ambientTweens: gsap.core.Tween[] = []
 
   /**
-   * 一次性显影动画，在章节打开时播放：先浮出参考线，再是印张，
-   * 然后是巨型字，最后说明文字。
-   *
-   * **只改透明度，不动位置** —— 这是在灯下显影的板子，不是飞进来的海报。
-   * ⚠️ `immediateRender: false` 很关键 —— 没有它，"from" 状态会在时间线
-   * 构建的那一刻就被应用，导致卡片在画廊里一直空白，直到有人打开它。
+   * 6.0s 环境主循环：严格有限时长（纯 6 秒序列，无无限子动画污染）。
    */
-  protected buildIntro(tl: CardTimeline, host: HTMLElement): void {
-    const grid = host.querySelector<HTMLElement>('.cv-poster__grid')
-    const plate = host.querySelector<HTMLElement>('.cv-poster__plate')
-    const type = host.querySelector<HTMLElement>('.cv-poster__type')
-    const marks = host.querySelector<HTMLElement>('.cv-poster__marks')
-    const captions = host.querySelectorAll<HTMLElement>(
-      '.cv-poster__info > *, .cv-poster__series > *, .cv-poster__meta > *',
-    )
+  protected build(tl: CardTimeline, host: HTMLElement): void {
+    if (!host || typeof host.querySelector !== 'function') return
 
-    // 参考网格：只到 0.12 的极低透明度，是"衬底"而不是主角
-    if (grid) {
+    const plateDeep = host.querySelector<HTMLElement>('.cv-poster__plate-layer--deep')
+    const plateMain = host.querySelector<HTMLElement>('.cv-poster__plate-layer--main')
+    const plateFore = host.querySelector<HTMLElement>('.cv-poster__plate-layer--fore')
+    const badge = host.querySelector<HTMLElement>('.cv-poster__badge')
+    const chars = host.querySelectorAll<HTMLElement>('.cv-poster__p-char')
+    const posterType = host.querySelector<HTMLElement>('.cv-poster__type-inner') ?? host.querySelector<HTMLElement>('.cv-poster__type')
+    const marks = host.querySelectorAll<HTMLElement>('.cv-poster__crop, .cv-poster__reg')
+
+    // 0.0s – 0.8s: 多层版面从远处向镜头推进
+    if (plateDeep) {
       tl.fromTo(
-        grid,
-        { opacity: 0 },
-        { opacity: 0.12, duration: 0.5, ease: 'sine.out', immediateRender: false },
+        plateDeep,
+        { z: -420, opacity: 0.2 },
+        { z: -240, opacity: 0.65, duration: 0.8, ease: 'power2.out' },
         0,
       )
     }
-    if (plate) {
+    if (plateMain) {
       tl.fromTo(
-        plate,
-        { opacity: 0 },
-        { opacity: 1, duration: 0.6, ease: 'sine.out', immediateRender: false },
-        0.18,
+        plateMain,
+        { z: -360, opacity: 0.2, rotateY: -12, rotateX: 6 },
+        { z: -60, opacity: 1, rotateY: -8, rotateX: 4, duration: 0.85, ease: 'power2.out' },
+        0.05,
       )
     }
-    if (marks) {
+    if (plateFore) {
+      tl.fromTo(
+        plateFore,
+        { z: -140, opacity: 0.3, rotateY: -22 },
+        { z: 160, opacity: 1, rotateY: -18, duration: 0.8, ease: 'power2.out' },
+        0.1,
+      )
+    }
+
+    // 0.8s – 2.0s: 近景版面掠过出画，中间一层停住成为主海报
+    if (plateFore) {
+      tl.to(
+        plateFore,
+        { z: 540, x: -80, opacity: 0, duration: 0.95, ease: 'power2.in' },
+        0.8,
+      )
+    }
+    if (plateMain) {
+      tl.to(
+        plateMain,
+        { z: 0, duration: 1.1, ease: 'power3.out' },
+        0.85,
+      )
+    }
+    if (posterType) {
+      tl.fromTo(
+        posterType,
+        { x: -50, opacity: 0.2 },
+        { x: 0, opacity: 1, duration: 1.0, ease: 'power3.out' },
+        0.85,
+      )
+    }
+
+    // 2.0s – 3.2s: POSTER 字母沿不同基线进入主版面；星芒印记旋转穿出
+    if (chars.length) {
+      const baselines = [-32, 40, -24, 36, -18, 28]
+      tl.fromTo(
+        chars,
+        { y: (i: number) => baselines[i] ?? 0, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.75,
+          stagger: 0.05,
+          ease: 'power4.out',
+        },
+        2.0,
+      )
+    }
+
+    if (badge) {
+      tl.fromTo(
+        badge,
+        { scale: 0, rotation: -180, opacity: 0 },
+        {
+          scale: 1,
+          rotation: 0,
+          opacity: 0.9,
+          duration: 0.85,
+          ease: 'back.out(1.4)',
+        },
+        2.2,
+      )
+    }
+
+    // 3.05s – 4.0s: 主海报略微转正，裁切线和辅助信息完成排版（提前至 3.05s 确保定格窗口 >= 1.2s）
+    if (plateMain) {
+      tl.to(
+        plateMain,
+        { rotateY: 0, rotateX: 0, duration: 0.85, ease: 'power2.out' },
+        3.05,
+      )
+    }
+    if (marks.length) {
       tl.fromTo(
         marks,
-        { opacity: 0 },
-        { opacity: 1, duration: 0.5, ease: 'sine.out', immediateRender: false },
-        0.3,
+        { opacity: 0.1, scale: 0.8 },
+        { opacity: 0.55, scale: 1, duration: 0.6, stagger: 0.05, ease: 'power2.out' },
+        3.15,
       )
     }
-    if (type) {
-      tl.fromTo(
-        type,
-        { opacity: 0 },
-        { opacity: 1, duration: 0.6, ease: 'sine.out', immediateRender: false },
-        0.36,
+
+    // 4.0s – 5.2s: 海报完整构图稳定停留（1.20s+ 窗口）
+
+    // 5.2s – 6.0s: 首尾同构收束，回到 0s 的 from 态，衔接下一轮
+    if (plateMain) {
+      tl.to(
+        plateMain,
+        { z: -360, opacity: 0.2, rotateY: -12, rotateX: 6, duration: 0.7, ease: 'power2.in' },
+        5.2,
       )
     }
-    if (captions.length) {
-      tl.fromTo(
-        captions,
-        { opacity: 0 },
+    if (plateDeep) {
+      tl.to(plateDeep, { z: -420, opacity: 0.2, duration: 0.6, ease: 'power2.in' }, 5.25)
+    }
+    if (badge) {
+      tl.to(badge, { scale: 0, rotation: -180, opacity: 0, duration: 0.45, ease: 'power2.in' }, 5.3)
+    }
+    if (posterType) {
+      tl.to(posterType, { x: -50, opacity: 0.2, duration: 0.55, ease: 'power2.in' }, 5.35)
+    }
+    if (chars.length) {
+      const baselines = [-32, 40, -24, 36, -18, 28]
+      tl.to(
+        chars,
         {
-          opacity: 1,
-          duration: 0.4,
-          ease: 'sine.out',
-          stagger: 0.03,
-          immediateRender: false,
+          y: (i: number) => baselines[i] ?? 0,
+          opacity: 0,
+          duration: 0.45,
+          ease: 'power2.in',
         },
-        0.5,
+        5.35,
       )
     }
+    if (marks.length) {
+      tl.to(marks, { opacity: 0.1, scale: 0.8, duration: 0.4, ease: 'power2.in' }, 5.4)
+    }
+    if (plateFore) {
+      tl.to(
+        plateFore,
+        { z: -140, opacity: 0.3, rotateY: -22, x: 0, duration: 0.45, ease: 'power2.in' },
+        5.45,
+      )
+    }
+    tl.to({}, { duration: 0.01 }, 5.99)
   }
 
-  /**
-   * 为四个图层各建一组 `quickTo` 设置器，并注册指针监听。
-   * 先调 `super.mount()`：杀掉旧时间线、建（本例为空的）环境循环 + 显影入场。
-   */
   mount(host: HTMLElement): void {
     super.mount(host)
-    // 为四个图层各建一组 quickTo 设置器。幅度与设置器绑在同一个对象上 ——
-    // 少一层（selector 没匹配上）也不会让后面的层用错幅度。
     this.layers = []
     for (const l of PosterAnimation.LAYERS) {
       const el = host.querySelector<HTMLElement>(l.selector)
@@ -134,57 +224,80 @@ export class PosterAnimation extends BaseAnimation {
       })
     }
 
-    this.onMove = (e: PointerEvent) => this.apply(e.clientX, e.clientY)
+    // 套准十字微光移出主时间线，独立无限运行
+    this.ambientTweens.forEach((t) => t.kill())
+    this.ambientTweens = []
+    const reg = host.querySelector<HTMLElement>('.cv-poster__reg')
+    if (reg) {
+      this.ambientTweens.push(
+        gsap.to(reg, { opacity: 0.8, duration: 1.5, ease: 'sine.inOut', yoyo: true, repeat: -1 }),
+      )
+    }
+
+    this.onMove = (e: PointerEvent) => {
+      if (!this.active) return
+      this.apply(e.clientX, e.clientY)
+    }
     this.onLeave = () => this.toBase()
-    // passive: 只读坐标，绝不拦截画廊自己的拖拽转环逻辑。
-    // 开启「减少动态效果」时**完全跳过注册**：一张跟随鼠标的卡本身仍在运动，
-    // 让构图就停在被设计好的位置上才对。
-    if (!this.reduced()) {
-      window.addEventListener('pointermove', this.onMove, { passive: true })
-      document.addEventListener('pointerleave', this.onLeave)
+
+    if (this.active) {
+      this.attachPointer()
     }
   }
 
-  /** 只在自己被聚焦时响应指针；失焦时滑回基线，而不是冻结在偏移上。 */
   setActive(active: boolean): void {
     if (this.active === active) return
     this.active = active
-    // 离开章节时是滑回原位，而不是冻结在某个偏移上
-    if (!active) this.toBase()
+    if (!active) {
+      this.toBase()
+      this.detachPointer()
+      this.ambientTweens.forEach((t) => t.pause())
+    } else {
+      this.attachPointer()
+      this.ambientTweens.forEach((t) => t.play())
+    }
   }
 
-  /** 成对摘掉两个全局监听并清空图层引用，最后交给基类杀时间线。 */
   destroy(): void {
-    if (this.onMove) window.removeEventListener('pointermove', this.onMove)
-    if (this.onLeave) document.removeEventListener('pointerleave', this.onLeave)
+    this.detachPointer()
+    this.ambientTweens.forEach((t) => t.kill())
+    this.ambientTweens = []
     this.onMove = null
     this.onLeave = null
     this.layers = []
     super.destroy()
   }
 
-  /**
-   * 把排版占位图换成真实作品。**只有印张会变** —— 构图、参考线和动效
-   * 一概不动，所以日后换成真实海报时，永远不需要碰动效代码。
-   */
   setMedia(media: CardMedia): void {
-    const plate = this.q('.cv-poster__plate')
-    const art = this.q('.cv-poster__art')
+    const plate = this.host?.querySelector<HTMLElement>('.cv-poster__plate-layer--main')
+    const art = this.host?.querySelector<HTMLElement>('.cv-poster__art')
     if (!plate) return
     if (media.type === 'image' && media.src) {
       plate.style.backgroundImage = `url("${media.src}")`
       plate.style.backgroundSize = 'cover'
       plate.style.backgroundPosition = 'center'
-      // 有真实作品时，把排版占位层藏掉
       if (art) art.style.opacity = '0'
     }
+  }
+
+  private attachPointer(): void {
+    if (this.isPointerAttached || this.reduced() || !this.onMove || !this.onLeave) return
+    window.addEventListener('pointermove', this.onMove, { passive: true })
+    document.addEventListener('pointerleave', this.onLeave)
+    this.isPointerAttached = true
+  }
+
+  private detachPointer(): void {
+    if (!this.isPointerAttached) return
+    if (this.onMove) window.removeEventListener('pointermove', this.onMove)
+    if (this.onLeave) document.removeEventListener('pointerleave', this.onLeave)
+    this.isPointerAttached = false
   }
 
   private apply(clientX: number, clientY: number): void {
     if (!this.active) return
     const w = window.innerWidth || 1
     const h = window.innerHeight || 1
-    // 把屏幕坐标归一化到 [-1, 1]
     const nx = Math.max(-1, Math.min(1, (clientX / w) * 2 - 1))
     const ny = Math.max(-1, Math.min(1, (clientY / h) * 2 - 1))
     for (const l of this.layers) {
@@ -193,7 +306,6 @@ export class PosterAnimation extends BaseAnimation {
     }
   }
 
-  /** 指针移出窗口（或章节关闭）：漂回基线。 */
   private toBase(): void {
     for (const l of this.layers) {
       l.sx(0)

@@ -291,10 +291,10 @@
       "original": "src/composables/usePageCurtain.ts",
       "path": "源码/项目源码/组合函数/页面幕布控制.ts",
       "role": "dependency",
-      "originalSha256": "c3a4e2b07723684ac7d06ecb2fea597ab245f6cc23ceb7c42c530099e4111355",
-      "originalBytes": 1568,
-      "sha256": "d06c2f3f3e20dab8560e47a9827ebe98d84c9a842b7ea57c775419aac908e422",
-      "bytes": 1570
+      "originalSha256": "c3b7b30b4f7251d4db398abf46e33f76ebb1e7425ebe7e02a94d8220e2c43300",
+      "originalBytes": 1338,
+      "sha256": "c7b1e3549270e2ff5f017cc9224934cc398cc977a238bd296753567bae9db27e",
+      "bytes": 1338
     },
     {
       "original": "src/composables/useSmoothScroll.ts",
@@ -318,10 +318,10 @@
       "original": "src/composables/useTransition.ts",
       "path": "源码/项目源码/组合函数/应用转场状态.ts",
       "role": "dependency",
-      "originalSha256": "b6e9d99df5bd576dbcc5cb3d7e9046b576fcd4af435908ae5912316b386f4cef",
-      "originalBytes": 8424,
-      "sha256": "b6e9d99df5bd576dbcc5cb3d7e9046b576fcd4af435908ae5912316b386f4cef",
-      "bytes": 8424
+      "originalSha256": "1ecc66c88f333436e6a106fad748e4a4fe68108fc7a3d3ecf03eb0fc82caa541",
+      "originalBytes": 7333,
+      "sha256": "73fb37764621c08af817d6b4f4e71db6234c916f4bfdcf0429f01959cb97054a",
+      "bytes": 7332
     },
     {
       "original": "src/data/aboutProfile.ts",
@@ -351,6 +351,15 @@
       "bytes": 2865
     },
     {
+      "original": "src/data/routeMetadata.json",
+      "path": "源码/项目源码/数据/路由元数据.json",
+      "role": "dependency",
+      "originalSha256": "0f716a6d98bf26e1fcefda52b05277539c62c14ed02b66dad71bcf7027a15b69",
+      "originalBytes": 6067,
+      "sha256": "0f716a6d98bf26e1fcefda52b05277539c62c14ed02b66dad71bcf7027a15b69",
+      "bytes": 6067
+    },
+    {
       "original": "src/data/visualPortfolio.ts",
       "path": "源码/项目源码/数据/视觉作品资料.ts",
       "role": "dependency",
@@ -358,6 +367,15 @@
       "originalBytes": 22956,
       "sha256": "59ae9bc184bfec36a9459d23eb07e17832c3042105639305c294647d720628e0",
       "bytes": 22963
+    },
+    {
+      "original": "src/router/chapterRoutes.ts",
+      "path": "源码/项目源码/路由/章节地址.ts",
+      "role": "dependency",
+      "originalSha256": "fa531c97ee22b7d91ef541d7178c1bdaa0ab2e3542b90a0b92aa41c6826b9183",
+      "originalBytes": 844,
+      "sha256": "e804fd6cca48f98fb3503e4e0fe82ce7777e4757b4221a33b1a702fddf26e2b0",
+      "bytes": 848
     },
     {
       "original": "src/style.css",

@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
-import { jumpPathFor } from '../组合函数/应用转场状态'
-import { getRouteScrollPreparation } from '../工具/路由滚动准备'
+import { jumpPathFor } from './章节地址'
+import { getRouteScrollPreparation, HASH_SCROLL_OFFSET } from '../工具/路由滚动准备'
 
 /**
  * 路由表：
@@ -133,7 +133,7 @@ export const router = createRouter({
     if (to.hash) {
       try {
         const element = document.getElementById(decodeURIComponent(to.hash.slice(1)))
-        if (element) return { el: element, top: 24, behavior: 'instant' }
+        if (element) return { el: element, top: HASH_SCROLL_OFFSET, behavior: 'instant' }
       } catch { /* 无效编码不应让整次导航的 scrollBehavior reject。 */ }
     }
     // Reset only after navigation commits. Resetting the outgoing page in a

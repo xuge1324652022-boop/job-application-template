@@ -1,8 +1,8 @@
 import { ref } from 'vue'
+import { jumpPathFor, needsInitialCurtain } from '../路由/章节地址'
+export { needsInitialCurtain } from '../路由/章节地址'
 import type { Bi } from '../数据/人物资料'
 
-/** 全局幕布单例：首访初始化也先锁定，避免深层组件在幕布下面抢播入场。 */
-export const needsInitialCurtain = (path: string): boolean => /^\/(about|edit|news|color|poster|photo|cards)(?:\/|$)/u.test(path) || path.startsWith('/card/')
 /** 覆盖、等待、揭幕全过程为 true：屏蔽页面输入及媒体启动。 */
 export const routeCurtainActive = ref(needsInitialCurtain(window.location.pathname))
 /** 揭幕开始即为 false：文字可随弧形边缘出现，输入仍等待 active 解锁。 */
@@ -18,10 +18,9 @@ const TITLES: Record<string, Bi> = {
   '/poster': { zh: '海报设计', en: 'Posters & design' },
   '/photo': { zh: '摄影', en: 'Photography' },
 }
-const LEGACY_PATHS = ['/about', '/edit', '/color', '/news', '/poster', '/photo']
 /** 兼容旧卡号路径，保证直接输入旧网址时幕布仍能显示正确的双语章节名。 */
 export function curtainTitleFor(path: string): Bi {
   const legacy = /^\/card\/(\d{2})$/u.exec(path)
-  const key = legacy ? LEGACY_PATHS[Number(legacy[1]) - 1] ?? path : path
+  const key = legacy ? jumpPathFor(legacy[1]!) : path
   return TITLES[key] ?? { zh: '作品', en: 'Work' }
 }

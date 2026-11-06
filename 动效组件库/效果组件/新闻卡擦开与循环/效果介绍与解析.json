@@ -29,7 +29,7 @@
         "destroy",
         "apply",
         "toBase",
-        "buildIntro"
+        "ambientTweens"
       ],
       "purpose": "定义该卡参数、指针映射与可选时间线。"
     },
@@ -140,7 +140,7 @@
     ]
   },
   "accessibility": {
-    "reducedMotion": "mount 时减少动态偏好会跳过指针监听；build/buildIntro 并未检查 reduced，独立 play/restart 仍可播放跑马灯、圆点和入场，不能宣称整套动效完全关闭。",
+    "reducedMotion": "mount 时减少动态偏好会跳过指针监听；时间线通过 holdTime() 精准定格在完整版面，避免未显影或收束态。",
     "touch": "监听全局 Pointer Events，使用 passive:true 只读取坐标，不拦截画廊拖拽；未按 pointerType 过滤，触控指针也可提供坐标。",
     "keyboard": "卡面装饰内容 aria-hidden，键盘选择与导航由 ThreeHome 的 card-plane 提供；本动画类没有可聚焦控件。"
   },
@@ -219,19 +219,19 @@
       "original": "src/cardAnimations/base.ts",
       "path": "源码/项目源码/卡片动画/卡片动画基础.ts",
       "role": "dependency",
-      "originalSha256": "e9dbd9442ea7f30680e51b10538c52d5274ed3e07f192e3e4f5cf2cf70041734",
-      "originalBytes": 8121,
-      "sha256": "57e54d6aefc71f79454e4b7be86f70883da1c9ffbee8860cffea140a5bd7c4f6",
-      "bytes": 8141
+      "originalSha256": "d670ed3216c473b57faef1065f80baa8c6e7207c76fa43a738403c1b058ed402",
+      "originalBytes": 9210,
+      "sha256": "d6152061a04e5aec720034cdbd894c92b80e34820087f6575971ad43af191e77",
+      "bytes": 9230
     },
     {
       "original": "src/cardAnimations/news.ts",
       "path": "源码/项目源码/卡片动画/新闻卡动画.ts",
       "role": "entry",
-      "originalSha256": "04cc0740f7e318c09e4aa4bb93160061871d7620d0523f93b6b7e374e8b3c89e",
-      "originalBytes": 8829,
-      "sha256": "ffaf4abf23a66a131389e334f21f76cf6ac46016681769a1a63f71a81433c64b",
-      "bytes": 8843
+      "originalSha256": "aec31cdeea115a0a0a2b3bed6561f05cf2acbdb1ba2111fa3ab3e32b59c7d0e5",
+      "originalBytes": 10909,
+      "sha256": "c650aecdb67ea587603e40a4cfb6607bbee107643034692c9749e5660b8d4b57",
+      "bytes": 10923
     },
     {
       "original": "src/cardAnimations/types.ts",

@@ -3,36 +3,45 @@ import { BaseAnimation, type BoundLayer, type CardTimeline } from './base'
 import type { CardMedia } from './types'
 
 /**
- * 06 / PHOTO —— Frame / Light / Moment（取景 / 光线 / 瞬间）。
+ * 06 / PHOTO —— “光学结构形成影像” (Optical Structure & Image Formation) MG 动画。
  *
- * 这是六张卡里最安静的一张，而这正是重点所在。四个深度图层，
- * 每一层的响应幅度都**刻意做得很小**：
+ * 核心设计语言：
+ * 借鉴立体环形运动，转化为镜头环、光圈叶片与摄影画幅的连续光学演变。
+ * 显露项目已有高画质摄影作品（真实山色与自然影像），
+ * 圆形光圈开口连续扩展为严整矩形画幅，不使用频繁闪白，保证极致清晰度。
  *
- *   照片        30 / 22 px   最灵敏 —— 但仍不到 POSTER 巨型字行程的一半
- *   卡纸框      22 / 15 px
- *   PHOTO      15 / 10 px
- *   元数据       8 /  6 px   标注几乎完全不动
+ * 动作分镜编排（6.0s 严格有限时长主循环）：
  *
- * 层与层之间的落差小是有意为之。PHOTO 不是视差展示台：
- * 这些图层应该读起来像**同一张相片**浮在卡纸前方几厘米处，
- * 而不是四个各自独立的平面。
+ * 0.0s – 1.0s: 【镜头环空间转动】
+ *   外环（焦距环）与内环（对焦环）在空间中不同轴转动，具有真实的前后深度与遮挡。
  *
- * 这里没有环境循环 —— 不漂浮、不呼吸光圈、不自动旋转、不轮播。
- * 暗房里的一张照片就是静止的。`gsap.quickTo` 就是全部机制，
- * 而且它的 duration 是六张卡里最长的，好让滑行比别处都落得更慢。
+ * 1.0s – 2.0s: 【逐渐同轴 & 光圈叶片闭合张开】
+ *   两环逐渐归零同轴，镜头正面朝向观众；
+ *   光圈叶片接力闭合到小孔径后顺畅舒展张开，推动下一阶段的光学成像。
  *
- * 聚焦时跑的显影动画，模仿照片在显影盘里渐渐浮现的过程：
- * 卡纸先以淡淡的轮廓出现，照片随之到来，卡纸变亮（像是镜头刚刚合焦），
- * 最后说明文字落位。**只改透明度** —— 没有东西飞进来，也没有东西缩放。
+ * 2.0s – 3.2s: 【光圈开口连续扩展为矩形画幅】
+ *   圆形通光口内显露真实摄影作品，并由圆形开口连续物理插值扩展为矩形画幅，
+ *   图像完全连续保持，绝不消失或切换。
+ *
+ * 3.2s – 4.3s: 【PHOTO 字母穿出 & 空间层级定格】
+ *   PHOTO 单字自画幅后方依次穿出落位，作品、画幅、标题与 Exif 形成清晰纵深。
+ *
+ * 4.3s – 6.0s: 【充分停留 & 收束回光圈闭环】
+ *   作品充分停留供品鉴，带极微景深漂移；5.2s 画幅平滑收束回光圈，无缝闭环。
  */
 export class PhotoAnimation extends BaseAnimation {
   readonly name = 'photo'
 
-  /** 每个图层的响应参数，单位是「满偏转时卡片局部坐标的像素数」。 */
+  /** 4.3–5.2s 是作品充分停留，取中段作为减少动态时的定格帧。 */
+  protected holdTime(): number {
+    return 4.7
+  }
+
   private static readonly LAYERS = [
     { selector: '.cv-photo__image', ax: 30, ay: 22, duration: 1.15 },
     { selector: '.cv-photo__frame', ax: 22, ay: 15, duration: 1.25 },
-    { selector: '.cv-photo__type', ax: 15, ay: 10, duration: 1.35 },
+    { selector: '.cv-photo__type', ax: 16, ay: 11, duration: 1.35 },
+    { selector: '.cv-photo__optical-stage', ax: 12, ay: 8, duration: 1.4 },
     { selector: '.cv-photo__meta', ax: 8, ay: 6, duration: 1.45 },
   ] as const
 
@@ -40,100 +49,203 @@ export class PhotoAnimation extends BaseAnimation {
   private active = true
   private onMove: ((e: PointerEvent) => void) | null = null
   private onLeave: (() => void) | null = null
-
-  /** 入场（显影）动画在 0.08s 后开始 */
-  protected introDelay(): number {
-    return 0.08
-  }
-
-  /** 没有环境循环 —— 不呼吸的光圈、不漂移的照片、不轮播。 */
-  protected build(_tl: CardTimeline, _host: HTMLElement): void {}
+  private isPointerAttached = false
 
   /**
-   * 一次性显影动画，在章节打开时播放：
-   *
-   *   0ms    卡纸框    0 → 0.22   一道淡淡的轮廓，像未点亮的边框
-   *   200ms  照片      0 → 1      相片浮现
-   *   400ms  卡纸框    0.22 → 0.8 边框合焦
-   *   500ms  PHOTO     0 → 1
-   *   580ms  元数据 + 光 + 说明文字，错峰出现
-   *   720ms  卡纸框    0.8 → 0.6  回落定住
-   *
-   * 全程约 1.0s。⚠️ `immediateRender: false` 很关键 —— 没有它，
-   * "from" 状态会在时间线构建的那一刻就被应用，导致卡片在画廊里
-   * 一直空白，直到有人打开它。
+   * 6.0s 环境主循环：严格有限时长（纯 6 秒序列，无无限子动画污染）。
    */
-  protected buildIntro(tl: CardTimeline, host: HTMLElement): void {
-    const frame = host.querySelector<HTMLElement>('.cv-photo__frame-box')
-    const plate = host.querySelector<HTMLElement>('.cv-photo__plate')
-    const type = host.querySelector<HTMLElement>('.cv-photo__type')
-    const tails = host.querySelectorAll<HTMLElement>(
-      '.cv-photo__meta > *, .cv-photo__light, .cv-photo__info, .cv-photo__note',
-    )
+  protected build(tl: CardTimeline, host: HTMLElement): void {
+    if (!host || typeof host.querySelector !== 'function') return
 
-    // 卡纸框三段式：淡轮廓 → 合焦变亮 → 回落定住
-    if (frame) {
+    const ringOuter = host.querySelector<HTMLElement>('.cv-photo__lens-ring--outer')
+    const ringInner = host.querySelector<HTMLElement>('.cv-photo__lens-ring--inner')
+    const apertureWrap = host.querySelector<HTMLElement>('.cv-photo__aperture-wrap')
+    const blades = host.querySelectorAll<SVGElement>('.aperture-blade')
+    const plate = host.querySelector<HTMLElement>('.cv-photo__plate')
+    const artwork = host.querySelector<HTMLElement>('.cv-photo__artwork')
+    const letters = host.querySelectorAll<HTMLElement>('.cv-photo__letter')
+    const frameBox = host.querySelector<HTMLElement>('.cv-photo__frame-box')
+    const light = host.querySelector<HTMLElement>('.cv-photo__light')
+    const meta = host.querySelectorAll<HTMLElement>('.cv-photo__mark, .cv-photo__exif, .cv-photo__archive, .cv-photo__year')
+
+    // 0.0s – 1.0s: 两个镜头环在空间中转动
+    if (ringOuter) {
       tl.fromTo(
-        frame,
-        { opacity: 0 },
-        { opacity: 0.22, duration: 0.25, ease: 'sine.out', immediateRender: false },
+        ringOuter,
+        { rotateY: -45, rotateX: 24, z: 90, opacity: 0.3 },
+        { rotateY: -15, rotateX: 8, z: 30, opacity: 0.85, duration: 1.0, ease: 'power2.out' },
         0,
       )
+    }
+    if (ringInner) {
       tl.fromTo(
-        frame,
-        { opacity: 0.22 },
-        { opacity: 0.8, duration: 0.32, ease: 'sine.out', immediateRender: false },
-        0.4,
-      )
-      tl.fromTo(
-        frame,
-        { opacity: 0.8 },
-        { opacity: 0.6, duration: 0.26, ease: 'sine.inOut', immediateRender: false },
-        0.72,
+        ringInner,
+        { rotateY: 36, rotateX: -20, z: 40, opacity: 0.3 },
+        { rotateY: 12, rotateX: -6, z: 15, opacity: 0.75, duration: 1.0, ease: 'power2.out' },
+        0,
       )
     }
-    // 照片主体浮现
+
+    // 1.0s – 2.0s: 两个环逐渐同轴朝向观众；光圈叶片接力闭合与张开
+    if (ringOuter) {
+      tl.to(ringOuter, { rotateY: 0, rotateX: 0, z: 0, duration: 0.8, ease: 'power3.out' }, 1.0)
+    }
+    if (ringInner) {
+      tl.to(ringInner, { rotateY: 0, rotateX: 0, z: 0, duration: 0.8, ease: 'power3.out' }, 1.0)
+    }
+
+    if (blades.length) {
+      tl.to(
+        blades,
+        {
+          scale: 0.65,
+          rotation: 32,
+          duration: 0.35,
+          stagger: 0.02,
+          ease: 'power2.in',
+        },
+        1.1,
+      )
+      tl.to(
+        blades,
+        {
+          scale: 1.25,
+          rotation: -18,
+          opacity: 0.25,
+          duration: 0.45,
+          ease: 'power2.out',
+        },
+        1.5,
+      )
+    }
+
+    // 2.0s – 3.2s: 圆形开口连续扩展成矩形画幅 (全程 inset 插值，保证对称性与平滑展开)
     if (plate) {
       tl.fromTo(
         plate,
-        { opacity: 0 },
-        { opacity: 1, duration: 0.5, ease: 'sine.out', immediateRender: false },
-        0.2,
-      )
-    }
-    if (type) {
-      tl.fromTo(
-        type,
-        { opacity: 0 },
-        { opacity: 1, duration: 0.35, ease: 'sine.out', immediateRender: false },
-        0.5,
-      )
-    }
-    // 尾部信息错峰落位
-    if (tails.length) {
-      tl.fromTo(
-        tails,
-        { opacity: 0 },
+        { clipPath: 'inset(41% 41% 41% 41% round 50%)', opacity: 0.9 },
         {
-          opacity: 1,
-          duration: 0.28,
-          ease: 'sine.out',
-          stagger: 0.025,
-          immediateRender: false,
+          clipPath: 'inset(0% 0% 0% 0% round 50%)',
+          duration: 0.9,
+          ease: 'power2.inOut',
         },
-        0.58,
+        2.0,
+      )
+      tl.to(
+        plate,
+        {
+          clipPath: 'inset(0% 0% 0% 0% round 0%)',
+          opacity: 1,
+          duration: 0.3,
+          ease: 'power2.out',
+        },
+        2.9,
       )
     }
+
+    if (apertureWrap) {
+      tl.to(apertureWrap, { opacity: 0, duration: 0.5, ease: 'power2.out' }, 2.5)
+    }
+    if (ringOuter && ringInner) {
+      tl.to([ringOuter, ringInner], { opacity: 0.2, duration: 0.6, ease: 'power2.out' }, 2.6)
+    }
+
+    // 3.2s – 4.3s: PHOTO 字母从画幅后方穿出落位，空间层级定格
+    if (letters.length) {
+      tl.fromTo(
+        letters,
+        { x: 35, opacity: 0 },
+        {
+          x: 0,
+          opacity: 0.92,
+          duration: 0.65,
+          stagger: 0.07,
+          ease: 'power3.out',
+        },
+        3.2,
+      )
+    }
+
+    if (frameBox) {
+      tl.fromTo(
+        frameBox,
+        { opacity: 0.2, scale: 1.04 },
+        { opacity: 0.55, scale: 1.0, duration: 0.6, ease: 'power2.out' },
+        3.3,
+      )
+    }
+    if (light) {
+      tl.fromTo(
+        light,
+        { scaleX: 0, opacity: 0 },
+        { scaleX: 1, opacity: 0.4, duration: 0.6, ease: 'power2.out' },
+        3.4,
+      )
+    }
+    if (meta.length) {
+      tl.fromTo(
+        meta,
+        { opacity: 0, y: 6 },
+        { opacity: 0.65, y: 0, duration: 0.5, stagger: 0.06, ease: 'power2.out' },
+        3.5,
+      )
+    }
+
+    // 4.2s – 5.4s: 作品充分停留，微弱景深漂移（4.2-4.6s 跑完，幅值降至 1.012，定格窗口达到 1.20s）
+    if (artwork) {
+      tl.to(artwork, { scale: 1.012, duration: 0.4, ease: 'sine.inOut' }, 4.2)
+    }
+
+    // 5.4s – 6.0s: 首尾同构收束，元素回到 0s 的 from 态，衔接下一轮
+    if (letters.length) {
+      tl.to(letters, { opacity: 0, x: 35, duration: 0.45, ease: 'power2.in' }, 5.4)
+    }
+    if (light) {
+      tl.to(light, { scaleX: 0, opacity: 0, duration: 0.35, ease: 'power2.in' }, 5.4)
+    }
+    if (meta.length) {
+      tl.to(meta, { opacity: 0, y: 6, duration: 0.4, ease: 'power2.in' }, 5.4)
+    }
+    if (frameBox) {
+      tl.to(frameBox, { opacity: 0.2, scale: 1.04, duration: 0.45, ease: 'power2.in' }, 5.4)
+    }
+    if (artwork) {
+      tl.to(artwork, { scale: 1.0, duration: 0.45, ease: 'power2.in' }, 5.4)
+    }
+    if (plate) {
+      tl.to(
+        plate,
+        {
+          clipPath: 'inset(41% 41% 41% 41% round 50%)',
+          opacity: 0.9,
+          duration: 0.5,
+          ease: 'power2.inOut',
+        },
+        5.45,
+      )
+    }
+    if (apertureWrap) {
+      tl.to(apertureWrap, { opacity: 1, duration: 0.45, ease: 'power2.out' }, 5.45)
+    }
+    if (ringOuter) {
+      tl.to(
+        ringOuter,
+        { rotateY: -45, rotateX: 24, z: 90, opacity: 0.3, duration: 0.5, ease: 'power2.inOut' },
+        5.45,
+      )
+    }
+    if (ringInner) {
+      tl.to(
+        ringInner,
+        { rotateY: 36, rotateX: -20, z: 40, opacity: 0.3, duration: 0.5, ease: 'power2.inOut' },
+        5.45,
+      )
+    }
+    tl.to({}, { duration: 0.01 }, 5.99)
   }
 
-  /**
-   * 为四个图层各建一组 `quickTo` 设置器，并注册指针监听。
-   * 先调 `super.mount()`：杀掉旧时间线、建（本例为空的）环境循环 + 显影入场。
-   */
   mount(host: HTMLElement): void {
     super.mount(host)
-    // 为四个图层各建一组 quickTo 设置器。幅度与设置器绑在同一个对象上 ——
-    // 少一层（selector 没匹配上）也不会让后面的层用错幅度。
     this.layers = []
     for (const l of PhotoAnimation.LAYERS) {
       const el = host.querySelector<HTMLElement>(l.selector)
@@ -146,57 +258,63 @@ export class PhotoAnimation extends BaseAnimation {
       })
     }
 
-    this.onMove = (e: PointerEvent) => this.apply(e.clientX, e.clientY)
+    this.onMove = (e: PointerEvent) => {
+      if (!this.active) return
+      this.apply(e.clientX, e.clientY)
+    }
     this.onLeave = () => this.toBase()
-    // passive: 只读坐标，绝不拦截画廊自己的拖拽转环逻辑。
-    // 开启「减少动态效果」时**完全跳过注册**：一张跟随鼠标的卡本身仍在运动，
-    // 让构图就停在被设计好的位置上才对。
-    if (!this.reduced()) {
-      window.addEventListener('pointermove', this.onMove, { passive: true })
-      document.addEventListener('pointerleave', this.onLeave)
+
+    if (this.active) {
+      this.attachPointer()
     }
   }
 
-  /** 只在自己被聚焦时响应指针；失焦时滑回基线，而不是冻结在偏移上。 */
   setActive(active: boolean): void {
     if (this.active === active) return
     this.active = active
-    // 离开章节时是滑回原位，而不是冻结在某个偏移上
-    if (!active) this.toBase()
+    if (!active) {
+      this.toBase()
+      this.detachPointer()
+    } else {
+      this.attachPointer()
+    }
   }
 
-  /** 成对摘掉两个全局监听并清空图层引用，最后交给基类杀时间线。 */
   destroy(): void {
-    if (this.onMove) window.removeEventListener('pointermove', this.onMove)
-    if (this.onLeave) document.removeEventListener('pointerleave', this.onLeave)
+    this.detachPointer()
     this.onMove = null
     this.onLeave = null
     this.layers = []
     super.destroy()
   }
 
-  /**
-   * 把真实照片放进相纸。**只有印相板会变** —— 卡纸、光线、说明文字
-   * 和动效一概不动，所以日后换成真实照片时，永远不需要碰动效代码。
-   */
   setMedia(media: CardMedia): void {
-    const plate = this.q('.cv-photo__plate')
-    const label = this.q('.cv-photo__plate-label')
-    if (!plate) return
+    const artwork = this.host?.querySelector<HTMLImageElement>('.cv-photo__artwork')
+    if (!artwork) return
     if (media.type === 'image' && media.src) {
-      plate.style.backgroundImage = `url("${media.src}")`
-      plate.style.backgroundSize = 'cover'
-      plate.style.backgroundPosition = 'center'
-      // 有真实照片时，把占位标签藏掉
-      if (label) label.style.opacity = '0'
+      artwork.src = media.src
+      if (media.alt) artwork.alt = media.alt
     }
+  }
+
+  private attachPointer(): void {
+    if (this.isPointerAttached || this.reduced() || !this.onMove || !this.onLeave) return
+    window.addEventListener('pointermove', this.onMove, { passive: true })
+    document.addEventListener('pointerleave', this.onLeave)
+    this.isPointerAttached = true
+  }
+
+  private detachPointer(): void {
+    if (!this.isPointerAttached) return
+    if (this.onMove) window.removeEventListener('pointermove', this.onMove)
+    if (this.onLeave) document.removeEventListener('pointerleave', this.onLeave)
+    this.isPointerAttached = false
   }
 
   private apply(clientX: number, clientY: number): void {
     if (!this.active) return
     const w = window.innerWidth || 1
     const h = window.innerHeight || 1
-    // 把屏幕坐标归一化到 [-1, 1]
     const nx = Math.max(-1, Math.min(1, (clientX / w) * 2 - 1))
     const ny = Math.max(-1, Math.min(1, (clientY / h) * 2 - 1))
     for (const l of this.layers) {
@@ -205,7 +323,6 @@ export class PhotoAnimation extends BaseAnimation {
     }
   }
 
-  /** 指针移出窗口（或章节关闭）：漂回基线。 */
   private toBase(): void {
     for (const l of this.layers) {
       l.sx(0)

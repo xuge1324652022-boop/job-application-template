@@ -190,6 +190,9 @@
     "src/views/NewsView.vue": "项目源码/页面/新闻作品页.vue",
     "src/views/NotFoundView.vue": "项目源码/页面/页面未找到.vue",
     "src/views/PhotoView.vue": "项目源码/页面/摄影作品页.vue",
-    "src/views/PosterView.vue": "项目源码/页面/海报作品页.vue"
+    "src/views/PosterView.vue": "项目源码/页面/海报作品页.vue",
+    "src/router/chapterRoutes.ts": "项目源码/路由/章节地址.ts",
+    "src/utils/abortable.ts": "项目源码/工具/可取消异步等待.ts",
+    "src/composables/useAboutScrollPreparation.ts": "项目源码/组合函数/人物页滚动准备.ts"
   }
 }

@@ -28,7 +28,7 @@
         "destroy",
         "apply",
         "toBase",
-        "buildIntro"
+        "ambientTweens"
       ],
       "purpose": "定义该卡参数、指针映射与可选时间线。"
     },
@@ -139,7 +139,7 @@
     ]
   },
   "accessibility": {
-    "reducedMotion": "mount 时减少动态偏好会跳过指针监听；build/buildIntro 并未检查 reduced，独立 play/restart 仍可播放跑马灯、圆点和入场，不能宣称整套动效完全关闭。",
+    "reducedMotion": "mount 时减少动态偏好会跳过指针监听；时间线通过 holdTime() 精准定格在完整版面，避免未显影或收束态。",
     "touch": "监听全局 Pointer Events，使用 passive:true 只读取坐标，不拦截画廊拖拽；未按 pointerType 过滤，触控指针也可提供坐标。",
     "keyboard": "卡面装饰内容 aria-hidden，键盘选择与导航由 ThreeHome 的 card-plane 提供；本动画类没有可聚焦控件。"
   },

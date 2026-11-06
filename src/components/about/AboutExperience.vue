@@ -1,7 +1,7 @@
 <template>
   <!--
     01 / ABOUT —— 首页画廊里「关于我」卡片的装饰预览，非 AboutView 正文首屏。
-    三层由远及近：巨型 ABOUT 排版 → DEMO 几何图形 → 文字信息。
+    三层由远及近：巨型 ABOUT 排版 → Q 几何身份结构与取景窗口 → 文字信息。
     尺度、层级、颜色都在 aboutExperience.css；指针位移在
     aboutExperienceAnimation.ts。这里只负责把它们摆在一起。
 
@@ -10,11 +10,15 @@
   -->
   <div ref="rootRef" class="about-exp" aria-hidden="true">
     <!-- 第 1 层：巨型 ABOUT。主导尺度，允许被卡片边缘裁掉一部分 -->
-    <h2 class="about-exp__type">ABOUT</h2>
+    <h2 class="about-exp__type">
+      <span class="about-exp__type-inner">ABOUT</span>
+    </h2>
 
-    <!-- 第 2 层：DEMO —— 藏在空间里的几何结构，带三条扫描线 -->
+    <!-- 第 2 层：几何结构 Q 与身份取景窗口 -->
     <div class="about-exp__logo">
-      <TemplateMark />
+      <div class="about-exp__logo-inner">
+        <TemplateMark />
+      </div>
     </div>
 
     <!-- 第 3 层：文字信息。尺度最小，锚在左下 -->
@@ -22,7 +26,16 @@
       <span class="about-exp__index">01</span>
       <span class="about-exp__rule" />
       <h3 class="about-exp__lead">关于我</h3>
-      <span class="about-exp__name">{{ IDENTITY.nameZh }}</span>
+      <div class="about-exp__name-row">
+        <span class="about-exp__name">
+          <span
+            v-for="(char, i) in nameChars"
+            :key="i"
+            class="about-exp__char"
+          >{{ char }}</span>
+        </span>
+        <span v-if="IDENTITY.nameEn" class="about-exp__name-en">{{ IDENTITY.nameEn }}</span>
+      </div>
       <span class="about-exp__role">VIDEO EDITOR</span>
       <span class="about-exp__role">COLORIST</span>
       <span class="about-exp__role">VISUAL DESIGNER</span>
@@ -35,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import TemplateMark from './TemplateMark.vue'
 import { IDENTITY } from '../../data/aboutProfile'
 import { createAboutExperience, type AboutExperienceHandle } from './aboutExperienceAnimation'
@@ -43,6 +56,8 @@ import './aboutExperience.css'
 
 const rootRef = ref<HTMLElement | null>(null)
 let handle: AboutExperienceHandle | null = null
+
+const nameChars = computed(() => Array.from(IDENTITY.nameZh || ''))
 
 onMounted(() => {
   if (rootRef.value) handle = createAboutExperience(rootRef.value)

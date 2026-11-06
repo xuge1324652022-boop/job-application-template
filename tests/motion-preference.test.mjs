@@ -276,3 +276,87 @@ test('ABOUT独立三层指针视差实时回到基线，恢复偏好可重用，
   assert.equal(pointerListeners.size, 0)
   assert.equal(documentListeners.size, 0)
 })
+
+test('六张卡片主时间线均为严格有限时长（tl.duration() < 10 且 > 0），杜绝无限子动画破坏循环', () => {
+  const cardNames = ['about', 'edit', 'color', 'news', 'poster', 'photo']
+  const base = {}
+  vm.runInNewContext(compile(read('src/cardAnimations/base.ts')), {
+    exports: base,
+    require: (id) =>
+      String(id).includes('utils/motion')
+        ? { prefersReduced: () => false }
+        : { __esModule: true, default: gsap },
+    window: { matchMedia: () => ({ matches: false }) },
+  })
+
+  const createMockNode = () => {
+    const style = { transform: '' }
+    return {
+      nodeType: 1,
+      nodeName: 'DIV',
+      style,
+      setAttribute() {},
+      getAttribute() { return null },
+      addEventListener() {},
+      removeEventListener() {},
+      getContext: () => ({
+        clearRect() {},
+        fillRect() {},
+        save() {},
+        restore() {},
+      }),
+      width: 600,
+      height: 400,
+      scrollWidth: 320,
+    }
+  }
+
+  const mockHost = {
+    ...createMockNode(),
+    querySelector: () => createMockNode(),
+    querySelectorAll: () => [createMockNode(), createMockNode(), createMockNode()],
+  }
+
+  for (const name of cardNames) {
+    const mod = {}
+    vm.runInNewContext(compile(read(`src/cardAnimations/${name}.ts`)), {
+      exports: mod,
+      ResizeObserver: class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      },
+      require: (id) => {
+        if (id.includes('base')) return base
+        return { __esModule: true, default: gsap }
+      },
+      window: {
+        matchMedia: () => ({ matches: false }),
+        addEventListener() {},
+        removeEventListener() {},
+      },
+      document: {
+        addEventListener() {},
+        removeEventListener() {},
+      },
+    })
+
+    const ClassName = Object.values(mod).find(
+      (v) => typeof v === 'function' && v.prototype instanceof base.BaseAnimation,
+    )
+    assert.ok(ClassName, `${name} 必须导出 BaseAnimation 子类`)
+    const anim = new ClassName()
+    anim.mount(mockHost)
+    assert.ok(anim.tl, `${name} 必须拥有主时间线 tl`)
+    const dur = anim.tl.duration()
+    assert.ok(
+      Number.isFinite(dur),
+      `${name} 主时间线时长必须是有限数（严禁混入 repeat: -1 子动画），实际为：${dur}`,
+    )
+    assert.ok(
+      dur > 0 && dur < 10,
+      `${name} 主时间线时长需在 (0, 10) 秒之间，实际为：${dur}`,
+    )
+    anim.destroy()
+  }
+})

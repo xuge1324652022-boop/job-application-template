@@ -1,5 +1,8 @@
 import type { RouterScrollBehavior } from 'vue-router'
 
+/** Shared by the router landing position and pinned-scene hash markers. */
+export const HASH_SCROLL_OFFSET = 24
+
 type RouteScrollPreparation = (hash: string, saved: Parameters<RouterScrollBehavior>[2]) => Promise<boolean>
 const preparations = new Map<string, RouteScrollPreparation>()
 

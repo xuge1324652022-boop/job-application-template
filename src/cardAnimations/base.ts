@@ -76,6 +76,7 @@ export abstract class BaseAnimation implements CardAnimation {
       smoothChildTiming: true,
     })
     this.build(this.tl, host)
+    if (this.reduced()) this.settleReduced()
 
     // introDelay() 返回 -1 表示这张卡没有入场动画，到此为止
     const introDelay = this.introDelay()
@@ -111,14 +112,35 @@ export abstract class BaseAnimation implements CardAnimation {
   }
 
   /**
+   * 「定格时刻」：完整构图静止停留的那一拍（绝对秒数）。
+   *
+   * ⚠️ 为什么不能直接用 `progress(1)`：每张卡的最后一拍都是**收束 / 复位**
+   *    —— 圆弧收回圆心、切片归零、色场退回黑白初态。停在时间线末端等于把
+   *    「拆解中的一帧」当成静态构图交给减少动态的用户，看起来像坏掉了。
+   *    子类返回定格拍的绝对时间；返回 -1 时才退回 `progress(1)`。
+   */
+  protected holdTime(): number {
+    return -1
+  }
+
+  /** 减少动态时的统一落点：停在定格拍，而不是时间线末端。 */
+  private settleReduced(): void {
+    this.intro?.progress(1).pause()
+    const tl = this.tl
+    if (!tl) return
+    const hold = this.holdTime()
+    if (hold >= 0 && Number.isFinite(hold)) tl.pause(Math.min(hold, tl.duration()))
+    else tl.progress(1).pause()
+  }
+
+  /**
    * 恢复环境循环。**这里不播入场动画** —— intro 时间线创建时就是 paused，
    * 只有 `restart()` 才会让它动起来。这样一张卡可以先停在它的 "from"
    * 状态（构图之外），直到章节真正被打开。
    */
   play(): void {
     if (this.reduced()) {
-      this.intro?.progress(1).pause()
-      this.tl?.pause()
+      this.settleReduced()
       return
     }
     this.tl?.play()
@@ -126,9 +148,12 @@ export abstract class BaseAnimation implements CardAnimation {
 
   /** 同时冻结入场与环境循环（章节收起、页面隐藏时调用）。 */
   pause(): void {
-    if (this.reduced()) this.intro?.progress(1).pause()
-    else this.intro?.pause()
-    this.tl?.pause()
+    if (this.reduced()) {
+      this.settleReduced()
+    } else {
+      this.intro?.pause()
+      this.tl?.pause()
+    }
   }
 
   /** 停下并倒回第一帧 */
@@ -145,12 +170,17 @@ export abstract class BaseAnimation implements CardAnimation {
    */
   restart(): void {
     if (this.reduced()) {
-      this.intro?.progress(1).pause()
-      this.tl?.pause(0)
+      this.settleReduced()
       return
     }
-    if (this.intro) this.intro.restart(false, true)
-    if (this.tl) {
+    if (this.intro) {
+      this.tl?.pause(0)
+      this.intro.eventCallback('onComplete', () => {
+        this.introDone = true
+        if (this.tl && !this.reduced()) this.tl.play()
+      })
+      this.intro.restart(false, true)
+    } else if (this.tl) {
       this.tl.pause(0)
       this.tl.play()
     }

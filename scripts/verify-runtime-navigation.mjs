@@ -20,9 +20,14 @@ function functions(source, names) {
 
 // 异常旧面包屑不能变成 NaN/越界卡号；合法六卡与旧格式照常恢复。
 const transition = {}
+const chapterRoutes = {}
+vm.runInNewContext(compile(read('src/router/chapterRoutes.ts')), {
+  exports: chapterRoutes,
+  require: () => ({ default: JSON.parse(read('src/data/routeMetadata.json')) }),
+})
 let crumb
 vm.runInNewContext(compile(read('src/composables/useTransition.ts')), {
-  exports: transition, require: () => ({ ref: value => ({ value }) }), window: { history: { state: {} } },
+  exports: transition, require: name => name === 'vue' ? ({ ref: value => ({ value }) }) : chapterRoutes, window: { history: { state: {} } },
   sessionStorage: { getItem: () => crumb, removeItem: () => { crumb = null } },
 })
 for (const value of ['bad', '00', '07', '{"id":"x"}', '{"id":"01","position":"wrong"}', 'null', '{']) {
@@ -55,6 +60,7 @@ vm.runInNewContext(compile(read('src/router/index.ts')), {
     } }
     if (name.endsWith('usePageCurtain')) return { routeCurtainBlocked: { value: true } }
     if (name.endsWith('useTransition')) return transition
+    if (name.endsWith('chapterRoutes')) return chapterRoutes
     if (name.endsWith('routeScrollPreparation')) return scrollPreparation
     throw Error(name)
   },
@@ -73,7 +79,10 @@ async function routeScroll(destination, saved = null) {
   currentRoute.value = destination
   return config.scrollBehavior(destination, from, saved)
 }
-assert.equal((await routeScroll(to)).el, target)
+const anchorLanding = await routeScroll(to)
+assert.equal(anchorLanding.el, target)
+assert.equal(anchorLanding.top, scrollPreparation.HASH_SCROLL_OFFSET)
+assert.equal(anchorLanding.top, 24, 'refactoring must preserve the existing anchor landing position')
 assert.equal((await routeScroll(to, { top: 950 })).top, 950)
 assert.equal((await routeScroll({ path: '/photo', fullPath: '/photo', hash: '' }, { top: 420 })).top, 420)
 assert.equal((await routeScroll({ ...to, hash: '#%E0%A4' })).top, 0)

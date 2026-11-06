@@ -53,7 +53,7 @@ const isBack =
  *    按路径反推就得为每个专属页写一个分支，将来每加一个专属页都要改这里一次。
  *    现在卡号统一，这里只要求「上一个显示过的页面是个**子页**」，卡号直接读。
  *
- * ⚠️ 新增专属页时**只需**在 `useTransition.ts` 的 `CHAPTER_PATHS` 加一行、
+ * ⚠️ 新增专属页时**只需**在 `routeMetadata.json` 的 `legacyPaths` 加一行、
  *    并让新子页调 `markSubpageVisit(新卡号)` —— 这里不再有需要同步的路由集合
  *    （旧版这里有一份 `/card/NN|/color|/about|/photo|/poster` 的正则，就是
  *    漏改它会「子页刷新后按后退、回首页却重播开场」，所以整条判据都换掉了）。

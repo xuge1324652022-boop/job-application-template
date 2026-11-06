@@ -1,23 +1,85 @@
 <template>
   <div class="cv cv-edit">
-    <!-- Back layer — smallest pointer response (20 / 13 px). -->
+    <!-- 后层：视频帧与后方斜向文字带 (Back Layer, parallax: 20/13 px) -->
     <div class="cv-edit__frames">
       <div class="cv-edit__frame cv-edit__frame--b" />
       <div class="cv-edit__frame cv-edit__frame--a">
         <span>VIDEO</span>
         <span>FRAME</span>
       </div>
+
+      <!-- 后方斜向宽文字带 (Back Ribbon: Behind Title) -->
+      <div class="cv-edit__ribbon cv-edit__ribbon--back">
+        <div class="cv-edit__ribbon-track cv-edit__ribbon-track--back">
+          <span>CUT</span>
+          <span>SEQUENCE</span>
+          <span>RHYTHM</span>
+          <span>EDIT</span>
+          <span>MONTAGE</span>
+          <span>BEAT</span>
+          <span>CUT</span>
+          <span>SEQUENCE</span>
+          <span>RHYTHM</span>
+          <span>EDIT</span>
+          <span>MONTAGE</span>
+          <span>BEAT</span>
+        </div>
+      </div>
     </div>
 
-    <!-- Middle layer — the subject. Largest pointer response (55 / 36 px). -->
+    <!-- 中层：巨型 EDIT 与三段切片 (Middle Layer, parallax: 55/36 px) -->
     <div class="cv-edit__type">
-      <span class="cv-edit__letter cv-edit__letter--e">E</span>
-      <span class="cv-edit__letter cv-edit__letter--d">D</span>
-      <span class="cv-edit__letter cv-edit__letter--i">I</span>
-      <span class="cv-edit__letter cv-edit__letter--t">T</span>
+      <!-- 三切片区域：切片穿过字形并错位吸附 -->
+      <div class="cv-edit__slice cv-edit__slice--1">
+        <span class="cv-edit__letter cv-edit__letter--e">E</span>
+        <span class="cv-edit__letter cv-edit__letter--d">D</span>
+        <span class="cv-edit__letter cv-edit__letter--i">I</span>
+        <span class="cv-edit__letter cv-edit__letter--t">T</span>
+      </div>
+      <div class="cv-edit__slice cv-edit__slice--2">
+        <span class="cv-edit__letter cv-edit__letter--e">E</span>
+        <span class="cv-edit__letter cv-edit__letter--d">D</span>
+        <span class="cv-edit__letter cv-edit__letter--i">I</span>
+        <span class="cv-edit__letter cv-edit__letter--t">T</span>
+      </div>
+      <div class="cv-edit__slice cv-edit__slice--3">
+        <span class="cv-edit__letter cv-edit__letter--e">E</span>
+        <span class="cv-edit__letter cv-edit__letter--d">D</span>
+        <span class="cv-edit__letter cv-edit__letter--i">I</span>
+        <span class="cv-edit__letter cv-edit__letter--t">T</span>
+      </div>
+
+      <!-- 切片刀光线条 -->
+      <div class="cv-edit__cutlines">
+        <span class="cv-edit__cutline cv-edit__cutline--1" />
+        <span class="cv-edit__cutline cv-edit__cutline--2" />
+      </div>
+
+      <!-- 终末带走切片光效 -->
+      <div class="cv-edit__exit-cut" />
     </div>
 
-    <!-- Front layer — medium pointer response (30 / 20 px). -->
+    <!-- 前景斜向宽文字带 (Front Ribbon: In Front of Title) -->
+    <div class="cv-edit__ribbon-front-layer">
+      <div class="cv-edit__ribbon cv-edit__ribbon--front">
+        <div class="cv-edit__ribbon-track cv-edit__ribbon-track--front">
+          <span>RHYTHM</span>
+          <span>CUT</span>
+          <span>SEQUENCE</span>
+          <span>00:01:24:12</span>
+          <span>EDIT</span>
+          <span>KEYFRAME</span>
+          <span>RHYTHM</span>
+          <span>CUT</span>
+          <span>SEQUENCE</span>
+          <span>00:01:24:12</span>
+          <span>EDIT</span>
+          <span>KEYFRAME</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 前层：时间线与播放头 (Front Layer, parallax: 30/20 px) -->
     <div class="cv-edit__timeline">
       <div class="cv-edit__track" />
       <div class="cv-edit__clips">
@@ -25,6 +87,7 @@
         <span class="cv-edit__clip cv-edit__clip--b" />
         <span class="cv-edit__clip cv-edit__clip--c" />
       </div>
+      <div class="cv-edit__blade" />
       <div class="cv-edit__playhead" />
       <span class="cv-edit__timecode">00:01:24:12</span>
     </div>
@@ -44,11 +107,14 @@
   </div>
 </template>
 
-<!-- 静态卡面；动画仍由父级 CardVisual 的 cardAnimations 实例在同一后代节点上驱动。 -->
 <style scoped>
 /* ---- 02 / EDIT 剪辑 — Time / Sequence / Cut ---------------------- */
 
-/* --- 后层：视频帧。只用两帧，在深度和高度上错开 --- */
+.cv-edit {
+  container-type: inline-size;
+}
+
+/* --- 后层：视频帧与后方斜向文字带 --- */
 .cv-edit__frames {
   position: absolute;
   inset: 0;
@@ -73,7 +139,6 @@
   letter-spacing: 0.24em;
   color: rgba(241, 241, 236, 0.4);
 }
-/* 位置更靠后、更高 —— 不靠任何透视技巧就做出了深度。 */
 .cv-edit__frame--b {
   right: 19%;
   top: 17%;
@@ -82,44 +147,148 @@
   border-color: rgba(241, 241, 236, 0.14);
 }
 
-/* --- 中层：巨型 EDIT。它是一串序列，不是一个logo。 ----------
-   故意在水平方向上错开，并允许它冲出上下边缘 ——
-   这种裁切本身就是构图，不是意外。 */
+/* 斜向文字带基础容器 */
+.cv-edit__ribbon {
+  position: absolute;
+  left: -35%;
+  width: 170%;
+  height: 5.4vh;
+  display: flex;
+  align-items: center;
+  transform: rotate(-13deg);
+  overflow: hidden;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.cv-edit__ribbon--back {
+  top: 36%;
+  background: rgba(18, 18, 17, 0.84);
+  border-top: 1px solid rgba(241, 241, 236, 0.22);
+  border-bottom: 1px solid rgba(241, 241, 236, 0.22);
+  opacity: 0;
+}
+.cv-edit__ribbon-front-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+.cv-edit__ribbon--front {
+  top: 48%;
+  background: #f1f1ec;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.75);
+  border-top: 1px solid #ffffff;
+  border-bottom: 1px solid #ffffff;
+  opacity: 0;
+}
+.cv-edit__ribbon-track {
+  display: flex;
+  white-space: nowrap;
+  gap: 3vw;
+  will-change: transform;
+}
+.cv-edit__ribbon-track--back span {
+  font-size: clamp(10px, 1.15vw, 18px);
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  color: rgba(241, 241, 236, 0.6);
+}
+.cv-edit__ribbon-track--front span {
+  font-size: clamp(11px, 1.25vw, 19px);
+  font-weight: 800;
+  letter-spacing: 0.32em;
+  color: #0e0e0d;
+}
+
+/* --- 中层：巨型 EDIT。它是一串序列，不是一个logo。 --- */
 .cv-edit__type {
   position: absolute;
   inset: 0;
 }
+.cv-edit__slice {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+.cv-edit__slice--1 {
+  clip-path: inset(0% 0% 67% 0%);
+}
+.cv-edit__slice--2 {
+  clip-path: inset(33% 0% 34% 0%);
+}
+.cv-edit__slice--3 {
+  clip-path: inset(66% 0% 0% 0%);
+}
+
 .cv-edit__letter {
   position: absolute;
+  top: 25%;
   display: block;
-  font-weight: 700;
-  font-size: 30vh;
-  line-height: 0.78;
+  font-weight: 800;
+  font-size: clamp(48px, 22cqw, 140px);
+  line-height: 0.8;
   letter-spacing: -0.04em;
   color: rgba(241, 241, 236, 0.9);
   user-select: none;
 }
 .cv-edit__letter--e {
-  left: 30%;
-  top: -4%;
+  left: 8%;
 }
 .cv-edit__letter--d {
-  left: 38%;
-  top: 21%;
+  left: 27%;
 }
 .cv-edit__letter--i {
-  left: 34%;
-  top: 46%;
+  left: 49%;
 }
 .cv-edit__letter--t {
-  left: 45%;
-  top: 71%;
+  left: 63%;
+}
+
+/* 切片刀线 */
+.cv-edit__cutlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.cv-edit__cutline {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: rgba(241, 241, 236, 0.9);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.95);
+  transform-origin: left center;
+  opacity: 0;
+}
+.cv-edit__cutline--1 {
+  top: 33.3%;
+}
+.cv-edit__cutline--2 {
+  top: 66.6%;
+}
+
+/* 终末带走切片光效 */
+.cv-edit__exit-cut {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(241, 241, 236, 0.75) 45%,
+    rgba(255, 255, 255, 0.95) 50%,
+    transparent 100%
+  );
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+  pointer-events: none;
 }
 
 /* --- 前层：抽象化的时间线。 -------------------------------------- */
 .cv-edit__timeline {
   position: absolute;
   inset: 0;
+  z-index: 5;
 }
 .cv-edit__track {
   position: absolute;
@@ -154,6 +323,17 @@
   width: 14%;
   background: rgba(241, 241, 236, 0.24);
 }
+.cv-edit__blade {
+  position: absolute;
+  left: 46%;
+  top: 58%;
+  width: 1px;
+  height: 12vh;
+  background: #ffffff;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.9);
+  opacity: 0;
+  pointer-events: none;
+}
 .cv-edit__playhead {
   position: absolute;
   left: 46%;
@@ -180,6 +360,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.1vh;
+  z-index: 6;
 }
 .cv-edit__eyebrow {
   font-size: clamp(9px, 0.82vw, 13px);
@@ -211,5 +392,15 @@
   font-size: clamp(8px, 0.72vw, 12px);
   letter-spacing: 0.26em;
   color: rgba(241, 241, 236, 0.3);
+  z-index: 6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cv-edit__ribbon {
+    display: none;
+  }
+  .cv-edit__slice {
+    transform: none !important;
+  }
 }
 </style>

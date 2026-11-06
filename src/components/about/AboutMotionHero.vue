@@ -204,6 +204,17 @@ onBeforeUnmount(() => {
   overflow: clip;
   background: var(--about-night);
   color: var(--ab-ink);
+  /* 巨字右端要让出的宽度：全局「索引」按钮是 position:fixed，落在右上角，
+     不给它让位的话它会正好卡进末字 U 的字腔里（右侧竖笔贴着「引」）。 */
+  --hero-index-gutter: 0px;
+}
+@media (min-width: 761px) {
+  .about-hero {
+    /* 按钮右偏移 + 按钮文字宽（「索引」2em /「Index」约 2.6em，取宽的）+ 24px 间隙 */
+    --hero-index-gutter: calc(
+      clamp(20px, 2.78vw, 64px) + 2.6 * clamp(18px, 1.667vw, 32px) + 24px
+    );
+  }
 }
 .about-hero__photo,
 .about-hero__photo-mask {
@@ -248,7 +259,7 @@ onBeforeUnmount(() => {
   font-family: var(--display-font);
   font-weight: 700;
   line-height: 0.91;
-  padding: 10px 0 4vw;
+  padding: 10px var(--hero-index-gutter) 4vw 0;
   width: 100%;
   min-width: 0;
   color: var(--about-ink-on-paper);

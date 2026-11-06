@@ -61,7 +61,7 @@ import { isTransitioning, jumpPathFor } from '../组合函数/应用转场状态
 interface CardAnimation {
   /**
    * 编号，同时也是 `jumpPathFor` 的分流键。
-   * 六张卡均有专属页；不要直接拼 `/card/NN`，路径统一从 CHAPTER_PATHS 读取。
+   * 六张卡均有专属页；不要直接拼 `/card/NN`，路径统一从共享章节路由读取。
    */
   id: string
   title: string

@@ -3,6 +3,7 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import type { Lang } from '../../数据/人物资料'
 import { prepareMotionLayout, requestMotionLayoutRefresh } from '../../工具/动效布局调度'
+import { HASH_SCROLL_OFFSET } from '../../工具/路由滚动准备'
 
 import { createStorySchedule, STORY_TIMING } from './实习叙事节奏'
 
@@ -141,7 +142,7 @@ export function useInternshipStoryMotion(
             if (!trigger || !timeline) return
             markers.forEach((marker, i) => {
               // Router subtracts 24px from hash targets; compensate so each deep link reaches its reading position in the continuous row.
-              marker.style.top = `${((trigger.end - trigger.start) * readingTimes[i * 2 + 1]!) / timeline!.duration() + 24}px`
+              marker.style.top = `${((trigger.end - trigger.start) * readingTimes[i * 2 + 1]!) / timeline!.duration() + HASH_SCROLL_OFFSET}px`
             })
           }
           timeline = gsap.timeline({

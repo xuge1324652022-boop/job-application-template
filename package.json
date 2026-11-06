@@ -20,7 +20,7 @@
     "lint": "eslint src scripts deploy tests eslint.config.mjs vite.config.js --max-warnings 0",
     "format": "prettier --write \"src/**/*.{js,ts,vue,css}\" \"scripts/*.mjs\" \"deploy/*.mjs\" \"tests/**/*.mjs\" \"*.config.{js,mjs}\" .prettierrc.json",
     "format:check": "prettier --check \"src/**/*.{js,ts,vue,css}\" \"scripts/*.mjs\" \"deploy/*.mjs\" \"tests/**/*.mjs\" \"*.config.{js,mjs}\" .prettierrc.json",
-    "test:unit": "node --experimental-strip-types --test tests/*.test.mjs scripts/verify-navigation-state.mjs scripts/verify-route-head.mjs scripts/verify-responsive-images.mjs",
+    "test:unit": "node --experimental-strip-types --test tests/*.test.mjs scripts/verify-navigation-state.mjs scripts/verify-route-head.mjs scripts/verify-responsive-images.mjs && node scripts/verify-card-loop-seam.mjs",
     "check:images": "node scripts/生成响应式图片清单.mjs --check",
     "check:privacy": "node scripts/检查公开隐私.mjs",
     "check:unused": "node scripts/audit-source-usage.mjs"

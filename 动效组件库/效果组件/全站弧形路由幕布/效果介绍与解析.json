@@ -264,10 +264,10 @@
       "original": "src/composables/usePageCurtain.ts",
       "path": "源码/项目源码/组合函数/页面幕布控制.ts",
       "role": "entry",
-      "originalSha256": "c3a4e2b07723684ac7d06ecb2fea597ab245f6cc23ceb7c42c530099e4111355",
-      "originalBytes": 1568,
-      "sha256": "d06c2f3f3e20dab8560e47a9827ebe98d84c9a842b7ea57c775419aac908e422",
-      "bytes": 1570
+      "originalSha256": "c3b7b30b4f7251d4db398abf46e33f76ebb1e7425ebe7e02a94d8220e2c43300",
+      "originalBytes": 1338,
+      "sha256": "c7b1e3549270e2ff5f017cc9224934cc398cc977a238bd296753567bae9db27e",
+      "bytes": 1338
     },
     {
       "original": "src/data/aboutProfile.ts",
@@ -288,6 +288,15 @@
       "bytes": 2865
     },
     {
+      "original": "src/data/routeMetadata.json",
+      "path": "源码/项目源码/数据/路由元数据.json",
+      "role": "dependency",
+      "originalSha256": "0f716a6d98bf26e1fcefda52b05277539c62c14ed02b66dad71bcf7027a15b69",
+      "originalBytes": 6067,
+      "sha256": "0f716a6d98bf26e1fcefda52b05277539c62c14ed02b66dad71bcf7027a15b69",
+      "bytes": 6067
+    },
+    {
       "original": "src/data/visualPortfolio.ts",
       "path": "源码/项目源码/数据/视觉作品资料.ts",
       "role": "dependency",
@@ -295,6 +304,15 @@
       "originalBytes": 22956,
       "sha256": "59ae9bc184bfec36a9459d23eb07e17832c3042105639305c294647d720628e0",
       "bytes": 22963
+    },
+    {
+      "original": "src/router/chapterRoutes.ts",
+      "path": "源码/项目源码/路由/章节地址.ts",
+      "role": "dependency",
+      "originalSha256": "fa531c97ee22b7d91ef541d7178c1bdaa0ab2e3542b90a0b92aa41c6826b9183",
+      "originalBytes": 844,
+      "sha256": "e804fd6cca48f98fb3503e4e0fe82ce7777e4757b4221a33b1a702fddf26e2b0",
+      "bytes": 848
     },
     {
       "original": "src/style.css",
@@ -318,28 +336,28 @@
       "original": "src/App.vue",
       "path": "集成示例/项目源码/应用根组件.vue",
       "role": "integration-context",
-      "originalSha256": "3e944a169a091944ac4cffea26672eeb7e6bd1f23188796f698981a58fdbbf38",
-      "originalBytes": 5106,
-      "sha256": "68fde8b4f8c2d35ee322180c354a0c39b5d6effb843347343fd3397c6bf3b4a0",
-      "bytes": 5116
+      "originalSha256": "03af6843fdc24c6e57aff520415d3a47a0e29f19ea5c8eda080fdd69771a2eda",
+      "originalBytes": 2069,
+      "sha256": "35bc8fba9a07c3287387a1caee83b41cd87f46d1c98dc5cd6aa89304d6e535ca",
+      "bytes": 2079
     },
     {
       "original": "src/composables/useTransition.ts",
       "path": "集成示例/项目源码/组合函数/应用转场状态.ts",
       "role": "integration-context",
-      "originalSha256": "b6e9d99df5bd576dbcc5cb3d7e9046b576fcd4af435908ae5912316b386f4cef",
-      "originalBytes": 8424,
-      "sha256": "b6e9d99df5bd576dbcc5cb3d7e9046b576fcd4af435908ae5912316b386f4cef",
-      "bytes": 8424
+      "originalSha256": "1ecc66c88f333436e6a106fad748e4a4fe68108fc7a3d3ecf03eb0fc82caa541",
+      "originalBytes": 7333,
+      "sha256": "73fb37764621c08af817d6b4f4e71db6234c916f4bfdcf0429f01959cb97054a",
+      "bytes": 7332
     },
     {
       "original": "src/router/index.ts",
       "path": "集成示例/项目源码/路由/应用路由.ts",
       "role": "integration-context",
-      "originalSha256": "5299b3939b53269ff9097bc4e8a358e431c221101390b64e68d04cd4b4aef00e",
-      "originalBytes": 5798,
-      "sha256": "d94841949107575521e43c6d74d81b1ec4e47e8947703786cbc50e4e418c801f",
-      "bytes": 5870
+      "originalSha256": "6f07dd6be7f21de792ff4a570bdbd5d024585980fd63114c82b8d7934a47f5c1",
+      "originalBytes": 5821,
+      "sha256": "ee772a1359343e99fc434d88949dbdd99051f61de556f47496244f09b81ebbdd",
+      "bytes": 5886
     },
     {
       "original": "src/main.ts",

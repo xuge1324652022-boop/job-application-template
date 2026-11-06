@@ -2,44 +2,47 @@ import gsap from 'gsap'
 import { BaseAnimation, type BoundLayer, type CardTimeline } from './base'
 
 /**
- * 03 / COLOR —— Tone / Color / Grade，被指针推着走。
+ * 03 / COLOR —— “色彩塑形” (Color Shaping) MG 动画。
  *
- * 五个深度图层，各有自己的响应幅度：
+ * 核心设计语言：
+ * 借鉴流动色场被分割成竖条的连续转换。
+ * 纯代码生成色彩（Canvas 2D 梯度与几何形变），不使用大面积 CSS blur，不恢复退役视频。
  *
- *   巨型 COLOR    50 / 35 px   最前，最灵敏
- *   色条          35 / 25 px
- *   胶片框        28 / 20 px
- *   色调曲线      24 / 17 px
- *   色轮          20 / 12 px   最后，最克制
+ * 动作分镜编排（6.0s 严格有限时长主循环）：
  *
- * 静态信息（03 / COLOR / 调色 / 调色参数 / LUT 注释）**完全不动** ——
- * 它是衡量这个色彩空间的固定参照框。
+ * 0.0s – 0.7s: 【黑白几何色场】
+ *   画面呈现简洁清晰的中性灰阶黑白几何色场，巨型 COLOR 大字以发丝级镂空字形嵌入其中。
  *
- * 这里**故意没有**环境循环，也**没有**入场动画：没有漂移的光标、
- * 没有呼吸的色阶、没有自动旋转的色轮。这张卡是一幅只有指针才能打扰的构图。
- * `gsap.quickTo` 就是全部机制 —— 每个属性一条可复用的 tween，
- * 指针移动时复用已有 tween，只重新设定目标值；
- * 缓动滑行本身就是惯性。
+ * 0.7s – 1.8s: 【边界推进与色彩弯曲】
+ *   一道光色边界自左向右掠过画面（sweep: 0 -> 1），
+ *   经过的位置实时获得胶片调色主题色（冷青 -> 蓝绿 -> 暖琥珀 -> 金橙），
+ *   同时几何色块产生有方向的波浪形变（bend: 0 -> 1），由同一进度驱动！
+ *   色调曲线 Tone Curve 同步从平直拉伸为经典电影 S 曲线。
  *
- * 只允许位移。不旋转、不缩放，而且**重要的是**：不让指针去改变颜色。
- * 鼠标位置移动的是空间，它永远不重绘空间 —— 因为「鼠标往左就变蓝」
- * 读起来像个廉价的网页特效，而不像一间调色师的房间。
+ * 1.8s – 3.0s: 【等宽竖条切分与抬起遮挡】
+ *   连续色场被切分为 10 根等宽竖条，竖条交错依次向前抬起产生物理高度差与阴影遮挡；
+ *   随后竖条向两侧错动绕过中心，在 2.8s 重新咬合拼回完整画面。
  *
- * ⚠️ 这里曾经有**第二套机制**：六段真实调色画面按「指针离这一片有多近」
- * 被从空间里拨出来（`CLIPS` / `REVEAL_TAU` / 逐帧 ticker / play-pause）。
- * 2026-09-23 整体退役 —— 同一批素材在画廊和专属页 `/color` 各出现一次，
- * 等于同一件东西被看到两次，读起来像重复而不是呼应。素材现在只在
- * `/color`（`ColorWave.vue`），这一页回归纯粹的卡面构图。
- * `verify-color-media.cjs` 改成断言这层不得复活。
+ * 3.0s – 4.2s: 【实心标题转化与稳定排版】
+ *   COLOR 标题从镂空过渡为高对比度实心大字，色场退到中后层，形成稳定、清晰的标题构图；
+ *   调色参数点亮落锁。
+ *
+ * 4.2s – 6.0s: 【缓慢流动与平顺闭环】
+ *   色彩在深层背景极慢流动，标题保持稳定，5.45s 后平稳平滑回归黑白几何初态，无缝闭环！
  */
 export class ColorAnimation extends BaseAnimation {
   readonly name = 'color'
+
+  /** 4.2s 之后标题已转实心并稳定，取中段作为减少动态时的定格帧。 */
+  protected holdTime(): number {
+    return 4.6
+  }
 
   /** 每个图层的响应参数，单位是「满偏转时卡片局部坐标的像素数」。 */
   private static readonly LAYERS = [
     { selector: '.cv-color__type', ax: 50, ay: 35, duration: 1.0 },
     { selector: '.cv-color__strips', ax: 35, ay: 25, duration: 1.1 },
-    { selector: '.cv-color__frames', ax: 28, ay: 20, duration: 1.15 },
+    { selector: '.cv-color__field-wrap', ax: 28, ay: 20, duration: 1.15 },
     { selector: '.cv-color__curves', ax: 24, ay: 17, duration: 1.25 },
     { selector: '.cv-color__wheel', ax: 20, ay: 12, duration: 1.35 },
   ] as const
@@ -48,26 +51,213 @@ export class ColorAnimation extends BaseAnimation {
   private active = true
   private onMove: ((e: PointerEvent) => void) | null = null
   private onLeave: (() => void) | null = null
+  private isPointerAttached = false
+  private ambientTweens: gsap.core.Tween[] = []
   private nx = 0
   private ny = 0
 
-  /** 没有入场动画 —— 不抛入、不淡入、不逐字揭示。 */
-  protected introDelay(): number {
-    return -1
+  /**
+   * 6.0s 环境主循环：严格有限时长（纯 6 秒时间线，无无限子动画污染）。
+   */
+  protected build(tl: CardTimeline, host: HTMLElement): void {
+    if (!host || typeof host.querySelector !== 'function') return
+
+    const canvas = host.querySelector<HTMLCanvasElement>('.cv-color__canvas')
+    const ctx = canvas?.getContext?.('2d')
+    const wordCutout = host.querySelector<HTMLElement>('.cv-color__word--cutout')
+    const wordSolid = host.querySelector<HTMLElement>('.cv-color__word--solid')
+    const stripBars = host.querySelectorAll<HTMLElement>('.cv-color__strip-bar')
+    const fieldWrap = host.querySelector<HTMLElement>('.cv-color__field-wrap')
+    const curvePath = host.querySelector<SVGPathElement>('.cv-color__curve-path')
+    const curveDots = host.querySelectorAll<SVGCircleElement>('.cv-color__curve circle')
+    const strip = host.querySelector<HTMLElement>('.cv-color__strip')
+    const params = host.querySelectorAll<HTMLElement>('.cv-color__params span')
+
+    // 塑形色场 Canvas 状态对象
+    const state = {
+      sweep: 0,       // 0 -> 1: 色彩边界推进
+      bend: 0,        // 0 -> 1: 波浪形态弯曲
+      flow: 0,        // 色彩时间流动
+    }
+
+    const drawField = () => {
+      if (!canvas || !ctx) return
+      const w = canvas.width
+      const h = canvas.height
+      ctx.clearRect(0, 0, w, h)
+
+      const barCount = 10
+      const barW = w / barCount
+      const sweepX = state.sweep * w
+
+      const filmColors = [
+        '#23343d', '#2f4350', '#384954', '#42545e', '#5a5652',
+        '#78644e', '#8a7155', '#9e815c', '#b59364', '#c4a06d',
+      ]
+      const bwColors = [
+        '#181a1c', '#222426', '#2a2d30', '#33373a', '#414548',
+        '#4f5458', '#5c6166', '#6a7075', '#797f85', '#8b9299',
+      ]
+
+      for (let i = 0; i < barCount; i++) {
+        const x = i * barW
+        const cx = x + barW / 2
+        const isColored = cx < sweepX
+        const transition = Math.max(0, Math.min(1, (sweepX - x) / barW))
+        const bendOffset = Math.sin((i / barCount) * Math.PI * 2 + state.flow) * 18 * state.bend
+
+        const baseBw = bwColors[i] ?? '#333333'
+        const baseFilm = filmColors[i] ?? '#555555'
+
+        ctx.save()
+        ctx.fillStyle = isColored ? (transition < 1 ? baseBw : baseFilm) : baseBw
+        if (transition > 0 && transition < 1) {
+          ctx.fillStyle = baseFilm
+          ctx.globalAlpha = transition
+        }
+        ctx.fillRect(x + 1, bendOffset, barW - 2, h)
+        ctx.restore()
+      }
+    }
+
+    // 0.0s – 0.7s: 初始黑白几何态，镂空标题清晰嵌入
+    if (wordCutout && wordSolid) {
+      tl.set(wordCutout, { opacity: 0.85, x: 0 }, 0)
+      tl.set(wordSolid, { opacity: 0, x: 0 }, 0)
+    }
+
+    // 0.7s – 1.8s: 边界沿画面推进，获得胶片主题色，形态产生有方向弯曲（同一进度驱动）
+    tl.to(
+      state,
+      {
+        sweep: 1,
+        bend: 1,
+        duration: 1.1,
+        ease: 'power2.inOut',
+        onUpdate: drawField,
+      },
+      0.7,
+    )
+
+    // 曲线同步从平直拉伸为电影 S 曲线
+    if (curvePath) {
+      const flatD = 'M4 108 C 60 76, 120 40, 196 8'
+      const sCurveD = 'M4 108 C 46 100, 62 74, 86 52 S 138 18, 196 8'
+      tl.fromTo(
+        curvePath,
+        { attr: { d: flatD } },
+        { attr: { d: sCurveD }, duration: 1.1, ease: 'power2.inOut' },
+        0.7,
+      )
+    }
+    if (curveDots.length >= 2) {
+      tl.fromTo(
+        curveDots[1],
+        { attr: { cy: 72 } },
+        { attr: { cy: 52 }, duration: 1.1, ease: 'power2.inOut' },
+        0.7,
+      )
+    }
+
+    // 1.8s – 3.0s: 竖条带着各自颜色向前抬起产生遮挡与高度差，随后绕过中心文字重新拼合
+    if (stripBars.length) {
+      stripBars.forEach((bar, idx) => {
+        const lift = (idx % 2 === 0 ? -1 : 1) * (14 + (idx % 3) * 6)
+        tl.to(
+          bar,
+          {
+            y: lift,
+            scaleY: 1.08,
+            backgroundColor: 'rgba(241, 241, 236, 0.08)',
+            duration: 0.45,
+            ease: 'power2.out',
+          },
+          1.8 + idx * 0.03,
+        )
+      })
+
+      stripBars.forEach((bar, idx) => {
+        tl.to(
+          bar,
+          {
+            y: 0,
+            scaleY: 1.0,
+            backgroundColor: 'transparent',
+            duration: 0.5,
+            ease: 'power3.inOut',
+          },
+          2.35 + idx * 0.02,
+        )
+      })
+    }
+
+    // 3.0s – 4.2s: COLOR 从镂空转为实心标题，流动色场退到背景形成稳定清晰标题构图
+    if (wordCutout && wordSolid) {
+      tl.to(wordCutout, { opacity: 0, duration: 0.45, ease: 'power2.out' }, 3.0)
+      tl.to(wordSolid, { opacity: 0.92, duration: 0.55, ease: 'power2.out' }, 3.1)
+    }
+    if (fieldWrap) {
+      tl.to(fieldWrap, { opacity: 0.45, scale: 0.98, duration: 0.8, ease: 'power2.out' }, 3.0)
+    }
+    if (strip) {
+      tl.fromTo(
+        strip,
+        { scaleX: 0.4, opacity: 0.2 },
+        { scaleX: 1, opacity: 1, duration: 0.6, ease: 'power2.out' },
+        3.1,
+      )
+    }
+    if (params.length) {
+      tl.fromTo(
+        params,
+        { opacity: 0.3, x: 6 },
+        { opacity: 1, x: 0, duration: 0.5, stagger: 0.06, ease: 'power2.out' },
+        3.2,
+      )
+    }
+
+    // 4.2s – 6.0s: 色彩缓慢流动，标题保持稳定，再平顺回到开场状态
+    tl.to(
+      state,
+      {
+        flow: Math.PI * 2,
+        duration: 1.25,
+        ease: 'none',
+        onUpdate: drawField,
+      },
+      4.2,
+    )
+
+    // 5.45s - 6.0s: 平滑复位回归黑白初态，完成闭环
+    tl.to(
+      state,
+      {
+        sweep: 0,
+        bend: 0,
+        duration: 0.55,
+        ease: 'power2.inOut',
+        onUpdate: drawField,
+      },
+      5.45,
+    )
+    if (wordCutout && wordSolid) {
+      tl.to(wordCutout, { opacity: 0.85, duration: 0.4, ease: 'power2.out' }, 5.55)
+      tl.to(wordSolid, { opacity: 0, duration: 0.4, ease: 'power2.out' }, 5.55)
+    }
+    if (fieldWrap) {
+      tl.to(fieldWrap, { opacity: 0.88, scale: 1.0, duration: 0.5, ease: 'power2.out' }, 5.5)
+    }
+    if (strip) {
+      tl.to(strip, { scaleX: 0.4, opacity: 0.2, duration: 0.16, ease: 'power2.in' }, 5.84)
+    }
+    if (params.length) {
+      tl.to(params, { opacity: 0.3, x: 6, duration: 0.16, ease: 'power2.in' }, 5.84)
+    }
+    tl.to({}, { duration: 0.01 }, 5.99)
   }
 
-  /** 没有环境循环 —— 不漂移光标、不呼吸色阶、不自动转色轮。 */
-  protected build(_tl: CardTimeline, _host: HTMLElement): void {}
-
-  /**
-   * 为五个图层各建一组 `quickTo` 设置器，并注册指针监听。
-   * 先调 `super.mount()`：它负责杀掉旧时间线、建（本例为空的）环境循环。
-   * 某个 selector 没匹配上就跳过那一层 —— 幅度与设置器同对象，不会错位。
-   */
   mount(host: HTMLElement): void {
     super.mount(host)
-    // 为五个图层各建一组 quickTo 设置器。幅度与设置器绑在同一个对象上，
-    // 少一层（selector 没匹配上）也不会让后面的层用错幅度。
     this.layers = []
     for (const l of ColorAnimation.LAYERS) {
       const el = host.querySelector<HTMLElement>(l.selector)
@@ -80,46 +270,68 @@ export class ColorAnimation extends BaseAnimation {
       })
     }
 
-    this.onMove = (e: PointerEvent) => this.apply(e.clientX, e.clientY)
+    // 环境动画移出主时间线，独立无限运行，绝不破坏 tl.duration()
+    this.ambientTweens.forEach((t) => t.kill())
+    this.ambientTweens = []
+    const wheelDisc = host.querySelector<HTMLElement>('.cv-color__wheel-disc')
+    if (wheelDisc) {
+      this.ambientTweens.push(
+        gsap.to(wheelDisc, { rotation: 360, duration: 60, ease: 'none', repeat: -1 }),
+      )
+    }
+
+    this.onMove = (e: PointerEvent) => {
+      if (!this.active) return
+      this.apply(e.clientX, e.clientY)
+    }
     this.onLeave = () => this.toBase()
-    // passive: 只读坐标，绝不拦截画廊自己的拖拽转环逻辑。
-    // 开启「减少动态效果」时**完全跳过注册**：一张跟随鼠标的卡本身仍在运动，
-    // 让构图就停在被设计好的位置上才对。
-    if (!this.reduced()) {
-      window.addEventListener('pointermove', this.onMove, { passive: true })
-      document.addEventListener('pointerleave', this.onLeave)
+
+    if (this.active) {
+      this.attachPointer()
     }
   }
 
-  /**
-   * 这张卡是不是「当前被聚焦的那张」。只有 active 时才响应指针；
-   * 从 active 变 false 时**滑回**基线，而不是把偏移冻结在原地。
-   */
   setActive(active: boolean): void {
     if (this.active === active) return
     this.active = active
-    // 离开章节时是滑回原位，而不是冻结在某个偏移上。
-    if (!active) this.toBase()
+    if (!active) {
+      this.toBase()
+      this.detachPointer()
+      this.ambientTweens.forEach((t) => t.pause())
+    } else {
+      this.attachPointer()
+      this.ambientTweens.forEach((t) => t.play())
+    }
   }
 
-  /**
-   * 摘掉两个全局监听并清空图层引用，最后交给基类杀时间线。
-   * 监听必须在这里成对移除 —— mount 可以重复调用，漏一次就多一组监听。
-   */
   destroy(): void {
-    if (this.onMove) window.removeEventListener('pointermove', this.onMove)
-    if (this.onLeave) document.removeEventListener('pointerleave', this.onLeave)
+    this.detachPointer()
+    this.ambientTweens.forEach((t) => t.kill())
+    this.ambientTweens = []
     this.onMove = null
     this.onLeave = null
     this.layers = []
     super.destroy()
   }
 
+  private attachPointer(): void {
+    if (this.isPointerAttached || this.reduced() || !this.onMove || !this.onLeave) return
+    window.addEventListener('pointermove', this.onMove, { passive: true })
+    document.addEventListener('pointerleave', this.onLeave)
+    this.isPointerAttached = true
+  }
+
+  private detachPointer(): void {
+    if (!this.isPointerAttached) return
+    if (this.onMove) window.removeEventListener('pointermove', this.onMove)
+    if (this.onLeave) document.removeEventListener('pointerleave', this.onLeave)
+    this.isPointerAttached = false
+  }
+
   private apply(clientX: number, clientY: number): void {
     if (!this.active) return
     const w = window.innerWidth || 1
     const h = window.innerHeight || 1
-    // 把屏幕坐标归一化到 [-1, 1]：五个图层的偏转量
     this.nx = Math.max(-1, Math.min(1, (clientX / w) * 2 - 1))
     this.ny = Math.max(-1, Math.min(1, (clientY / h) * 2 - 1))
     for (const l of this.layers) {
@@ -128,7 +340,6 @@ export class ColorAnimation extends BaseAnimation {
     }
   }
 
-  /** 指针移出窗口（或章节关闭）：漂回基线。 */
   private toBase(): void {
     for (const l of this.layers) {
       l.sx(0)

@@ -1,4 +1,6 @@
 import { ref } from 'vue'
+// Compatibility export: route mapping itself has no dependency on Vue state.
+export { jumpPathFor } from '../路由/章节地址'
 
 /**
  * 转场系统的共享状态。
@@ -131,39 +133,6 @@ export function consumeSubpageVisit(): SubpageVisit | null {
 export function startJump(id: string): void {
   if (jumpTarget.value) return
   jumpTarget.value = id
-}
-
-/**
- * 跳转幕底下该切到哪条路由 —— 按卡片**分流**。
- *
- * 01 / ABOUT → 人物专题与经历（`/about`）
- * 02 / EDIT  → 剪辑主题页（`/edit`）
- * 03 / COLOR → 白底滚动叙事页（`/color`）
- * 04 / NEWS  → 新闻影像主题页（`/news`）
- * 05 / POSTER → 海报与版面页（`/poster`）
- * 06 / PHOTO  → 摄影页（`/photo`）
- * 六张卡片均有独立落点，旧 `/card/01` 至 `/card/06` 统一由路由表重定向兼容
- *
- * ⚠️ 写成**映射表**而不是 if 链：`/cards` 的点击处理也要按同一张表分流
- *    （它自己拼 `/card/${id}` 的旧写法会把 05 / 06 送到占位页 —— 卡片列表上
- *    点「海报」「摄影」进的是黑底大字编号页，而画廊里点同一张卡进的是专属页）。
- *    一张表只有一处真相。
- */
-const CHAPTER_PATHS: Record<string, string> = {
-  '01': '/about',
-  '02': '/edit',
-  '03': '/color',
-  '04': '/news',
-  '05': '/poster',
-  '06': '/photo',
-}
-
-/**
- * @param id 两位卡号 '01'..'06'
- * @returns 该卡的专属路径；没有专属页的卡回落到 `/card/NN`
- */
-export function jumpPathFor(id: string): string {
-  return CHAPTER_PATHS[id] ?? `/card/${id}`
 }
 
 /**

@@ -27,7 +27,9 @@
   "integrationFiles": [
     "src/views/AboutView.vue",
     "src/components/LazySection.vue",
-    "src/utils/routeScrollPreparation.ts"
+    "src/utils/routeScrollPreparation.ts",
+    "src/composables/useAboutScrollPreparation.ts",
+    "src/utils/abortable.ts"
   ],
   "sourceSections": [
     {
@@ -126,14 +128,13 @@
       "purpose": "固定桌面舞台，将原生纵向滚动映射为三幅构图的横向运动，以 containerAnimation 驱动后两幅的裁切展开；键盘聚焦完全离屏的按钮时定位面板，已部分可见的查看器触发按钮恢复焦点时保持原滚动位置，布局刷新交给共享队列。"
     },
     {
-      "file": "src/views/AboutView.vue",
+      "file": "src/composables/useAboutScrollPreparation.ts",
       "symbols": [
+        "useAboutScrollPreparation",
         "prepareScroll",
         "cancelScrollRequest",
-        "registerRouteScrollPreparation",
-        "ensureReady",
         "waitForCurtain",
-        "routeCurtainBlocked",
+        "ensureReady",
         "ScrollTrigger.refresh"
       ],
       "purpose": "页内锚点与历史恢复先等待延迟组件的Suspense就绪、字体和幕布开始揭开，再刷新固定区域测量，由现有路由scrollBehavior在输入解锁前应用目标坐标；唯一所有者和AbortController取消过期请求。"
@@ -203,6 +204,23 @@
         "useInternshipTextMotion"
       ],
       "purpose": "实习简历沿用调色页的无衬线字体与真实视觉行入场：公司名向上揭示，正文按行错峰。加载幕撤掉后才播放；快滚、回滚、切语言和减少动态保持可读并清理分行节点。"
+    },
+    {
+      "file": "src/views/AboutView.vue",
+      "symbols": [
+        "heroActive",
+        "contactSection",
+        "useAboutScrollPreparation"
+      ],
+      "purpose": "页面只负责组合场景、转场可见状态和图片查看器，将懒加载锚点与取消生命周期交给独立组合函数。"
+    },
+    {
+      "file": "src/utils/abortable.ts",
+      "symbols": [
+        "abortable",
+        "nextFrame"
+      ],
+      "purpose": "统一可取消的异步等待与绘制帧，成功、失败、取消都释放监听，并消费原任务的迟到错误。"
     }
   ],
   "mechanism": {
@@ -605,10 +623,10 @@
       "original": "src/components/about/AboutMotionHero.vue",
       "path": "源码/项目源码/组件/人物与作品/人物动态首屏.vue",
       "role": "entry",
-      "originalSha256": "30a569fba102f7990a8e598561075d67585fb4b90b1ebaed80bc86530000af6b",
-      "originalBytes": 11040,
-      "sha256": "d43371c70a2175aef2c2275228993a56cad9bd926577762aeeb5b2b3f31c25e9",
-      "bytes": 11068
+      "originalSha256": "0e4a01ed73346435d50deb539bf0b4dbf959fbbd95a70dbacfcbbd637d1d0dcd",
+      "originalBytes": 11574,
+      "sha256": "1fa985f94abd70c08a1479634981ab55e7697897f41bfd6e6c9574571aa4bddb",
+      "bytes": 11602
     },
     {
       "original": "src/components/about/AboutObservationRail.vue",
@@ -713,10 +731,10 @@
       "original": "src/components/about/useInternshipStoryMotion.ts",
       "path": "源码/项目源码/组件/人物与作品/实习叙事动效.ts",
       "role": "dependency",
-      "originalSha256": "ed1984317c2f524800ddefee99a04815d6974130b696df79e4d3d6237e99b580",
-      "originalBytes": 10454,
-      "sha256": "72bc9c7974f3320c2fb73de1f4aceb22d778252a9503afc1b7453742a389d859",
-      "bytes": 10458
+      "originalSha256": "ecb0980a39c199c4ad33618ef0f2720ffb13644d3ab3297799c964032bffcc93",
+      "originalBytes": 10542,
+      "sha256": "7fbd531e3874930b3f5f4510aa21894cde543e5b72e1260872851f907677ae2e",
+      "bytes": 10543
     },
     {
       "original": "src/components/about/useInternshipTextMotion.ts",
@@ -740,10 +758,10 @@
       "original": "src/composables/usePageCurtain.ts",
       "path": "源码/项目源码/组合函数/页面幕布控制.ts",
       "role": "dependency",
-      "originalSha256": "c3a4e2b07723684ac7d06ecb2fea597ab245f6cc23ceb7c42c530099e4111355",
-      "originalBytes": 1568,
-      "sha256": "d06c2f3f3e20dab8560e47a9827ebe98d84c9a842b7ea57c775419aac908e422",
-      "bytes": 1570
+      "originalSha256": "c3b7b30b4f7251d4db398abf46e33f76ebb1e7425ebe7e02a94d8220e2c43300",
+      "originalBytes": 1338,
+      "sha256": "c7b1e3549270e2ff5f017cc9224934cc398cc977a238bd296753567bae9db27e",
+      "bytes": 1338
     },
     {
       "original": "src/data/aboutProfile.ts",
@@ -791,6 +809,15 @@
       "bytes": 3413
     },
     {
+      "original": "src/data/routeMetadata.json",
+      "path": "源码/项目源码/数据/路由元数据.json",
+      "role": "dependency",
+      "originalSha256": "0f716a6d98bf26e1fcefda52b05277539c62c14ed02b66dad71bcf7027a15b69",
+      "originalBytes": 6067,
+      "sha256": "0f716a6d98bf26e1fcefda52b05277539c62c14ed02b66dad71bcf7027a15b69",
+      "bytes": 6067
+    },
+    {
       "original": "src/data/visualPortfolio.ts",
       "path": "源码/项目源码/数据/视觉作品资料.ts",
       "role": "dependency",
@@ -798,6 +825,15 @@
       "originalBytes": 22956,
       "sha256": "59ae9bc184bfec36a9459d23eb07e17832c3042105639305c294647d720628e0",
       "bytes": 22963
+    },
+    {
+      "original": "src/router/chapterRoutes.ts",
+      "path": "源码/项目源码/路由/章节地址.ts",
+      "role": "dependency",
+      "originalSha256": "fa531c97ee22b7d91ef541d7178c1bdaa0ab2e3542b90a0b92aa41c6826b9183",
+      "originalBytes": 844,
+      "sha256": "e804fd6cca48f98fb3503e4e0fe82ce7777e4757b4221a33b1a702fddf26e2b0",
+      "bytes": 848
     },
     {
       "original": "src/style.css",
@@ -845,13 +881,22 @@
       "bytes": 2163
     },
     {
+      "original": "src/utils/routeScrollPreparation.ts",
+      "path": "源码/项目源码/工具/路由滚动准备.ts",
+      "role": "dependency",
+      "originalSha256": "83dec8e49256d78419fa2c545cf55b5f11375ff04984b7b547f5df62b9e8e928",
+      "originalBytes": 793,
+      "sha256": "83dec8e49256d78419fa2c545cf55b5f11375ff04984b7b547f5df62b9e8e928",
+      "bytes": 793
+    },
+    {
       "original": "src/views/AboutView.vue",
       "path": "集成示例/项目源码/页面/人物介绍页.vue",
       "role": "integration-context",
-      "originalSha256": "608202edea918ec14d117614455973d61836d18b0a4bcbce6b77e9658e1c3930",
-      "originalBytes": 10900,
-      "sha256": "2db8f50a360c14fa86cbcda82b990b32996302af5f3703f1665673233da9cfee",
-      "bytes": 10999
+      "originalSha256": "b16a4b5a9bbfdc8f0d34ad7e7f192de23af33cd909a9a12b7221f37d27eff44c",
+      "originalBytes": 5357,
+      "sha256": "28c7420cb7fc590df2bdcf1cb917b68f30c014df7f6e14a64cbbfc25591087da",
+      "bytes": 5456
     },
     {
       "original": "src/components/LazySection.vue",
@@ -863,13 +908,22 @@
       "bytes": 2868
     },
     {
-      "original": "src/utils/routeScrollPreparation.ts",
-      "path": "集成示例/项目源码/工具/路由滚动准备.ts",
+      "original": "src/composables/useAboutScrollPreparation.ts",
+      "path": "集成示例/项目源码/组合函数/人物页滚动准备.ts",
       "role": "integration-context",
-      "originalSha256": "a9017ae39fc422be283007ec7d8328516136f30978ae86f69c387100739ba1d2",
-      "originalBytes": 679,
-      "sha256": "a9017ae39fc422be283007ec7d8328516136f30978ae86f69c387100739ba1d2",
-      "bytes": 679
+      "originalSha256": "ce1da8646ee79bb0ba8e2dcd586aa238a0816dc438bff1daa3b6daa443e68a11",
+      "originalBytes": 5234,
+      "sha256": "1189a52700ba14540be972b7227195b1526aabe1ee4c720d985333cea233ef35",
+      "bytes": 5248
+    },
+    {
+      "original": "src/utils/abortable.ts",
+      "path": "集成示例/项目源码/工具/可取消异步等待.ts",
+      "role": "integration-context",
+      "originalSha256": "ad7d796f50491ae3d93471bafa237601884632d95be8eac9182a82e21b6e3f40",
+      "originalBytes": 1374,
+      "sha256": "ad7d796f50491ae3d93471bafa237601884632d95be8eac9182a82e21b6e3f40",
+      "bytes": 1374
     }
   ]
 }
