@@ -13,6 +13,23 @@ const compile = source => ts.transpileModule(source, { compilerOptions: {
 } }).outputText
 const cases = []
 const pass = name => cases.push(name)
+
+// The root renders the active route and the gallery mounts before the intro hands off.
+const appTemplate = parse(read('src/App.vue')).descriptor.template.ast
+const appRoot = appTemplate.children.find(node => node.tag === 'div')
+const routeStage = appRoot?.children.find(node =>
+  node.props?.some(prop => prop.name === 'class' && prop.value?.content === 'route-stage'),
+)
+assert.ok(routeStage?.children.some(node => node.tag === 'RouterView'), 'App must render the active route')
+const galleryTemplate = parse(read('src/views/GalleryView.vue')).descriptor.template.ast
+const galleryRoot = galleryTemplate.children.find(node => node.tag === 'div')
+const gallery = galleryRoot?.children.find(node => node.tag === 'ThreeHome')
+assert.ok(gallery && !gallery.props.some(prop => prop.name === 'if'), 'ThreeHome must mount before the preloader completes')
+assert.ok(
+  gallery.props.some(prop => prop.name === 'bind' && prop.arg?.content === 'preloader-done' && prop.exp?.content === '!showPreloader'),
+  'ThreeHome must receive the preloader state',
+)
+pass('根组件渲染当前路由，首页画廊在开场交接前挂载并接收开场状态')
 function functions(source, names) {
   const file = ts.createSourceFile('actual.ts', source, ts.ScriptTarget.Latest, true)
   return file.statements.filter(node => ts.isFunctionDeclaration(node) && names.includes(node.name?.text)).map(node => node.getText(file)).join('\n')

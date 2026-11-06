@@ -1,92 +1,163 @@
 <template>
   <div id="app">
-    <!-- 1. GSAP 开场动画 -->
-    <Preloader
-      v-if="showPreloader"
-      @complete="onPreloaderComplete"
-    />
+    <!--
+      路由出口：首页画廊、卡片列表和六个子页随路由切换而销毁重建。
+      幕布仍在揭开时保持 inert，避免可见但尚未解锁的页面接收点击或焦点。
+    -->
+    <div class="route-stage" :inert="routeCurtainActive"><RouterView /></div>
 
-    <!-- 2. 六章节空间 Gallery：同一卡片连续展开 -->
-    <ThreeHome v-if="showMain" />
+    <!--
+      全站唯一幕布持有在路由之外，覆盖、等待目标就绪和弧形揭幕连续播放。
+    -->
+    <PageCurtain ref="curtain" :active="routeCurtainActive" :title="curtainTitle" />
 
-    <!-- 3. 底部版权信息 -->
-    <div v-if="showMain" class="footer-copyright">
-      &copy; 2026 全翔宇 &middot; 由 AI 协作开发
+    <!--
+      跳转失败的出口。
+         没有它，用户只能对着一块近黑底的旧页面干等 —— 这是「黑屏」里最坏的部分：
+         屏幕是黑的、地址停在首页、控制台之外没有任何提示、也没有任何可点的东西。
+         `role="alert"` 让读屏立刻念出来；z-index 压过弧形幕（10005），
+         因为超时那条路径上幕布还挂着。
+    -->
+    <div v-if="jumpError" class="nav-error" role="alert">
+      <span class="nav-error__text">{{ jumpError }}</span>
+      <button type="button" class="nav-error__btn" @click="reloadPage">刷新重试</button>
     </div>
+
+    <!--
+      局部动作光标与索引：挂在路由外，页面切换时保持反馈连续。
+      子页之间切换时不销毁索引组件，避免 Teleport 的离场节点遗留在 body。
+    -->
+    <CustomCursor />
+    <SubpageIndex v-if="isSubpage" />
+    <p
+      v-if="!isCompletePersonalPortfolio && (!isPersonalPortfolio || route.path !== '/about')"
+      class="template-notice"
+    >
+      模板演示 · 虚构资料与合成素材
+    </p>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import Preloader from './components/Preloader.vue'
-import ThreeHome from './components/ThreeHome.vue'
+import { computed, ref } from 'vue'
+import { RouterView, useRoute, useRouter } from 'vue-router'
+import PageCurtain from './components/PageCurtain.vue'
+import CustomCursor from './components/CustomCursor.vue'
+import SubpageIndex from './components/SubpageIndex.vue'
+import { useSmoothScroll } from './composables/useSmoothScroll'
+import { routeCurtainActive } from './composables/usePageCurtain'
+import { useRouteCurtainNavigation } from './composables/useRouteCurtainNavigation'
+import { isCompletePersonalPortfolio, isPersonalPortfolio } from './data/personalPortfolio'
 
-const showPreloader = ref(true)
-const showMain = ref(false)
-
-function onPreloaderComplete() {
-  showPreloader.value = false
-  showMain.value = true
-}
+const router = useRouter()
+const route = useRoute()
+const isSubpage = computed(() =>
+  ['/about', '/edit', '/news', '/color', '/poster', '/photo'].includes(route.path),
+)
+const curtain = ref<InstanceType<typeof PageCurtain> | null>(null)
+const { curtainTitle, jumpError, reloadPage } = useRouteCurtainNavigation({ router, curtain })
+// Color 的首屏进度闸门由该页自己的控制器消费，避免重复接管滚轮。
+useSmoothScroll(
+  undefined,
+  () => isSubpage.value && route.path !== '/color' && !routeCurtainActive.value,
+)
 </script>
 
 <style>
-/* ============================================================
-   全局样式重置
-   ============================================================ */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-html,
-body {
-  width: 100%;
-  height: 100%;
-  background: #0a0a0a;
-  font-family: 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  overflow: hidden;
-  color: #fff;
-}
-
-body {
-  overscroll-behavior: none;
-}
-
+/* 全局重置与字体已由 src/style.css 提供，这里只保留本页根容器 + 遮罩。 */
 #app {
   position: relative;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
+  width: 100%;
+  /*
+    改成了 min-height：作品集自己会锁 100vh，
+    而卡片列表页需要能滚动，根容器不能再写死高度 + overflow: hidden。
+  */
+  min-height: 100vh;
   background: #0a0a0a;
 }
 
-/* ============================================================
-   底部版权（半透明，不干扰交互）
-   ============================================================ */
-.footer-copyright {
+.template-notice {
   position: fixed;
-  bottom: 12px;
+  bottom: 8px;
   left: 50%;
-  transform: translateX(-50%);
+  /* 提示属于正文；索引、看图层与幕布必须完整盖住它。 */
   z-index: 50;
-  color: rgba(255, 255, 255, 0.12);
-  font-size: 0.7rem;
-  letter-spacing: 0.06em;
-  pointer-events: none;
-  font-weight: 300;
-  text-align: center;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 5px 12px;
+  border: 1px solid rgb(255 255 255 / 20%);
+  border-radius: 999px;
+  background: rgb(20 20 20 / 88%);
+  color: #fff;
+  font:
+    11px/1.4 system-ui,
+    sans-serif;
   white-space: nowrap;
-  mix-blend-mode: difference;
+  pointer-events: none;
 }
 
-/* ============================================================
-   响应式：移动端底部版权隐藏
-   ============================================================ */
-@media (max-width: 480px) {
-  .footer-copyright {
-    display: none;
-  }
+/* ========== 全局转场输入锁 ========== */
+html.page-turn-lock {
+  overflow: hidden;
+  cursor: wait;
+}
+html.page-turn-lock body {
+  overflow: hidden;
+}
+
+/* ========== 跳转失败的出口 ========== */
+/*
+ * ⚠️ 刻意用**白底深字**，不跟站点色板走。
+ *    它要同时出现在两种底色上：铺满全屏的 03 卡（近黑底）和 /color 的白底。
+ *    一个「反色」的告警条是唯一在两边都一眼可见的做法 —— 这里可读性优先于统一感。
+ */
+.nav-error {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  /* 压过装载幕（10001）：超时那条路径上幕布还挂着 */
+  z-index: 10010;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: min(680px, calc(100vw - 40px));
+  padding: 14px 18px;
+  border-radius: 6px;
+  background: #fff;
+  color: #111;
+  font-size: 13px;
+  line-height: 1.5;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+}
+
+.nav-error__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.nav-error__btn {
+  flex: none;
+  appearance: none;
+  padding: 8px 14px;
+  border: 1px solid #111;
+  border-radius: 4px;
+  background: #111;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+.nav-error__btn:hover {
+  background: #333;
+  border-color: #333;
+}
+.nav-error__btn:focus-visible {
+  outline: 2px solid #111;
+  outline-offset: 3px;
 }
 </style>
