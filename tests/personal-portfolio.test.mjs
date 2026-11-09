@@ -4,6 +4,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSyn
 import { basename, dirname, join, relative, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
 import { Writable } from 'node:stream'
+import { createServer } from 'vite'
 import { personalPortfolio } from '../scripts/personal-portfolio.mjs'
 
 const directory = '本机私有资料/个人网站'
@@ -198,6 +199,33 @@ test('the JSON script escapes HTML boundaries and excludes local mapping or extr
   assert.deepEqual(JSON.parse(tag.children), { profile: { heading } })
   assert.equal(Object.hasOwn(JSON.parse(tag.children), 'assets'), false)
   assert.equal(Object.hasOwn(JSON.parse(tag.children), 'enabled'), false)
+})
+
+test('large personal content cannot precede the UTF-8 declaration or head resources', async (t) => {
+  const f = fixture(t)
+  const profile = { heading: '中文简介'.repeat(1500) }
+  f.manifest({ ...enabled({}), profile })
+  const server = await createServer({
+    configFile: false,
+    root: f.root,
+    plugins: [f.plugin],
+    server: { middlewareMode: true, watch: null },
+  })
+  try {
+    const html = await server.transformIndexHtml(
+      '/',
+      '<!doctype html><html><head><meta charset="UTF-8"><title>简介</title></head><body><div id="app"></div></body></html>',
+    )
+    const declaration = /<meta\s+charset="UTF-8"\s*\/?\s*>/iu.exec(html)
+    assert.ok(declaration)
+    assert.ok(Buffer.byteLength(html.slice(0, declaration.index + declaration[0].length)) <= 1024)
+    const personal = html.indexOf('id="personal-portfolio"')
+    assert.ok(personal > html.indexOf('</head>'), 'data must not delay head resource discovery')
+    const json = /<script[^>]*id="personal-portfolio"[^>]*>([\s\S]*?)<\/script>/u.exec(html)
+    assert.deepEqual(JSON.parse(json[1]), { profile })
+  } finally {
+    await server.close()
+  }
 })
 
 test('a build emits only explicitly selected bytes and no directory-wide files', (t) => {

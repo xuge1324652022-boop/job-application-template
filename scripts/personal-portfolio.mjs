@@ -224,7 +224,8 @@ export function personalPortfolio(root, { sourceRoot = root, required = false } 
             tag: 'script',
             attrs: { id: 'personal-portfolio', type: 'application/json' },
             children: json,
-            injectTo: 'head-prepend',
+            // Keep UTF-8 and preload tags ahead of the potentially large inline content pack.
+            injectTo: 'body-prepend',
           },
         ]
       },

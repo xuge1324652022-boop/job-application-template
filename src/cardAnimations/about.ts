@@ -238,18 +238,11 @@ export class AboutAnimation extends BaseAnimation {
     super.mount(host)
   }
 
-  /**
-   * 聚焦入场。保留对 this.host 的原有补间以满足单元测试与生命周期契约。
-   */
+  /** 空间推镜归画廊控制；这里只重放内部 MG，不能再次淡出整张已落位的卡。 */
   restart(): void {
     if (this.host) {
       gsap.killTweensOf(this.host)
-      if (this.reduced()) gsap.set(this.host, { clearProps: 'transform,opacity' })
-      else gsap.fromTo(
-        this.host,
-        { scale: 0.94, y: 14, opacity: 0 },
-        { scale: 1, y: 0, opacity: 1, duration: 0.75, ease: 'power2.out' },
-      )
+      gsap.set(this.host, { clearProps: 'transform,opacity' })
     }
     super.restart()
   }

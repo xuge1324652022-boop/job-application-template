@@ -16,6 +16,7 @@ interface GalleryRendererOptions {
   positions: readonly HTMLElement[]
   drifts: readonly HTMLElement[]
   planes: readonly HTMLElement[]
+  isTransitioning(): boolean
   outlines: readonly HTMLElement[]
   labels: readonly HTMLElement[]
 }
@@ -44,12 +45,14 @@ export function createGalleryRenderer({
   positions,
   drifts,
   planes,
+  isTransitioning,
   outlines,
   labels,
 }: GalleryRendererOptions) {
   const cardAnimating = new Array<boolean>(CARD_COUNT).fill(true)
   // 缓存上一次写入的样式值，避免重复写同样的字符串触发无谓重排
   const lastWritten = new Map<string, string>()
+  const outlineEdges = new WeakMap<HTMLElement, HTMLElement[]>()
 
   /** 只在值真的变化时才写 DOM 样式 */
   function writeStyle(node: HTMLElement | null, key: string, value: string) {
@@ -60,11 +63,9 @@ export function createGalleryRenderer({
     node.style.setProperty(key, value)
   }
 
-  /** 切换元素可见性（用 display，值必须合法 —— 不能写 '1'/'0'） */
+  /** 隐藏卡片时停止其内容动画；静止时不重复修改 display。 */
   function setVisibility(node: HTMLElement | null, visible: boolean) {
-    if (!node) return
-    if (visible) node.style.removeProperty('display')
-    else node.style.display = 'none'
+    writeStyle(node, 'display', visible ? '' : 'none')
   }
 
   /** 把数字格式化成固定小数位，减少字符串抖动 */
@@ -81,6 +82,7 @@ export function createGalleryRenderer({
 
     const viewport = getViewport()
     const layout = layoutGallery(viewport.width, viewport.height, state)
+    const transitioning = isTransitioning()
     const dx = drift.x
     const dy = drift.y
 
@@ -115,9 +117,10 @@ export function createGalleryRenderer({
       const opacity = pose.opacity
       const visible = opacity > 0.004
       setVisibility(positions[index], visible)
-      if (cardAnimating[index] !== visible) {
-        cardAnimating[index] = visible
-        if (visible) visuals[index]?.play()
+      const animating = visible && !transitioning
+      if (cardAnimating[index] !== animating) {
+        cardAnimating[index] = animating
+        if (animating) visuals[index]?.play()
         else visuals[index]?.pause()
       }
       if (!visible) continue
@@ -143,26 +146,55 @@ export function createGalleryRenderer({
         `inset(${number(pose.insetY)}% ${number(pose.insetX)}%)`,
       )
       writeStyle(planes[index], 'opacity', String(number(opacity)))
+      // 仅为接管/退出全屏的活动卡预备合成层，静止后释放。
+      writeStyle(
+        planes[index], 'will-change', selected && transitioning ? 'transform, clip-path' : '',
+      )
       // ⚠️ 这里曾经每帧再写一遍 `background-color: #111111`。那行是 no-op
       //    （与 CSS 里的底色完全相同），却把背景色锁进了内联样式 —— 之后
       //    任何人改 CSS 里的底色都会失效，且查不到是谁在写。底色归 CSS。
 
       const outline = outlines[index]
-      writeStyle(
-        outline,
-        'inset',
-        `${number(pose.insetY + near * 0.6)}% ${number(pose.insetX + near * 0.6)}%`,
-      )
-      writeStyle(outline, 'border-width', `${number(1 / pose.scale)}px`)
+      // 四条线只改变 transform。原来的 inset / border-width 每帧让整张
+      // 全视口卡片重新布局，低性能设备在放大特写时尤其明显。
+      if (outline) {
+        let edges = outlineEdges.get(outline)
+        if (!edges) {
+          edges = Array.from(outline.children) as HTMLElement[]
+          outlineEdges.set(outline, edges)
+        }
+        const x = layout.width * (pose.insetX + near * 0.6) / 100
+        const y = layout.height * (pose.insetY + near * 0.6) / 100
+        const sx = 1 - 2 * x / layout.width
+        const sy = 1 - 2 * y / layout.height
+        const thickness = 1 / pose.scale
+        const edgeTransforms = [
+          `translate3d(${number(x)}px, ${number(y)}px, 0) scale(${number(sx)}, ${number(thickness)})`,
+          `translate3d(${number(x)}px, ${number(layout.height - y - thickness)}px, 0) scale(${number(sx)}, ${number(thickness)})`,
+          `translate3d(${number(x)}px, ${number(y)}px, 0) scale(${number(thickness)}, ${number(sy)})`,
+          `translate3d(${number(layout.width - x - thickness)}px, ${number(y)}px, 0) scale(${number(thickness)}, ${number(sy)})`,
+        ]
+        edges.forEach((edge, i) => writeStyle(edge, 'transform', edgeTransforms[i]))
+      }
       writeStyle(outline, 'opacity', String(number((selected ? 0.7 : 0.46) + near * 0.34)))
 
       const label = labels[index]
-      writeStyle(label, 'inset', `${number(pose.insetY)}% ${number(pose.insetX)}%`)
       // 最前方那张卡的标签在画廊态会前伸 +40px，并随着该卡接管视口
       // 滑回边距位置，这样它就不会压在全屏构图上面。
       // 非最前方的标签则永不移动。
       const labelLift = selected ? 1 - clamp(state.focus / 0.8) : 0
-      writeStyle(label, 'transform', `translate3d(${number(40 * labelLift)}px, 0, 0)`)
+      const labelX = layout.width * pose.insetX / 100 + 40 * labelLift
+      const labelY = layout.height * pose.insetY / 100
+      // 标签盒保持视口尺寸，顶部/底部两行各自平移，避免缩放文字或改变布局。
+      writeStyle(label, 'transform', `translate3d(${number(labelX)}px, 0, 0)`)
+      writeStyle(
+        label?.firstElementChild as HTMLElement | null,
+        'transform', `translate3d(0, ${number(labelY)}px, 0)`,
+      )
+      writeStyle(
+        label?.lastElementChild as HTMLElement | null,
+        'transform', `translate3d(0, ${number(-labelY)}px, 0)`,
+      )
       const labelBase = selected ? 1 - clamp(state.focus / 0.8) : 0.8
       writeStyle(label, 'opacity', String(number(Math.min(1, labelBase + near * 0.2))))
     }

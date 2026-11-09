@@ -42,7 +42,9 @@
                   :active="index === activeIndex || phase === 'gallery'"
                 />
                 <!-- 描边：邻近度越高越亮，且亮度会乘 reach 随 focus 淡出 -->
-                <div :ref="(el) => setOutlineRef(el, index)" class="card-outline" />
+                <div :ref="(el) => setOutlineRef(el, index)" class="card-outline">
+                  <i v-for="edge in 4" :key="edge" />
+                </div>
                 <!-- 前置标签：编号 + 章节名，聚焦时向右滑出 -->
                 <div :ref="(el) => setLabelRef(el, index)" class="card-label">
                   <span>{{ chapter.number }}</span>
@@ -479,6 +481,7 @@ const render = createGalleryRenderer({
   positions,
   drifts,
   planes,
+  isTransitioning: () => phase.value === 'focusing' || phase.value === 'returning',
   outlines,
   labels,
 })
@@ -713,11 +716,7 @@ function focusChapter(index: number) {
   state.selected = chosen
   state.focus = 0
   phase.value = 'focusing'
-  // `restart()` 会重放卡片一次性入场动画（NEWS 帧擦除 / POSTER 显影 /
-  // ABOUT 淡入……）。`remount()` 只是重建时间线，且只留给 resize 场景 ——
-  // 那种情况下宿主可能在 display:none 子树里被测量过。
-  // 在这里调 remount() 会让整段入场动画被完全跳过。
-  visuals[chosen]?.restart()
+  // 推镜时保留当前构图，落位后再播放卡内 MG，避免两套大面积动画同时重绘。
   render()
   refreshProximity()
   getChapter().transitionToChapter()
@@ -1028,6 +1027,7 @@ function getChapter() {
       onEnterChapter: () => {
         phase.value = 'detail'
         render()
+        visuals[state.selected]?.restart()
       },
       onReturnToGallery: () => {
         phase.value = 'gallery'
@@ -1377,15 +1377,35 @@ onBeforeUnmount(() => {
   pointer-events: auto;
 }
 
+/* SVG 扫描线与 GSAP 环境动画同样在推镜期间暂停，落位后继续。 */
+[data-phase='focusing'] :deep(.demo__scan),
+[data-phase='returning'] :deep(.demo__scan) {
+  animation-play-state: paused;
+}
+
 .card-outline {
   position: absolute;
-  border: solid rgba(241, 241, 236, 0.9);
+  inset: 0;
+  color: rgba(241, 241, 236, 0.9);
   pointer-events: none;
-  transition: border-color 0.2s;
+  transition: color 0.2s;
+}
+.card-outline i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform-origin: 0 0;
+}
+.card-outline i:nth-child(n + 3) {
+  width: 1px;
+  height: 100%;
 }
 .card-plane:hover .card-outline,
 .card-plane:focus-visible .card-outline {
-  border-color: #fff;
+  color: #fff;
 }
 
 /* The reference answers hover through the artwork, not an extra UI frame.
@@ -1402,6 +1422,7 @@ onBeforeUnmount(() => {
 
 .card-label {
   position: absolute;
+  inset: 0;
   padding: 22px 26px;
   display: flex;
   flex-direction: column;

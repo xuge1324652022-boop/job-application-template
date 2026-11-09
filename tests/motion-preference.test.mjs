@@ -108,7 +108,7 @@ test('CardVisual实际生命周期重建指针绑定，保留实例，卸载后�
   assert.equal(calls.at(-1), 'destroy')
 })
 
-test('ABOUT实际入场补间在中途resize后清除自身样式，保留父级几何与子层视差', () => {
+test('ABOUT重放不会再次淡出整张全屏卡，并清理遗留宿主补间而保留父级几何与视差', () => {
   const base = {}, about = {}, cleared = []
   const cssDefaults = { scale: 1, y: 0, opacity: 1 }
   const host = Object.create(cssDefaults)
@@ -138,16 +138,20 @@ test('ABOUT实际入场补间在中途resize后清除自身样式，保留父级
   const animation = new about.AboutAnimation()
   try {
     animation.mount(host)
-    animation.restart()
-    const entrance = gsap.getTweensOf(host)[0]
-    assert.ok(entrance, '聚焦建立的宿主入场补间必须真实存在')
+    // 模拟中断前留下的整卡淡入；新的内部 MG 必须接管并恢复整卡可见性。
+    const entrance = gsap.fromTo(host, { scale: .94, y: 14, opacity: 0 },
+      { scale: 1, y: 0, opacity: 1, duration: .75 })
     entrance.progress(.3).pause()
-    assert.ok(host.opacity > 0 && host.opacity < 1)
-    assert.ok(host.scale < 1 && host.y > 0)
+    animation.restart()
+    assert.equal(gsap.getTweensOf(host).length, 0, '不能与父级推镜叠加整卡缩放和淡入')
+    assert.equal(host.opacity, 1)
+    assert.equal(host.scale, 1)
+    assert.equal(host.y, 0)
+    assert.equal(cleared.length, 1)
     animation.destroy()
     animation.mount(host)
     animation.play()
-    assert.equal(cleared.length, 1)
+    assert.equal(cleared.length, 2)
     assert.equal(host.opacity, 1, '重建后不能永久停在半透明中间帧')
     assert.equal(host.scale, 1)
     assert.equal(host.y, 0)
